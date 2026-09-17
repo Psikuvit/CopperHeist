@@ -40,6 +40,7 @@ public class Game {
     private final LootSpawner lootSpawner;
 
     private final BukkitTask timerTask;
+    private final BukkitTask sidebarTask;
     private BukkitTask oxidationTask;
     private BukkitTask uiTask;
 
@@ -51,6 +52,9 @@ public class Game {
         this.golemManager = new GolemManager(plugin, this);
         this.lootSpawner = new LootSpawner(this);
         this.timerTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+        // Runs for the whole life of the Game (not just RUNNING) so WAITING/STARTING
+        // players see a lobby board and ENDING/RESETTING still shows the result.
+        this.sidebarTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> plugin.getSidebarService().update(this), 20L, 20L);
     }
 
     public CopperHeist getPlugin() {
@@ -273,7 +277,6 @@ public class Game {
     }
 
     private void uiTick() {
-        plugin.getSidebarService().update(this);
         golemManager.syncLabels();
         for (Player player : onlinePlayers()) {
             plugin.getLootWeightService().recalc(player);
@@ -324,6 +327,7 @@ public class Game {
         }
 
         if (timerTask != null) timerTask.cancel();
+        if (sidebarTask != null) sidebarTask.cancel();
         plugin.getGameManager().onGameFinished(this);
     }
 

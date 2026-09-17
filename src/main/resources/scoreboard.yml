@@ -1,0 +1,47 @@
+# Sidebar layout, one list of lines per match state (see GameState). Lines
+# are MiniMessage templates; {placeholder} tokens are substituted live.
+#
+# Available everywhere:
+#   {arena} {phase} {time} {players} {min_players} {max_players}
+#   {copper_score} {iron_score} {copper_steals} {iron_steals}
+#   {copper_golem_count} {iron_golem_count}
+#
+# Two special lines expand into one line per golem on that team (formatted
+# with golem-line below, which supports {stage} and {carrying}):
+#   <golems:copper>
+#   <golems:iron>
+#
+# "footer" is appended after every state's lines. Max 15 lines total
+# (title doesn't count) - anything past that is dropped.
+
+title: "<gold><bold>COPPER HEIST"
+
+golem-line: " - {stage}{carrying}"
+
+footer:
+  - ""
+  - "<dark_gray>{arena}"
+
+states:
+  waiting:
+    - "<gray>Waiting for players..."
+    - "<white>{players}/{min_players} players needed"
+  starting:
+    - "<gray>Starting in <white>{time}"
+    - "<white>{players} players"
+  running:
+    - "<gray>Phase: <white>{phase}"
+    - "<gray>Time: <white>{time}"
+    - ""
+    - "<gold>COPPER VAULT  <white>{copper_score}"
+    - "<gray>IRON VAULT  <white>{iron_score}"
+    - ""
+    - "<gold>Copper golems: {copper_golem_count}"
+    - "<golems:copper>"
+    - "<gray>Iron golems: {iron_golem_count}"
+    - "<golems:iron>"
+  ending:
+    - "<gray>Match over!"
+    - "<gold>COPPER <white>{copper_score}  <gray>-  <white>{iron_score} <gray>IRON"
+  resetting:
+    - "<gray>Resetting arena..."

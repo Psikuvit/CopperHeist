@@ -37,7 +37,8 @@ public final class CopperHeist extends JavaPlugin {
         gameManager = new GameManager(this);
         messageService = new MessageService(this);
         messageService.load();
-        sidebarService = new SidebarService();
+        sidebarService = new SidebarService(this);
+        sidebarService.load();
         lootWeightService = new LootWeightService(this);
 
         arenaManager.loadAll();
