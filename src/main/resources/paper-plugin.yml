@@ -1,0 +1,17 @@
+name: CopperHeist
+version: '${version}'
+
+main: me.psikuvit.copperHeist.CopperHeist
+api-version: '26.2'
+load: POSTWORLD
+
+permissions:
+  copperheist.play:
+    description: Join and play Copper Heist matches
+    default: true
+  copperheist.admin.arena:
+    description: Build and configure Copper Heist arenas
+    default: op
+  copperheist.admin.debug:
+    description: Force-start/stop matches and spawn debug loot
+    default: op
