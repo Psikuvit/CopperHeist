@@ -85,13 +85,13 @@ public class GolemManager {
 
         Bukkit.getMobGoals().removeAllGoals(entity);
 
-        HeistGolem golem = new HeistGolem(entity, team, site.golemIdle.clone(), new ArrayList<>(site.waypoints));
+        HeistGolem golem = new HeistGolem(entity, team, site.golemIdle.clone(), new ArrayList<>(site.waypoints), this);
         golem.setStageDurationMillis(rollStageDuration());
         golems.put(entity.getUniqueId(), golem);
         plugin.getGameManager().registerGolem(game, golem);
         game.getTeam(team).getGolems().add(golem);
 
-        Bukkit.getMobGoals().addGoal(entity, 0, new DeliveryGoal(golem, this));
+        Bukkit.getMobGoals().addGoal(entity, 0, new DeliveryGoal(golem));
 
         spawnLabel(golem);
         return golem;
