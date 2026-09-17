@@ -8,6 +8,8 @@ import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.util.Cooldowns;
+import me.psikuvit.copperHeist.util.Pdc;
+import me.psikuvit.copperHeist.util.PdcKeys;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -77,6 +79,8 @@ public class GolemManager {
         entity.customName(Component.text(team.displayName() + " Golem", team.color()));
         entity.setCustomNameVisible(false);
         entity.setWeatheringState(WeatheringCopperState.UNAFFECTED);
+        Pdc.set(entity, PdcKeys.MATCH_ID, game.getMatchId());
+        Pdc.set(entity, PdcKeys.GOLEM_TEAM, team.name());
 
         double health = plugin.getConfig().getDouble("golems.health", 30.0);
         AttributeInstance healthAttr = entity.getAttribute(Attribute.MAX_HEALTH);

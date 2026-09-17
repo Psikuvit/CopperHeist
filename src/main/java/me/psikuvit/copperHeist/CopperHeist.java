@@ -10,10 +10,10 @@ import me.psikuvit.copperHeist.listener.CombatListener;
 import me.psikuvit.copperHeist.listener.GolemInteractListener;
 import me.psikuvit.copperHeist.listener.LootListener;
 import me.psikuvit.copperHeist.listener.PlayerConnectionListener;
-import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootWeightService;
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.SidebarService;
+import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class CopperHeist extends JavaPlugin {
@@ -29,7 +29,7 @@ public final class CopperHeist extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
 
-        LootItem.init(this);
+        PdcKeys.init(this);
         DeliveryGoal.init(this);
 
         arenaManager = new ArenaManager(this);

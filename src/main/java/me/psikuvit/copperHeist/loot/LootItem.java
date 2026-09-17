@@ -1,21 +1,20 @@
 package me.psikuvit.copperHeist.loot;
 
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.util.Pdc;
+import me.psikuvit.copperHeist.util.PdcKeys;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.Plugin;
 
 import java.util.UUID;
 import java.util.random.RandomGenerator;
 
 /**
- * PDC-tagged loot items. Tags: loot_value (INTEGER), loot_id (STRING, anti-dupe),
- * match_id (STRING, prevents loot leaking between matches), last_team (STRING, steal tracking).
+ * PDC-tagged loot items, read/written through {@link Pdc}. Tags: loot_value
+ * (anti-dupe), loot_id, match_id (prevents loot leaking between matches),
+ * last_team (steal tracking).
  */
 public final class LootItem {
 
@@ -36,27 +35,16 @@ public final class LootItem {
         }
     }
 
-    private static NamespacedKey valueKey;
-    private static NamespacedKey idKey;
-    private static NamespacedKey matchKey;
-    private static NamespacedKey teamKey;
-
     private LootItem() {
-    }
-
-    public static void init(Plugin plugin) {
-        valueKey = new NamespacedKey(plugin, "loot_value");
-        idKey = new NamespacedKey(plugin, "loot_id");
-        matchKey = new NamespacedKey(plugin, "match_id");
-        teamKey = new NamespacedKey(plugin, "last_team");
     }
 
     public static ItemStack create(Tier tier, String matchId) {
         ItemStack item = new ItemStack(tier.material);
-        ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(valueKey, PersistentDataType.INTEGER, tier.value);
-        meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, UUID.randomUUID().toString());
-        meta.getPersistentDataContainer().set(matchKey, PersistentDataType.STRING, matchId);
+        Pdc.set(item, PdcKeys.LOOT_VALUE, tier.value);
+        Pdc.set(item, PdcKeys.LOOT_ID, UUID.randomUUID().toString());
+        Pdc.set(item, PdcKeys.MATCH_ID, matchId);
+
+        var meta = item.getItemMeta();
         meta.displayName(Component.text(tier.name() + " (" + tier.value + ")", NamedTextColor.YELLOW));
         item.setItemMeta(meta);
         return item;
@@ -75,24 +63,19 @@ public final class LootItem {
     }
 
     public static boolean isLoot(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer().has(valueKey, PersistentDataType.INTEGER);
+        return Pdc.has(item, PdcKeys.LOOT_VALUE);
     }
 
     public static int getValue(ItemStack item) {
-        if (!isLoot(item)) return 0;
-        Integer v = item.getItemMeta().getPersistentDataContainer().get(valueKey, PersistentDataType.INTEGER);
-        return v == null ? 0 : v;
+        return Pdc.get(item, PdcKeys.LOOT_VALUE, 0);
     }
 
     public static String getMatchId(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return null;
-        return item.getItemMeta().getPersistentDataContainer().get(matchKey, PersistentDataType.STRING);
+        return Pdc.get(item, PdcKeys.MATCH_ID);
     }
 
     public static Team getLastTeam(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return null;
-        String name = item.getItemMeta().getPersistentDataContainer().get(teamKey, PersistentDataType.STRING);
+        String name = Pdc.get(item, PdcKeys.LAST_TEAM);
         if (name == null) return null;
         try {
             return Team.valueOf(name);
@@ -102,8 +85,6 @@ public final class LootItem {
     }
 
     public static void setLastTeam(ItemStack item, Team team) {
-        ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(teamKey, PersistentDataType.STRING, team.name());
-        item.setItemMeta(meta);
+        Pdc.set(item, PdcKeys.LAST_TEAM, team.name());
     }
 }

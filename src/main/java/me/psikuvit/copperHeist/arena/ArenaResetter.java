@@ -1,6 +1,8 @@
 package me.psikuvit.copperHeist.arena;
 
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.util.Pdc;
+import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
@@ -29,7 +31,11 @@ public class ArenaResetter {
         if (world == null) return;
         for (Entity entity : world.getEntities()) {
             if (!arena.isInBounds(entity.getLocation())) continue;
-            if (entity instanceof Item || entity instanceof Display || entity.getType() == EntityType.COPPER_GOLEM) {
+            if (entity instanceof Item || entity instanceof Display) {
+                entity.remove();
+            } else if (entity.getType() == EntityType.COPPER_GOLEM && Pdc.has(entity, PdcKeys.MATCH_ID)) {
+                // Only remove golems this plugin spawned - a real player-owned copper
+                // golem that happened to wander into the bounds is left alone.
                 entity.remove();
             }
         }
