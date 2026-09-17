@@ -141,7 +141,6 @@ public class Game {
         teams.get(gamePlayer.getTeam()).getMembers().remove(player.getUniqueId());
 
         plugin.getLootWeightService().clearModifier(player);
-        plugin.getSidebarService().clear(player);
 
         if (online && gamePlayer.getSavedState() != null) {
             GamePlayer.SavedState saved = gamePlayer.getSavedState();
@@ -151,6 +150,11 @@ public class Game {
             player.setHealth(Math.min(saved.health(), player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
             player.setFoodLevel(saved.foodLevel());
             player.teleport(saved.location());
+        }
+        // Falls back to the hub board rather than clearing to the vanilla
+        // scoreboard - they're still online, just not in a match anymore.
+        if (online) {
+            plugin.getSidebarService().showHub(player);
         }
 
         if (state == GameState.RUNNING) {

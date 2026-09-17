@@ -16,6 +16,18 @@
 
 title: "<gold><bold>COPPER HEIST"
 
+# Shown to any online player not currently in a match (before /ch join, or
+# after leaving one). {arenas_enabled} {arenas_total} {players_online}
+hub:
+  title: "<gold><bold>COPPER HEIST"
+  lines:
+    - "<gray>Welcome!"
+    - ""
+    - "<white>{arenas_enabled}/{arenas_total} arenas open"
+    - "<white>{players_online} players online"
+    - ""
+    - "<gray>/ch join <arena>"
+
 golem-line: " - {stage}{carrying}"
 
 footer:

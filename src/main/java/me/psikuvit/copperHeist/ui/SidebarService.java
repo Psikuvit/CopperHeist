@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.ui;
 
 import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
@@ -12,6 +13,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -26,11 +28,10 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Per-player sidebar, one layout per {@link me.psikuvit.copperHeist.game.GameState}
- * loaded from scoreboard.yml (so the lobby board and every in-game phase are
- * configurable without touching code). Rendering uses the classic team-prefix
- * trick: each visible line is a team prefix, and the scoreboard "entry" itself
- * is an invisible color code so duplicate-looking lines don't collide.
+ * Per-player sidebar rendering for any {@link ScoreboardContext}. Two
+ * contexts exist today: the server hub board (any online player not
+ * currently in a match) and a running match's own board - both configured
+ * in scoreboard.yml, both rendered through the same render() method.
  */
 public class SidebarService {
 
@@ -41,6 +42,7 @@ public class SidebarService {
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final Map<UUID, Scoreboard> boards = new HashMap<>();
     private FileConfiguration config;
+    private BukkitTask hubTask;
 
     public SidebarService(CopperHeist plugin) {
         this.plugin = plugin;
@@ -52,12 +54,71 @@ public class SidebarService {
         config = YamlConfiguration.loadConfiguration(file);
     }
 
-    public void update(Game game) {
-        List<Component> lines = buildLines(game);
-        Component title = miniMessage.deserialize(config.getString("title", "<gold>COPPER HEIST"));
-        for (Player player : game.onlinePlayers()) {
-            render(player, title, lines);
+    /** Refreshes the hub board for every online player not currently in a match. */
+    public void startHub() {
+        if (hubTask != null) hubTask.cancel();
+        hubTask = Bukkit.getScheduler().runTaskTimer(plugin, this::updateHub, 20L, 20L);
+    }
+
+    public void stopHub() {
+        if (hubTask != null) hubTask.cancel();
+    }
+
+    // ---- hub board ----
+
+    public void showHub(Player player) {
+        render(player, buildHubContext());
+    }
+
+    private void updateHub() {
+        ScoreboardContext context = buildHubContext();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (plugin.getGameManager().getGame(player) != null) continue;
+            render(player, context);
         }
+    }
+
+    private ScoreboardContext buildHubContext() {
+        Component title = miniMessage.deserialize(config.getString("hub.title", config.getString("title", "<gold>COPPER HEIST")));
+
+        int total = plugin.getArenaManager().all().size();
+        int enabled = 0;
+        for (Arena arena : plugin.getArenaManager().all()) {
+            if (arena.isEnabled()) enabled++;
+        }
+        Map<String, String> placeholders = Map.of(
+                "{arenas_enabled}", String.valueOf(enabled),
+                "{arenas_total}", String.valueOf(total),
+                "{players_online}", String.valueOf(Bukkit.getOnlinePlayers().size()));
+
+        List<Component> lines = new ArrayList<>();
+        for (String template : config.getStringList("hub.lines")) {
+            lines.add(miniMessage.deserialize(applyAll(template, placeholders)));
+        }
+        if (lines.size() > 15) lines = lines.subList(0, 15);
+        return ScoreboardContext.of(title, lines);
+    }
+
+    private String applyAll(String template, Map<String, String> placeholders) {
+        String result = template;
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            result = result.replace(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+
+    // ---- match board ----
+
+    public void update(Game game) {
+        ScoreboardContext context = buildGameContext(game);
+        for (Player player : game.onlinePlayers()) {
+            render(player, context);
+        }
+    }
+
+    private ScoreboardContext buildGameContext(Game game) {
+        Component title = miniMessage.deserialize(config.getString("title", "<gold>COPPER HEIST"));
+        return ScoreboardContext.of(title, buildLines(game));
     }
 
     private List<Component> buildLines(Game game) {
@@ -128,7 +189,9 @@ public class SidebarService {
         return String.format("%02d:%02d", seconds / 60, seconds % 60);
     }
 
-    private void render(Player player, Component title, List<Component> lines) {
+    // ---- rendering ----
+
+    private void render(Player player, ScoreboardContext context) {
         Scoreboard board = boards.computeIfAbsent(player.getUniqueId(), id -> {
             Scoreboard sb = Bukkit.getScoreboardManager().getNewScoreboard();
             player.setScoreboard(sb);
@@ -137,10 +200,10 @@ public class SidebarService {
 
         Objective objective = board.getObjective(OBJECTIVE_NAME);
         if (objective == null) {
-            objective = board.registerNewObjective(OBJECTIVE_NAME, Criteria.DUMMY, title);
+            objective = board.registerNewObjective(OBJECTIVE_NAME, Criteria.DUMMY, context.getTitle());
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         } else {
-            objective.displayName(title);
+            objective.displayName(context.getTitle());
         }
 
         for (String entry : new ArrayList<>(board.getEntries())) {
@@ -150,6 +213,7 @@ public class SidebarService {
             leftoverTeam.unregister();
         }
 
+        List<Component> lines = context.getLines();
         int size = lines.size();
         for (int i = 0; i < size; i++) {
             String entry = "§" + ENTRY_CODES.charAt(i % ENTRY_CODES.length());
