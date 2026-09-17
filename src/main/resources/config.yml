@@ -1,0 +1,32 @@
+# Copper Heist - Core Loop MVP configuration.
+# See copper_heist_design.txt for the full long-term design; only the values
+# used by this MVP build are here.
+
+match:
+  min-players: 6
+  max-players: 16
+  duration-seconds: 900
+  starting-countdown-seconds: 10
+  ending-seconds: 10
+
+loot:
+  respawn-seconds: 35
+  carry-limit: 80
+  weight-per-10-value: 0.05
+  max-slowdown: 0.35
+
+golems:
+  starting: 2
+  health: 30.0
+  base-speed: 0.3
+  speed-multipliers:
+    fresh: 1.0
+    exposed: 0.8
+    weathered: 0.55
+    oxidized: 0.0
+  aging-seconds: 210
+  aging-jitter-seconds: 20
+  scrape-cooldown-seconds: 20
+  stun-seconds: 3
+  stun-immunity-seconds: 5
+  auto-respawn-seconds: 60

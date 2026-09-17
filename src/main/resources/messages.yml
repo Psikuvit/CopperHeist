@@ -1,0 +1,4 @@
+# MiniMessage-format strings. {placeholder} tokens are substituted in code.
+prefix: "<gray>[<gold>Copper Heist</gold>]</gray> "
+
+join: "<green>Joined arena {arena} on the {team} team!"
