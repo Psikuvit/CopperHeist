@@ -47,7 +47,7 @@ public class LootListener implements Listener {
         int itemValue = LootItem.getValue(item) * item.getAmount();
         if (currentValue + itemValue > carryLimit) {
             event.setCancelled(true);
-            player.sendActionBar(Component.text("Carrying too much loot! (limit " + carryLimit + ")", NamedTextColor.RED));
+            player.sendActionBar(plugin.getMessageService().get("actionbar.carry-limit", "limit", carryLimit));
             return;
         }
 

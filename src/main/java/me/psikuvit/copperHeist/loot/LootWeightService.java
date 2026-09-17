@@ -1,8 +1,6 @@
 package me.psikuvit.copperHeist.loot;
 
 import me.psikuvit.copperHeist.CopperHeist;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -52,8 +50,8 @@ public class LootWeightService {
             attribute.addModifier(modifier);
         }
         int carryLimit = plugin.getConfig().getInt("loot.carry-limit", 80);
-        player.sendActionBar(Component.text("Carrying: " + carried + "/" + carryLimit + " value  |  Speed -"
-                + Math.round(penalty * 100) + "%", NamedTextColor.GOLD));
+        player.sendActionBar(plugin.getMessageService().get("actionbar.carrying",
+                "value", carried, "limit", carryLimit, "speed", Math.round(penalty * 100)));
     }
 
     public void clearModifier(Player player) {

@@ -5,8 +5,6 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.golem.HeistGolem;
 import me.psikuvit.copperHeist.loot.LootItem;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -46,15 +44,16 @@ public class GolemInteractListener implements Listener {
     private void handleScrape(Player player, HeistGolem golem, Game game) {
         WeatheringCopperState before = golem.getEntity().getWeatheringState();
         if (before == WeatheringCopperState.UNAFFECTED) {
-            player.sendActionBar(Component.text("This golem is already fresh.", NamedTextColor.GRAY));
+            player.sendActionBar(plugin.getMessageService().get("actionbar.golem-already-fresh"));
             return;
         }
         boolean scraped = game.getGolemManager().scrape(golem);
         if (scraped) {
-            player.sendActionBar(Component.text("Scraped golem back to " + before.name() + " -> " + golem.getEntity().getWeatheringState().name(), NamedTextColor.GREEN));
+            player.sendActionBar(plugin.getMessageService().get("actionbar.golem-scraped",
+                    "before", before.name(), "after", golem.getEntity().getWeatheringState().name()));
         } else {
             long remaining = game.getGolemManager().scrapeCooldownRemaining(golem.getEntity().getUniqueId());
-            player.sendActionBar(Component.text("Scrape on cooldown (" + remaining + "s)", NamedTextColor.RED));
+            player.sendActionBar(plugin.getMessageService().get("actionbar.scrape-cooldown", "seconds", remaining));
         }
     }
 
@@ -65,13 +64,13 @@ public class GolemInteractListener implements Listener {
         int currentValue = plugin.getLootWeightService().getCarriedValue(player);
         int itemValue = LootItem.getValue(carried) * carried.getAmount();
         if (currentValue + itemValue > carryLimit) {
-            player.sendActionBar(Component.text("Carrying too much to take this stack.", NamedTextColor.RED));
+            player.sendActionBar(plugin.getMessageService().get("actionbar.golem-carry-limit"));
             return;
         }
         LootItem.setLastTeam(carried, golem.getTeam());
         player.getInventory().addItem(carried);
         golem.setCarried(null);
         game.getGolemManager().updateLabel(golem);
-        player.sendActionBar(Component.text("Took the oxidized golem's stack.", NamedTextColor.GOLD));
+        player.sendActionBar(plugin.getMessageService().get("actionbar.golem-stack-taken"));
     }
 }

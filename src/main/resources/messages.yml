@@ -2,3 +2,12 @@
 prefix: "<gray>[<gold>Copper Heist</gold>]</gray> "
 
 join: "<green>Joined arena {arena} on the {team} team!"
+
+actionbar:
+  carrying: "<gold>Carrying: {value}/{limit} value  |  Speed -{speed}%"
+  carry-limit: "<red>Carrying too much loot! (limit {limit})"
+  golem-already-fresh: "<gray>This golem is already fresh."
+  golem-scraped: "<green>Scraped golem back to {before} -> {after}"
+  scrape-cooldown: "<red>Scrape on cooldown ({seconds}s)"
+  golem-carry-limit: "<red>Carrying too much to take this stack."
+  golem-stack-taken: "<gold>Took the oxidized golem's stack."
