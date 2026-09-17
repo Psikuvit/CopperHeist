@@ -151,8 +151,6 @@ public class Game {
             player.setFoodLevel(saved.foodLevel());
             player.teleport(saved.location());
         }
-        // Falls back to the hub board rather than clearing to the vanilla
-        // scoreboard - they're still online, just not in a match anymore.
         if (online) {
             plugin.getSidebarService().showHub(player);
         }
