@@ -17,7 +17,7 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
-import me.psikuvit.copperHeist.role.Role;
+import me.psikuvit.copperHeist.role.RoleDefinition;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
 import org.bukkit.command.CommandSender;
@@ -62,7 +62,7 @@ public final class CopperHeistCommand {
                     .then(literal("role")
                             .executes(commands::executeRoleMenu)
                             .then(argument("role", StringArgumentType.word())
-                                    .suggests(RoleSuggestions.ROLES)
+                                    .suggests(RoleSuggestions.of(plugin))
                                     .executes(commands::executeRole)))
                     .then(literal("forcestart")
                             .requires(src -> src.getSender().hasPermission(ADMIN_DEBUG))
@@ -168,11 +168,11 @@ public final class CopperHeistCommand {
         GamePlayer gp = game.getGamePlayer(player.getUniqueId());
         if (gp == null) return 0;
 
-        Role role;
-        try {
-            role = Role.valueOf(StringArgumentType.getString(ctx, "role").toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            Msg.err(player, "Unknown role. Choose: runner, thief, mechanic, guard, saboteur.");
+        RoleDefinition role = plugin.getRoleRegistry().get(StringArgumentType.getString(ctx, "role"));
+        if (role == null) {
+            StringBuilder ids = new StringBuilder();
+            for (RoleDefinition def : plugin.getRoleRegistry().all()) ids.append(ids.isEmpty() ? "" : ", ").append(def.id());
+            Msg.err(player, "Unknown role. Choose: " + ids + ".");
             return 0;
         }
 
@@ -245,7 +245,9 @@ public final class CopperHeistCommand {
         plugin.getSidebarService().load();
         plugin.getShopService().load();
         plugin.getLobbyKitService().load();
-        Msg.ok(sender, "Reloaded config, messages, scoreboard, shop and lobby kit (arenas are untouched).");
+        Team.configure(plugin.getConfig().getConfigurationSection("teams"));
+        plugin.getRoleRegistry().load();
+        Msg.ok(sender, "Reloaded config, messages, scoreboard, shop, roles and lobby kit (arenas and running matches are untouched).");
         return Command.SINGLE_SUCCESS;
     }
 

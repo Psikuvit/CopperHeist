@@ -1,0 +1,108 @@
+# Roles - loadouts, permanent effects, passives and the F-key ability.
+# Everything here is optional except the role id and name. Add, remove or
+# rewrite roles freely; players choose with /ch role or the shop NPC menu.
+#
+# passives (all optional, numbers):
+#   loot-weight-multiplier    scales the movement-speed penalty from carried loot (0.5 = half)
+#   scrape-cooldown-multiplier  scales the golem scrape cooldown
+#   lockpick-multiplier       scales how long enemy dock chests take to pick
+#   damage-bonus / damage-bonus-radius  extra melee damage within N blocks of your spawn
+#   extra-alarms              added to your team's alarm cap while you're on it
+#   clears-stun               1 = right-click a stunned own golem to un-stun it instantly
+#
+# ability: id is one of invisibility, reveal-golems, dash, heal-pulse (plugins can add more).
+# Common keys: cooldown-seconds, message (MiniMessage, overrides the default). Others are per ability.
+#
+# items: material (or shop-item: <id>), amount, name, lore, enchants, slot: offhand
+# armor: helmet/chestplate/leggings/boots each with material and optional dye: team
+
+default-role: runner
+max-per-team: 2
+
+roles:
+  runner:
+    name: "Runner"
+    color: green
+    icon: LEATHER_BOOTS
+    description: "<gray>Carrying loot slows you half as much."
+    armor:
+      helmet: {material: LEATHER_HELMET, dye: team}
+      chestplate: {material: LEATHER_CHESTPLATE, dye: team}
+      leggings: {material: LEATHER_LEGGINGS, dye: team}
+      boots: {material: LEATHER_BOOTS, dye: team}
+    items:
+      - {material: STONE_SWORD}
+    effects:
+      - {type: speed, amplifier: 0}
+    passives:
+      loot-weight-multiplier: 0.5
+
+  thief:
+    name: "Thief"
+    color: dark_gray
+    icon: IRON_SWORD
+    description: "<gray>F: turn invisible. Picks locks twice as fast."
+    armor:
+      helmet: {material: LEATHER_HELMET, dye: team}
+      chestplate: {material: LEATHER_CHESTPLATE, dye: team}
+      leggings: {material: LEATHER_LEGGINGS, dye: team}
+      boots: {material: LEATHER_BOOTS, dye: team}
+    items:
+      - {material: IRON_SWORD}
+    passives:
+      lockpick-multiplier: 0.5
+    ability:
+      id: invisibility
+      cooldown-seconds: 45
+      duration-seconds: 5
+
+  mechanic:
+    name: "Mechanic"
+    color: gold
+    icon: STONE_AXE
+    description: "<gray>Scrape and wax faster; instantly un-stun golems."
+    armor:
+      helmet: {material: CHAINMAIL_HELMET}
+      chestplate: {material: CHAINMAIL_CHESTPLATE}
+      leggings: {material: CHAINMAIL_LEGGINGS}
+      boots: {material: CHAINMAIL_BOOTS}
+    items:
+      - {material: STONE_AXE}
+      - {shop-item: honeycomb, amount: 2}
+    passives:
+      scrape-cooldown-multiplier: 0.5
+      clears-stun: 1
+
+  guard:
+    name: "Guard"
+    color: blue
+    icon: SHIELD
+    description: "<gray>+1 alarm and extra damage near your spawn."
+    armor:
+      chestplate: {material: IRON_CHESTPLATE}
+    items:
+      - {material: SHIELD, slot: offhand}
+      - {material: CROSSBOW}
+      - {material: ARROW, amount: 8}
+    passives:
+      extra-alarms: 1
+      damage-bonus: 0.20
+      damage-bonus-radius: 15
+
+  saboteur:
+    name: "Saboteur"
+    color: dark_purple
+    icon: SPLASH_POTION
+    description: "<gray>F: reveal enemy golems. Starts with oxidizer splashes."
+    armor:
+      helmet: {material: LEATHER_HELMET, dye: team}
+      chestplate: {material: LEATHER_CHESTPLATE, dye: team}
+      leggings: {material: LEATHER_LEGGINGS, dye: team}
+      boots: {material: LEATHER_BOOTS, dye: team}
+    items:
+      - {material: WOODEN_SWORD}
+      - {shop-item: oxidizer_splash, amount: 2}
+    ability:
+      id: reveal-golems
+      cooldown-seconds: 60
+      duration-seconds: 10

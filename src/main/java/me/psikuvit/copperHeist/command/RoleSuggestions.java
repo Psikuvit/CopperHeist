@@ -2,21 +2,23 @@ package me.psikuvit.copperHeist.command;
 
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import me.psikuvit.copperHeist.role.Role;
+import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.role.RoleDefinition;
 
 import java.util.Locale;
 
 public final class RoleSuggestions {
 
-    public static final SuggestionProvider<CommandSourceStack> ROLES = (ctx, builder) -> {
-        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-        for (Role role : Role.values()) {
-            String name = role.name().toLowerCase(Locale.ROOT);
-            if (name.startsWith(remaining)) builder.suggest(name);
-        }
-        return builder.buildFuture();
-    };
-
     private RoleSuggestions() {
+    }
+
+    public static SuggestionProvider<CommandSourceStack> of(CopperHeist plugin) {
+        return (ctx, builder) -> {
+            String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
+            for (RoleDefinition role : plugin.getRoleRegistry().all()) {
+                if (role.id().startsWith(remaining)) builder.suggest(role.id());
+            }
+            return builder.buildFuture();
+        };
     }
 }

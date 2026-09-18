@@ -5,6 +5,9 @@ import me.psikuvit.copperHeist.arena.ArenaResetter;
 import me.psikuvit.copperHeist.command.CopperHeistCommand;
 import me.psikuvit.copperHeist.config.ConfigMigrator;
 import me.psikuvit.copperHeist.config.Settings;
+import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.role.RoleRegistry;
+import me.psikuvit.copperHeist.role.ability.AbilityRegistry;
 import me.psikuvit.copperHeist.game.GameManager;
 import me.psikuvit.copperHeist.golem.DeliveryGoal;
 import me.psikuvit.copperHeist.listener.ArenaProtectionListener;
@@ -37,12 +40,15 @@ public final class CopperHeist extends JavaPlugin {
     private LobbyKitService lobbyKitService;
     private ShopService shopService;
     private Settings settings;
+    private RoleRegistry roleRegistry;
+    private AbilityRegistry abilityRegistry;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         ConfigMigrator.migrate(this);
         settings = Settings.of(this::getConfig);
+        Team.configure(getConfig().getConfigurationSection("teams"));
 
         PdcKeys.init(this);
         DeliveryGoal.init(this);
@@ -60,6 +66,9 @@ public final class CopperHeist extends JavaPlugin {
         lobbyKitService.load();
         shopService = new ShopService(this);
         shopService.load();
+        abilityRegistry = new AbilityRegistry();
+        roleRegistry = new RoleRegistry(this);
+        roleRegistry.load();
 
         arenaManager.loadAll();
         arenaManager.all().forEach(arenaResetter::reset);
@@ -90,6 +99,14 @@ public final class CopperHeist extends JavaPlugin {
     /** Live, layered view of config.yml - prefer this over getConfig() so overrides and presets apply. */
     public Settings settings() {
         return settings;
+    }
+
+    public RoleRegistry getRoleRegistry() {
+        return roleRegistry;
+    }
+
+    public AbilityRegistry getAbilityRegistry() {
+        return abilityRegistry;
     }
 
     public ArenaManager getArenaManager() {

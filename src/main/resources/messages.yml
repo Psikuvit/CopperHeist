@@ -62,6 +62,8 @@ drill:
   progress: "<gold>DRILL on {target} VAULT - {percent}%"
 
 actionbar:
+  ability-dash: "<green>Dash!"
+  ability-heal: "<green>Healing pulse!"
   respawning: "<red>Respawning in {seconds}..."
   heist-only: "<red>Vault Drills unlock in the Heist phase."
   carrying: "<gold>Carrying: {value}/{limit} value  |  Speed -{speed}%  |  Ability: {ability}"

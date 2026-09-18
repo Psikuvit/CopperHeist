@@ -72,6 +72,20 @@ relic:
   lost-respawn-seconds: 30
   holder-extra-carry: 20
 
+# Team look-and-feel. name/prefix are shown in chat, tab and scoreboard; color is a chat color name;
+# armor-color is a Bukkit color name (ORANGE, SILVER, ...) or a #RRGGBB hex for leather armor.
+teams:
+  copper:
+    name: Copper
+    color: gold
+    prefix: "[C] "
+    armor-color: ORANGE
+  iron:
+    name: Iron
+    color: gray
+    prefix: "[I] "
+    armor-color: SILVER
+
 golems:
   ai:
     arrive-distance: 1.5

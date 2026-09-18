@@ -7,7 +7,6 @@ import me.psikuvit.copperHeist.event.AlarmTriggeredEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
-import me.psikuvit.copperHeist.role.Role;
 import me.psikuvit.copperHeist.task.AlarmScanTask;
 import me.psikuvit.copperHeist.util.Cooldowns;
 import org.bukkit.Bukkit;
@@ -64,7 +63,7 @@ public class AlarmManager {
 
     public int capFor(Team team) {
         int base = plugin.settings().getInt("alarms.base-per-team", 4);
-        return base + game.getRoleService().countOnTeam(team, Role.GUARD);
+        return base + game.getRoleService().extraAlarms(team);
     }
 
     public int countFor(Team team) {

@@ -4,48 +4,51 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.role.ability.AbilityContext;
+import me.psikuvit.copperHeist.role.ability.RoleAbility;
 import me.psikuvit.copperHeist.shop.ShopItem;
-import me.psikuvit.copperHeist.task.RevealEndTask;
 import me.psikuvit.copperHeist.util.Cooldowns;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.entity.CopperGolem;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
- * Loadouts, passives and active abilities for the five roles. A few of
- * the original perks depend on systems this build doesn't have (base
- * regions, dock lock-picking) and are adapted or dropped - see the
- * per-role methods below for exactly what changed and why. Guard's "+1
- * alarm" is real (see {@link me.psikuvit.copperHeist.heist.AlarmManager#capFor}),
- * counted directly off this team's Guards rather than tracked here.
+ * Applies {@link RoleDefinition}s during a match: starting kits, permanent
+ * effects, numeric passives and the F-key ability. Everything role-specific
+ * comes from roles.yml - this class has no knowledge of any particular role.
  */
 public class RoleService {
 
-    private static final long THIEF_INVIS_SECONDS = 5;
-    private static final long THIEF_COOLDOWN_SECONDS = 45;
-    private static final long SABOTEUR_REVEAL_SECONDS = 10;
-    private static final long SABOTEUR_COOLDOWN_SECONDS = 60;
-    private static final double GUARD_DAMAGE_BONUS = 0.20;
-    private static final double GUARD_RADIUS = 15.0;
+    public static final String PASSIVE_LOOT_WEIGHT = "loot-weight-multiplier";
+    public static final String PASSIVE_SCRAPE_COOLDOWN = "scrape-cooldown-multiplier";
+    public static final String PASSIVE_LOCKPICK = "lockpick-multiplier";
+    public static final String PASSIVE_DAMAGE_BONUS = "damage-bonus";
+    public static final String PASSIVE_DAMAGE_RADIUS = "damage-bonus-radius";
+    public static final String PASSIVE_EXTRA_ALARMS = "extra-alarms";
+    public static final String PASSIVE_CLEARS_STUN = "clears-stun";
 
     private final CopperHeist plugin;
     private final Game game;
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final Cooldowns abilityCooldowns = new Cooldowns();
 
     public RoleService(CopperHeist plugin, Game game) {
@@ -53,95 +56,86 @@ public class RoleService {
         this.game = game;
     }
 
+    private RoleRegistry roles() {
+        return plugin.getRoleRegistry();
+    }
+
     /** Returns an error message, or null if the role was set (it applies on the next respawn during a match). */
-    public String trySetRole(GamePlayer gp, Role role) {
-        if (role != gp.getRole() && countOnTeam(gp.getTeam(), role) >= 2) {
-            return "Your team already has 2 " + role.displayName() + "s.";
+    public String trySetRole(GamePlayer gp, RoleDefinition role) {
+        int max = roles().maxPerTeam(role);
+        if (!role.id().equals(gp.getRole().id()) && countOnTeam(gp.getTeam(), role) >= max) {
+            return "Your team already has " + max + " " + role.displayName() + (max == 1 ? "." : "s.");
         }
         gp.setRole(role);
         return null;
     }
 
-    /** One item per role, in Role order - the click listener maps slot index straight back to the role. */
+    /** One item per role, in registry order - the click listener maps slot index straight back to the role. */
     public Inventory buildRoleMenu() {
-        Inventory inventory = Bukkit.createInventory(new RoleHolder(), 9, Component.text("Choose a role", NamedTextColor.GOLD));
-        for (Role role : Role.values()) {
-            ItemStack icon = new ItemStack(switch (role) {
-                case RUNNER -> Material.LEATHER_BOOTS;
-                case THIEF -> Material.IRON_SWORD;
-                case MECHANIC -> Material.STONE_AXE;
-                case GUARD -> Material.SHIELD;
-                case SABOTEUR -> Material.SPLASH_POTION;
-            });
-            var meta = icon.getItemMeta();
+        List<RoleDefinition> all = roles().all();
+        int size = Math.max(9, (all.size() + 8) / 9 * 9);
+        Inventory inventory = Bukkit.createInventory(new RoleHolder(), size, Component.text("Choose a role", NamedTextColor.GOLD));
+        for (RoleDefinition role : all) {
+            ItemStack icon = new ItemStack(role.icon());
+            ItemMeta meta = icon.getItemMeta();
             meta.displayName(Component.text(role.displayName(), role.color()).decoration(TextDecoration.ITALIC, false));
-            meta.lore(java.util.List.of(Component.text(switch (role) {
-                case RUNNER -> "Carrying loot slows you half as much.";
-                case THIEF -> "F: turn invisible. Picks locks twice as fast.";
-                case MECHANIC -> "Scrape and wax faster; instantly un-stun golems.";
-                case GUARD -> "+1 alarm and extra damage near your spawn.";
-                case SABOTEUR -> "F: reveal enemy golems. Starts with splash potions.";
-            }, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+            if (!role.description().isBlank()) {
+                meta.lore(List.of(miniMessage.deserialize(role.description()).decoration(TextDecoration.ITALIC, false)));
+            }
             icon.setItemMeta(meta);
             inventory.addItem(icon);
         }
         return inventory;
     }
 
-    public int countOnTeam(Team team, Role role) {
+    public int countOnTeam(Team team, RoleDefinition role) {
         int count = 0;
         for (UUID uuid : game.getTeam(team).getMembers()) {
             GamePlayer gp = game.getGamePlayer(uuid);
-            if (gp != null && gp.getRole() == role) count++;
+            if (gp != null && gp.getRole() != null && gp.getRole().id().equals(role.id())) count++;
         }
         return count;
     }
 
-    /** Picks the first role (in doc order) that isn't already full for this team - used as the join default. */
-    public Role defaultRole(Team team) {
-        for (Role role : Role.values()) {
-            if (countOnTeam(team, role) < 2) return role;
+    /** Picks the first role (in file order) that isn't already full for this team - used as the join default. */
+    public RoleDefinition defaultRole(Team team) {
+        RoleDefinition preferred = roles().defaultRole();
+        if (preferred != null && countOnTeam(team, preferred) < roles().maxPerTeam(preferred)) return preferred;
+        for (RoleDefinition role : roles().all()) {
+            if (countOnTeam(team, role) < roles().maxPerTeam(role)) return role;
         }
-        return Role.RUNNER;
+        return preferred;
     }
 
-    public void giveLoadout(Player player, Role role, Team team) {
-        player.getInventory().clear();
-        Color teamColor = team == Team.COPPER ? Color.ORANGE : Color.SILVER;
+    // ---- loadouts ----
 
-        switch (role) {
-            case RUNNER -> {
-                dyeArmor(player, teamColor
-                );
-                player.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 0, true, false));
+    public void giveLoadout(Player player, RoleDefinition role, Team team) {
+        player.getInventory().clear();
+        for (PotionEffect active : new ArrayList<>(player.getActivePotionEffects())) player.removePotionEffect(active.getType());
+
+        for (Map.Entry<String, ArmorPiece> entry : role.armor().entrySet()) {
+            ItemStack piece = new ItemStack(entry.getValue().material());
+            if (entry.getValue().dyeTeam() && piece.getItemMeta() instanceof LeatherArmorMeta meta) {
+                meta.setColor(team.armorColor());
+                piece.setItemMeta(meta);
             }
-            case THIEF -> {
-                dyeArmor(player, teamColor
-                );
-                player.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
-            }
-            case MECHANIC -> {
-                player.getInventory().setHelmet(new ItemStack(Material.CHAINMAIL_HELMET));
-                player.getInventory().setChestplate(new ItemStack(Material.CHAINMAIL_CHESTPLATE));
-                player.getInventory().setLeggings(new ItemStack(Material.CHAINMAIL_LEGGINGS));
-                player.getInventory().setBoots(new ItemStack(Material.CHAINMAIL_BOOTS));
-                player.getInventory().addItem(new ItemStack(Material.STONE_AXE));
-                player.getInventory().addItem(ShopItem.createHoneycomb(), ShopItem.createHoneycomb());
-            }
-            case GUARD -> {
-                player.getInventory().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-                player.getInventory().setItemInOffHand(new ItemStack(Material.SHIELD));
-                player.getInventory().addItem(new ItemStack(Material.CROSSBOW));
-                player.getInventory().addItem(new ItemStack(Material.ARROW, 8));
-            }
-            case SABOTEUR -> {
-                dyeArmor(player, teamColor
-                );
-                player.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
-                player.getInventory().addItem(ShopItem.createOxidizerSplash(), ShopItem.createOxidizerSplash());
+            switch (entry.getKey()) {
+                case "helmet" -> player.getInventory().setHelmet(piece);
+                case "chestplate" -> player.getInventory().setChestplate(piece);
+                case "leggings" -> player.getInventory().setLeggings(piece);
+                case "boots" -> player.getInventory().setBoots(piece);
+                default -> plugin.getLogger().warning("Role " + role.id() + " has unknown armor slot '" + entry.getKey() + "'");
             }
         }
+
+        for (LoadoutItem item : role.items()) {
+            ItemStack stack = buildItem(item);
+            if (stack == null) continue;
+            if (item.offhand()) player.getInventory().setItemInOffHand(stack);
+            else player.getInventory().addItem(stack);
+        }
+
+        for (PotionEffect effect : role.effects()) player.addPotionEffect(effect);
 
         player.setGameMode(GameMode.SURVIVAL);
         var maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
@@ -150,109 +144,118 @@ public class RoleService {
         player.setFireTicks(0);
     }
 
-    private void dyeArmor(Player player, Color color) {
-        ItemStack[] pieces = {
-                new ItemStack(Material.LEATHER_HELMET),
-                new ItemStack(Material.LEATHER_CHESTPLATE),
-                new ItemStack(Material.LEATHER_LEGGINGS),
-                new ItemStack(Material.LEATHER_BOOTS)
-        };
-        for (ItemStack piece : pieces) {
-            if (piece.getItemMeta() instanceof LeatherArmorMeta meta) {
-                meta.setColor(color);
-                piece.setItemMeta(meta);
+    private ItemStack buildItem(LoadoutItem item) {
+        ItemStack stack;
+        if (item.shopItem() != null) {
+            stack = createShopItem(item.shopItem());
+            if (stack == null) {
+                plugin.getLogger().warning("Role loadout references unknown shop item '" + item.shopItem() + "'");
+                return null;
             }
+            stack.setAmount(item.amount());
+            return stack;
         }
-        player.getInventory().setHelmet(pieces[0]);
-        player.getInventory().setChestplate(pieces[1]);
-        player.getInventory().setLeggings(pieces[2]);
-        player.getInventory().setBoots(pieces[3]);
+        stack = new ItemStack(item.material(), item.amount());
+        ItemMeta meta = stack.getItemMeta();
+        if (item.name() != null) meta.displayName(miniMessage.deserialize(item.name()).decoration(TextDecoration.ITALIC, false));
+        if (!item.lore().isEmpty()) {
+            List<Component> lore = new ArrayList<>();
+            for (String line : item.lore()) lore.add(miniMessage.deserialize(line).decoration(TextDecoration.ITALIC, false));
+            meta.lore(lore);
+        }
+        for (Map.Entry<String, Integer> enchant : item.enchants().entrySet()) {
+            NamespacedKey key = NamespacedKey.fromString(enchant.getKey().toLowerCase());
+            Enchantment enchantment = key == null ? null : Registry.ENCHANTMENT.get(key);
+            if (enchantment != null) meta.addEnchant(enchantment, enchant.getValue(), true);
+        }
+        stack.setItemMeta(meta);
+        return stack;
+    }
+
+    private ItemStack createShopItem(String id) {
+        return switch (id) {
+            case "honeycomb" -> ShopItem.createHoneycomb();
+            case "oxidizer_splash" -> ShopItem.createOxidizerSplash();
+            default -> null;
+        };
     }
 
     // ---- passives ----
 
-    public double speedPenaltyMultiplier(Role role) {
-        return role == Role.RUNNER ? 0.5 : 1.0;
+    public double speedPenaltyMultiplier(RoleDefinition role) {
+        return role.passive(PASSIVE_LOOT_WEIGHT, 1.0);
     }
+
+    public double scrapeCooldownMultiplier(RoleDefinition role) {
+        return role.passive(PASSIVE_SCRAPE_COOLDOWN, 1.0);
+    }
+
+    public double lockpickMultiplier(RoleDefinition role) {
+        return role.passive(PASSIVE_LOCKPICK, 1.0);
+    }
+
+    /** Extra alarm slots granted by the roles currently on a team (Guards, by default). */
+    public int extraAlarms(Team team) {
+        int total = 0;
+        for (UUID uuid : game.getTeam(team).getMembers()) {
+            GamePlayer gp = game.getGamePlayer(uuid);
+            if (gp != null && gp.getRole() != null) total += (int) gp.getRole().passive(PASSIVE_EXTRA_ALARMS, 0);
+        }
+        return total;
+    }
+
+    /** Bonus damage near the team spawn (no base-region concept in this build, so a radius stands in for it). */
+    public double damageMultiplier(Player attacker, GamePlayer gp) {
+        double bonus = gp.getRole().passive(PASSIVE_DAMAGE_BONUS, 0);
+        if (bonus <= 0) return 1.0;
+        var site = game.getArena().site(gp.getTeam());
+        if (site.spawn == null || !attacker.getWorld().equals(site.spawn.getWorld())) return 1.0;
+        double radius = gp.getRole().passive(PASSIVE_DAMAGE_RADIUS, 15.0);
+        return attacker.getLocation().distanceSquared(site.spawn) <= radius * radius ? 1.0 + bonus : 1.0;
+    }
+
+    public boolean canClearStun(GamePlayer gp) {
+        return gp.getRole().passive(PASSIVE_CLEARS_STUN, 0) > 0;
+    }
+
+    // ---- active abilities (F key) ----
 
     /** Action-bar text for the F-key ability: READY, seconds left, or a dash if the role has none. */
     public String abilityStatus(Player player, GamePlayer gp) {
-        if (gp.getRole() != Role.THIEF && gp.getRole() != Role.SABOTEUR) return "<gray>-";
+        if (!gp.getRole().hasAbility()) return "<gray>-";
         UUID id = player.getUniqueId();
         if (abilityCooldowns.isReady(id)) return "<green>READY";
         return "<red>" + abilityCooldowns.remainingSeconds(id) + "s";
     }
 
-    public double lockpickMultiplier(Role role) {
-        return role == Role.THIEF ? 0.5 : 1.0;
-    }
-
-    public double scrapeCooldownMultiplier(Role role) {
-        return role == Role.MECHANIC ? 0.5 : 1.0;
-    }
-
-    /** Guard's "+20% damage inside own base region" adapted to a radius around the team spawn, since this build has no base-region concept. */
-    public double damageMultiplier(Player attacker, GamePlayer gp) {
-        if (gp.getRole() != Role.GUARD) return 1.0;
-        var site = game.getArena().site(gp.getTeam());
-        if (site.spawn == null || !attacker.getWorld().equals(site.spawn.getWorld())) return 1.0;
-        return attacker.getLocation().distanceSquared(site.spawn) <= GUARD_RADIUS * GUARD_RADIUS
-                ? 1.0 + GUARD_DAMAGE_BONUS : 1.0;
-    }
-
-    // ---- active abilities (F key) ----
-
     public void activate(Player player, GamePlayer gp) {
-        switch (gp.getRole()) {
-            case THIEF -> activateThief(player);
-            case SABOTEUR -> activateSaboteur(player, gp);
-            default -> player.sendActionBar(plugin.getMessageService().get("actionbar.no-ability"));
+        AbilitySpec spec = gp.getRole().ability();
+        if (spec == null) {
+            player.sendActionBar(plugin.getMessageService().get("actionbar.no-ability"));
+            return;
         }
-    }
+        RoleAbility ability = plugin.getAbilityRegistry().get(spec.id());
+        if (ability == null) {
+            plugin.getLogger().warning("Role " + gp.getRole().id() + " uses unknown ability '" + spec.id() + "'");
+            return;
+        }
 
-    private void activateThief(Player player) {
         UUID id = player.getUniqueId();
         if (!abilityCooldowns.isReady(id)) {
             player.sendActionBar(plugin.getMessageService().get("actionbar.ability-cooldown", "seconds", abilityCooldowns.remainingSeconds(id)));
             return;
         }
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, (int) (THIEF_INVIS_SECONDS * 20), 0, false, false));
-        abilityCooldowns.set(id, THIEF_COOLDOWN_SECONDS);
-        player.sendActionBar(plugin.getMessageService().get("actionbar.thief-invisible"));
+        ability.activate(new AbilityContext(plugin, game, player, gp, spec));
+        abilityCooldowns.set(id, spec.cooldownSeconds());
+
+        String custom = spec.text("message", null);
+        player.sendActionBar(custom != null ? miniMessage.deserialize(custom) : plugin.getMessageService().get(ability.defaultMessageKey()));
     }
 
-    /** Breaks the Thief's invisibility early on attack or loot pickup. */
+    /** Breaks invisibility early on attack or loot pickup. */
     public void breakInvisibility(Player player) {
         if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
             player.removePotionEffect(PotionEffectType.INVISIBILITY);
         }
-    }
-
-    /**
-     * Saboteur's "see enemy golems through walls" - implemented as Glowing,
-     * which (without a packet library like ProtocolLib) is visible to every
-     * player, not just the Saboteur or their team. A real per-viewer-only
-     * reveal isn't reachable with vanilla Bukkit API alone.
-     */
-    private void activateSaboteur(Player player, GamePlayer gp) {
-        UUID id = player.getUniqueId();
-        if (!abilityCooldowns.isReady(id)) {
-            player.sendActionBar(plugin.getMessageService().get("actionbar.ability-cooldown", "seconds", abilityCooldowns.remainingSeconds(id)));
-            return;
-        }
-        Team enemy = gp.getTeam().opposite();
-        List<CopperGolem> revealed = new ArrayList<>();
-        for (var golem : game.getTeam(enemy).getGolems()) {
-            golem.getEntity().setGlowing(true);
-            revealed.add(golem.getEntity());
-        }
-        abilityCooldowns.set(id, SABOTEUR_COOLDOWN_SECONDS);
-        player.sendActionBar(plugin.getMessageService().get("actionbar.saboteur-reveal"));
-
-        new RevealEndTask(revealed).runTaskLater(plugin, SABOTEUR_REVEAL_SECONDS * 20L);
-    }
-
-    public boolean canClearStun(GamePlayer gp) {
-        return gp.getRole() == Role.MECHANIC;
     }
 }
