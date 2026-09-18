@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.ui;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.config.ConfigFiles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -19,9 +20,7 @@ public class MessageService {
     }
 
     public void load() {
-        File file = new File(plugin.getDataFolder(), "messages.yml");
-        if (!file.exists()) plugin.saveResource("messages.yml", false);
-        messages = YamlConfiguration.loadConfiguration(file);
+        messages = ConfigFiles.load(plugin, "messages.yml");
     }
 
     /** placeholders come in {key, value, key, value, ...} pairs, substituted as {key} in the template. */

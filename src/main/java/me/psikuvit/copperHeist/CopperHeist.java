@@ -3,6 +3,8 @@ package me.psikuvit.copperHeist;
 import me.psikuvit.copperHeist.arena.ArenaManager;
 import me.psikuvit.copperHeist.arena.ArenaResetter;
 import me.psikuvit.copperHeist.command.CopperHeistCommand;
+import me.psikuvit.copperHeist.config.ConfigMigrator;
+import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.game.GameManager;
 import me.psikuvit.copperHeist.golem.DeliveryGoal;
 import me.psikuvit.copperHeist.listener.ArenaProtectionListener;
@@ -34,10 +36,13 @@ public final class CopperHeist extends JavaPlugin {
     private LootWeightService lootWeightService;
     private LobbyKitService lobbyKitService;
     private ShopService shopService;
+    private Settings settings;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        ConfigMigrator.migrate(this);
+        settings = Settings.of(this::getConfig);
 
         PdcKeys.init(this);
         DeliveryGoal.init(this);
@@ -80,6 +85,11 @@ public final class CopperHeist extends JavaPlugin {
     public void onDisable() {
         if (gameManager == null) return;
         gameManager.shutdownAll();
+    }
+
+    /** Live, layered view of config.yml - prefer this over getConfig() so overrides and presets apply. */
+    public Settings settings() {
+        return settings;
     }
 
     public ArenaManager getArenaManager() {

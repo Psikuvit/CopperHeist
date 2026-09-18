@@ -70,7 +70,7 @@ public class LootSpawner {
 
     /** Caches refill slower than the central zone, and everything refills faster during Final Rush. */
     private long respawnMillis(Arena.LootZone zone) {
-        var config = game.getPlugin().getConfig();
+        var config = game.getPlugin().settings();
         double seconds = zone == Arena.LootZone.CACHE
                 ? config.getDouble("loot.cache-respawn-seconds", 60)
                 : config.getDouble("loot.respawn-seconds", 35);
@@ -82,7 +82,7 @@ public class LootSpawner {
 
     /** Loot left lying around for a while gains value over time, to pull turtling teams out. */
     private void applyUnclaimedBonus() {
-        var config = game.getPlugin().getConfig();
+        var config = game.getPlugin().settings();
         int after = config.getInt("loot.unclaimed-bonus.after-seconds", 60);
         int every = Math.max(1, config.getInt("loot.unclaimed-bonus.every-seconds", 30));
         int max = config.getInt("loot.unclaimed-bonus.max-bonus", 5);

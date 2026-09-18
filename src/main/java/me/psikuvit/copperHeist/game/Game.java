@@ -168,7 +168,7 @@ public class Game {
 
     /** Hidden-score mode: each team only sees its own score until Final Rush. */
     public boolean isScoreHidden() {
-        return plugin.getConfig().getBoolean("match.hidden-enemy-score", false)
+        return plugin.settings().getBoolean("match.hidden-enemy-score", false)
                 && isActive() && state != GameState.FINAL_RUSH;
     }
 
@@ -192,7 +192,7 @@ public class Game {
     // ---- join/leave ----
 
     public boolean addPlayer(Player player) {
-        int max = plugin.getConfig().getInt("match.max-players", 16);
+        int max = plugin.settings().getInt("match.max-players", 16);
         if (state != GameState.WAITING && state != GameState.STARTING) return false;
         if (players.size() >= max) return false;
 
@@ -286,7 +286,7 @@ public class Game {
     public boolean isNearOwnSpawn(Player player, GamePlayer gp) {
         Location spawn = arena.site(gp.getTeam()).spawn;
         if (spawn == null || !player.getWorld().equals(spawn.getWorld())) return true;
-        double radius = plugin.getConfig().getDouble("shop.command-radius", 15);
+        double radius = plugin.settings().getDouble("shop.command-radius", 15);
         return player.getLocation().distanceSquared(spawn) <= radius * radius;
     }
 
@@ -313,7 +313,7 @@ public class Game {
         if (gp == null || !isActive()) return false;
         dropCarriedLoot(player);
         plugin.getLootWeightService().clearModifier(player);
-        int grace = plugin.getConfig().getInt("match.rejoin-grace-seconds", 60);
+        int grace = plugin.settings().getInt("match.rejoin-grace-seconds", 60);
         disconnectedUntil.put(player.getUniqueId(), System.currentTimeMillis() + grace * 1000L);
         new RejoinExpiryTask(this, player.getUniqueId()).runTaskLater(plugin, grace * 20L);
         return true;
@@ -394,9 +394,9 @@ public class Game {
         if (!isActive()) return false;
         int elapsed = switch (target) {
             case SETUP -> 0;
-            case COLLECTION -> plugin.getConfig().getInt("match.phases.setup-seconds", 60);
-            case HEIST -> plugin.getConfig().getInt("match.phases.collection-end-seconds", 480);
-            case FINAL_RUSH -> plugin.getConfig().getInt("match.phases.heist-end-seconds", 780);
+            case COLLECTION -> plugin.settings().getInt("match.phases.setup-seconds", 60);
+            case HEIST -> plugin.settings().getInt("match.phases.collection-end-seconds", 480);
+            case FINAL_RUSH -> plugin.settings().getInt("match.phases.heist-end-seconds", 780);
             default -> -1;
         };
         if (elapsed < 0) return false;
@@ -418,16 +418,16 @@ public class Game {
     }
 
     private void tickWaiting() {
-        int min = plugin.getConfig().getInt("match.min-players", 6);
+        int min = plugin.settings().getInt("match.min-players", 6);
         if (players.size() >= min) {
             state = GameState.STARTING;
-            secondsRemaining = plugin.getConfig().getInt("match.starting-countdown-seconds", 10);
+            secondsRemaining = plugin.settings().getInt("match.starting-countdown-seconds", 10);
             broadcast(Component.text("Enough players - starting in " + secondsRemaining + "s", NamedTextColor.GREEN));
         }
     }
 
     private void tickStarting() {
-        int min = plugin.getConfig().getInt("match.min-players", 6);
+        int min = plugin.settings().getInt("match.min-players", 6);
         if (players.size() < min) {
             state = GameState.WAITING;
             broadcast(Component.text("Not enough players - countdown cancelled", NamedTextColor.RED));
@@ -472,7 +472,7 @@ public class Game {
             return true;
         }
         if (forfeitCountdown < 0) {
-            forfeitCountdown = plugin.getConfig().getInt("match.forfeit-seconds", 30);
+            forfeitCountdown = plugin.settings().getInt("match.forfeit-seconds", 30);
             broadcast(Component.text("Other team left - " + remaining.displayName() + " wins by forfeit in "
                     + forfeitCountdown + "s.", NamedTextColor.YELLOW));
             return false;
@@ -487,7 +487,7 @@ public class Game {
 
     /** Puts a freshly killed player in spectator for the respawn delay, then sends them back to spawn with their loadout. */
     public void beginRespawnWait(Player player, GamePlayer gp) {
-        int delay = plugin.getConfig().getInt("match.respawn-delay-seconds", 6);
+        int delay = plugin.settings().getInt("match.respawn-delay-seconds", 6);
         if (delay <= 0) {
             finishRespawn(player, gp);
             return;
@@ -500,13 +500,13 @@ public class Game {
         Location spawn = arena.site(gp.getTeam()).spawn;
         if (spawn != null) player.teleport(spawn);
         roleService.giveLoadout(player, gp.getRole(), gp.getTeam());
-        gp.protectFor(plugin.getConfig().getInt("spawn-protection.invulnerable-seconds", 3));
+        gp.protectFor(plugin.settings().getInt("spawn-protection.invulnerable-seconds", 3));
     }
 
     private GameState phaseFor(int elapsed) {
-        int setupEnd = plugin.getConfig().getInt("match.phases.setup-seconds", 60);
-        int collectionEnd = plugin.getConfig().getInt("match.phases.collection-end-seconds", 480);
-        int heistEnd = plugin.getConfig().getInt("match.phases.heist-end-seconds", 780);
+        int setupEnd = plugin.settings().getInt("match.phases.setup-seconds", 60);
+        int collectionEnd = plugin.settings().getInt("match.phases.collection-end-seconds", 480);
+        int heistEnd = plugin.settings().getInt("match.phases.heist-end-seconds", 780);
         if (elapsed < setupEnd) return GameState.SETUP;
         if (elapsed < collectionEnd) return GameState.COLLECTION;
         if (elapsed < heistEnd) return GameState.HEIST;
@@ -522,7 +522,7 @@ public class Game {
             lootSpawner.start();
             for (GameTeam gameTeam : teams.values()) gameTeam.markDelivery();
         }
-        if (target == GameState.FINAL_RUSH && plugin.getConfig().getBoolean("final-rush.all-players-glow", true)) {
+        if (target == GameState.FINAL_RUSH && plugin.settings().getBoolean("final-rush.all-players-glow", true)) {
             for (Player player : onlinePlayers()) player.setGlowing(true);
         }
 
@@ -562,7 +562,7 @@ public class Game {
     private void start() {
         state = GameState.SETUP;
         matchId = UUID.randomUUID().toString();
-        matchDurationSeconds = plugin.getConfig().getInt("match.duration-seconds", 900);
+        matchDurationSeconds = plugin.settings().getInt("match.duration-seconds", 900);
         lootStarted = false;
         secondsRemaining = matchDurationSeconds;
 
@@ -575,7 +575,7 @@ public class Game {
                 if (site.spawn != null) player.teleport(site.spawn);
                 GamePlayer gp = players.get(uuid);
                 roleService.giveLoadout(player, gp.getRole(), team);
-                gp.protectFor(plugin.getConfig().getInt("spawn-protection.invulnerable-seconds", 3));
+                gp.protectFor(plugin.settings().getInt("spawn-protection.invulnerable-seconds", 3));
             }
             golemManager.spawnStarting(team);
         }
@@ -618,8 +618,8 @@ public class Game {
 
     private void spawnGuardTick() {
         if (state == GameState.SETUP) return;
-        double radius = plugin.getConfig().getDouble("spawn-protection.radius", 6);
-        double damage = plugin.getConfig().getDouble("spawn-protection.damage-per-second", 2.0);
+        double radius = plugin.settings().getDouble("spawn-protection.radius", 6);
+        double damage = plugin.settings().getDouble("spawn-protection.damage-per-second", 2.0);
         for (Team team : Team.values()) {
             Location spawn = arena.site(team).spawn;
             if (spawn == null || spawn.getWorld() == null) continue;
@@ -643,7 +643,7 @@ public class Game {
     private void end() {
         if (state == GameState.ENDING || state == GameState.RESETTING) return;
         state = GameState.ENDING;
-        secondsRemaining = plugin.getConfig().getInt("match.ending-seconds", 10);
+        secondsRemaining = plugin.settings().getInt("match.ending-seconds", 10);
         lootSpawner.stop();
         relicManager.stop();
         alarmManager.stop();

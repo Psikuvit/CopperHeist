@@ -56,7 +56,7 @@ public class LootBagManager {
     public LootBag create(Location location, List<ItemStack> items) {
         if (items.isEmpty() || location.getWorld() == null) return null;
         Location base = location.clone().add(0, 0.5, 0);
-        long lifetime = plugin.getConfig().getLong("loot.bag-despawn-seconds", 45) * 1000L;
+        long lifetime = plugin.settings().getLong("loot.bag-despawn-seconds", 45) * 1000L;
 
         ItemDisplay display = base.getWorld().spawn(base, ItemDisplay.class, entity -> {
             entity.setItemStack(new ItemStack(Material.BUNDLE));
@@ -114,7 +114,7 @@ public class LootBagManager {
 
         if (!tookAny) {
             player.sendActionBar(plugin.getMessageService().get("actionbar.carry-limit",
-                    "limit", plugin.getConfig().getInt("loot.carry-limit", 80)));
+                    "limit", plugin.settings().getInt("loot.carry-limit", 80)));
             return;
         }
         game.getRoleService().breakInvisibility(player);

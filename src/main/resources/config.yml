@@ -1,3 +1,6 @@
+# Bumped automatically by the plugin when it migrates an older file - do not edit.
+config-version: 1
+
 # Copper Heist - Core Loop MVP configuration.
 # See copper_heist_design.txt for the full long-term design; only the values
 # used by this MVP build are here.
@@ -23,7 +26,14 @@ match:
 shop:
   command-radius: 15
 
+gust-pads:
+  cooldown-seconds: 1
+  push-multiplier: 0.5
+  lift-multiplier: 0.9
+  sound: entity.ender_dragon.flap
+
 dock:
+  max-drift: 1.5
   lockpick-seconds: 4.0
   unlock-window-seconds: 15
 
@@ -63,6 +73,14 @@ relic:
   holder-extra-carry: 20
 
 golems:
+  ai:
+    arrive-distance: 1.5
+    stuck-seconds: 8
+    off-path-distance: 4
+    off-path-seconds: 2
+  storm-rod:
+    radius: 8
+    damage: 6.0
   starting: 2
   cap: 4
   health: 30.0

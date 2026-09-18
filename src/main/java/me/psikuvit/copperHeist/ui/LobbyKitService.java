@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.ui;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.config.ConfigFiles;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.util.Pdc;
@@ -39,9 +40,7 @@ public class LobbyKitService {
     }
 
     public void load() {
-        File file = new File(plugin.getDataFolder(), "guide.yml");
-        if (!file.exists()) plugin.saveResource("guide.yml", false);
-        guide = YamlConfiguration.loadConfiguration(file);
+        guide = ConfigFiles.load(plugin, "guide.yml");
     }
 
     public void giveHubKit(Player player) {

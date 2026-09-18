@@ -15,10 +15,6 @@ import java.util.List;
  */
 public class GolemBrain {
 
-    private static final double ARRIVE_DISTANCE_SQUARED = 2.25; // 1.5 blocks
-    private static final long STUCK_MILLIS = 8000;
-    private static final double OFF_PATH_DISTANCE_SQUARED = 16.0; // 4 blocks from the route
-    private static final long OFF_PATH_MILLIS = 2000;
 
     private final HeistGolem golem;
     private final GolemManager manager;
@@ -33,6 +29,24 @@ public class GolemBrain {
     public GolemBrain(HeistGolem golem, GolemManager manager) {
         this.golem = golem;
         this.manager = manager;
+    }
+
+    private double arriveDistanceSquared() {
+        double d = manager.settings().getDouble("golems.ai.arrive-distance", 1.5);
+        return d * d;
+    }
+
+    private long stuckMillis() {
+        return (long) (manager.settings().getDouble("golems.ai.stuck-seconds", 8.0) * 1000);
+    }
+
+    private double offPathDistanceSquared() {
+        double d = manager.settings().getDouble("golems.ai.off-path-distance", 4.0);
+        return d * d;
+    }
+
+    private long offPathMillis() {
+        return (long) (manager.settings().getDouble("golems.ai.off-path-seconds", 2.0) * 1000);
     }
 
     public boolean shouldActivate() {
@@ -102,14 +116,14 @@ public class GolemBrain {
                 nearest = i;
             }
         }
-        if (nearestSquared <= OFF_PATH_DISTANCE_SQUARED) {
+        if (nearestSquared <= offPathDistanceSquared()) {
             offPathSinceMillis = 0;
             return;
         }
         long now = System.currentTimeMillis();
         if (offPathSinceMillis == 0) {
             offPathSinceMillis = now;
-        } else if (now - offPathSinceMillis >= OFF_PATH_MILLIS) {
+        } else if (now - offPathSinceMillis >= offPathMillis()) {
             waypointIndex = nearest;
             currentTarget = null;
             offPathSinceMillis = 0;
@@ -153,7 +167,7 @@ public class GolemBrain {
             currentTarget = target;
         }
 
-        if (golem.getEntity().getLocation().distanceSquared(target) <= ARRIVE_DISTANCE_SQUARED) {
+        if (golem.getEntity().getLocation().distanceSquared(target) <= arriveDistanceSquared()) {
             waypointIndex++;
             currentTarget = null;
         }
@@ -166,7 +180,7 @@ public class GolemBrain {
             lastMovedMillis = System.currentTimeMillis();
             return;
         }
-        if (System.currentTimeMillis() - lastMovedMillis > STUCK_MILLIS) {
+        if (System.currentTimeMillis() - lastMovedMillis > stuckMillis()) {
             List<Location> route = phase == HeistGolem.Phase.TO_DOCK
                     ? golem.getWaypointsToDock()
                     : golem.getWaypointsToVault();

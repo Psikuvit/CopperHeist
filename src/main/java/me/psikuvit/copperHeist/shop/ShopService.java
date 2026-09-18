@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.shop;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.config.ConfigFiles;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
@@ -45,9 +46,7 @@ public class ShopService {
     }
 
     public void load() {
-        File file = new File(plugin.getDataFolder(), "shop.yml");
-        if (!file.exists()) plugin.saveResource("shop.yml", false);
-        config = YamlConfiguration.loadConfiguration(file);
+        config = ConfigFiles.load(plugin, "shop.yml");
     }
 
     public int cost(ShopItem item) {
@@ -79,7 +78,7 @@ public class ShopService {
 
     public void purchase(Player player, ShopItem item, Game game, GamePlayer gp) {
         if (item == ShopItem.NEW_GOLEM) {
-            int cap = plugin.getConfig().getInt("golems.cap", 4);
+            int cap = plugin.settings().getInt("golems.cap", 4);
             if (game.getTeam(gp.getTeam()).getGolems().size() >= cap) {
                 player.sendActionBar(plugin.getMessageService().get("actionbar.golem-cap-reached"));
                 return;

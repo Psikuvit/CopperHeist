@@ -121,7 +121,7 @@ public class ArenaProtectionListener implements Listener {
         if (plugin.getGameManager().getGame(player) == null || player.hasPermission("copperheist.admin.bypass")) return;
         String label = event.getMessage().substring(1).split(" ")[0].toLowerCase(Locale.ROOT);
         if (label.contains(":")) label = label.substring(label.indexOf(':') + 1);
-        if (!plugin.getConfig().getStringList("match.allowed-commands").contains(label)) {
+        if (!plugin.settings().getStringList("match.allowed-commands").contains(label)) {
             event.setCancelled(true);
             player.sendMessage(plugin.getMessageService().get("blocked-command"));
         }

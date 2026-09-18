@@ -10,8 +10,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 /** Runs while a raider picks an enemy dock chest; interrupted if they wander off or the match stops. */
 public class LockpickTask extends BukkitRunnable {
 
-    private static final double MAX_DRIFT_SQUARED = 2.25;
-
     private final CopperHeist plugin;
     private final Game game;
     private final DockLockManager locks;
@@ -19,6 +17,7 @@ public class LockpickTask extends BukkitRunnable {
     private final Location chestLocation;
     private final Location startLocation;
     private final int totalTicks;
+    private final double maxDriftSquared;
     private int elapsedTicks;
 
     public LockpickTask(CopperHeist plugin, Game game, DockLockManager locks, Player player, Location chestLocation, int totalTicks) {
@@ -29,13 +28,15 @@ public class LockpickTask extends BukkitRunnable {
         this.chestLocation = chestLocation;
         this.startLocation = player.getLocation();
         this.totalTicks = totalTicks;
+        double drift = plugin.settings().getDouble("dock.max-drift", 1.5);
+        this.maxDriftSquared = drift * drift;
     }
 
     @Override
     public void run() {
         if (!player.isOnline() || !game.isActive()
                 || !player.getWorld().equals(startLocation.getWorld())
-                || player.getLocation().distanceSquared(startLocation) > MAX_DRIFT_SQUARED) {
+                || player.getLocation().distanceSquared(startLocation) > maxDriftSquared) {
             cancel();
             locks.finish(player, chestLocation, false);
             if (player.isOnline()) player.sendActionBar(plugin.getMessageService().get("dock.interrupted"));

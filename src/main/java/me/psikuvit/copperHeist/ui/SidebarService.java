@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.ui;
 import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
+import me.psikuvit.copperHeist.config.ConfigFiles;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameTeam;
@@ -51,9 +52,7 @@ public class SidebarService {
     }
 
     public void load() {
-        File file = new File(plugin.getDataFolder(), "scoreboard.yml");
-        if (!file.exists()) plugin.saveResource("scoreboard.yml", false);
-        config = YamlConfiguration.loadConfiguration(file);
+        config = ConfigFiles.load(plugin, "scoreboard.yml");
     }
 
     /** Refreshes the hub board for every online player not currently in a match. */
@@ -232,8 +231,8 @@ public class SidebarService {
                 .replace("{phase}", game.getState().name())
                 .replace("{time}", formatTime(game.getSecondsRemaining()))
                 .replace("{players}", String.valueOf(game.totalPlayers()))
-                .replace("{min_players}", String.valueOf(plugin.getConfig().getInt("match.min-players", 6)))
-                .replace("{max_players}", String.valueOf(plugin.getConfig().getInt("match.max-players", 16)))
+                .replace("{min_players}", String.valueOf(plugin.settings().getInt("match.min-players", 6)))
+                .replace("{max_players}", String.valueOf(plugin.settings().getInt("match.max-players", 16)))
                 .replace("{relic_holder}", holder != null ? holder.getName() : "-")
                 .replace("{relic_countdown}", formatTime(game.getRelicManager().getSecondsUntilSpawn()));
         boolean hidden = game.isScoreHidden();

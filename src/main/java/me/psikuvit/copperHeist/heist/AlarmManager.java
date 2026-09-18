@@ -63,7 +63,7 @@ public class AlarmManager {
     }
 
     public int capFor(Team team) {
-        int base = plugin.getConfig().getInt("alarms.base-per-team", 4);
+        int base = plugin.settings().getInt("alarms.base-per-team", 4);
         return base + game.getRoleService().countOnTeam(team, Role.GUARD);
     }
 
@@ -74,7 +74,7 @@ public class AlarmManager {
     public boolean isWithinPlacementRange(Team team, Location loc) {
         Arena.TeamSite site = game.getArena().site(team);
         if (site.spawn == null || !loc.getWorld().equals(site.spawn.getWorld())) return false;
-        double radius = plugin.getConfig().getDouble("alarms.placement-radius", 20);
+        double radius = plugin.settings().getDouble("alarms.placement-radius", 20);
         return loc.distanceSquared(site.spawn) <= radius * radius;
     }
 
@@ -111,7 +111,7 @@ public class AlarmManager {
 
     public void tick() {
         if (!game.isActive()) return;
-        double radius = plugin.getConfig().getDouble("alarms.trigger-radius", 4);
+        double radius = plugin.settings().getDouble("alarms.trigger-radius", 4);
 
         for (Team team : Team.values()) {
             for (Alarm alarm : alarms.get(team)) {
@@ -135,10 +135,10 @@ public class AlarmManager {
     }
 
     private void trigger(Alarm alarm, Player intruder) {
-        int cooldown = plugin.getConfig().getInt("alarms.cooldown-seconds", 8);
+        int cooldown = plugin.settings().getInt("alarms.cooldown-seconds", 8);
         triggerCooldowns.set(alarm.getHitbox().getUniqueId(), cooldown);
 
-        int glowSeconds = plugin.getConfig().getInt("alarms.intruder-glow-seconds", 3);
+        int glowSeconds = plugin.settings().getInt("alarms.intruder-glow-seconds", 3);
         intruder.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, glowSeconds * 20, 0, false, false));
         intruder.getWorld().playSound(alarm.getLocation(), Sound.BLOCK_TRIPWIRE_CLICK_ON, 1.0f, 0.8f);
 

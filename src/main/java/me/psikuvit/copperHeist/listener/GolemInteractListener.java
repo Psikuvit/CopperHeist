@@ -111,7 +111,7 @@ public class GolemInteractListener implements Listener {
     private void handleTakeStack(Player player, HeistGolem golem, Game game) {
         ItemStack carried = golem.getCarried();
         if (carried == null) return;
-        int carryLimit = plugin.getConfig().getInt("loot.carry-limit", 80);
+        int carryLimit = plugin.settings().getInt("loot.carry-limit", 80);
         int currentValue = plugin.getLootWeightService().getCarriedValue(player);
         int itemValue = LootItem.getValue(carried) * carried.getAmount();
         if (currentValue + itemValue > carryLimit) {

@@ -59,7 +59,7 @@ public class GameManager {
             if (!arena.isEnabled()) continue;
             Game game = getGame(arena);
             if (game.getState() == GameState.WAITING || game.getState() == GameState.STARTING) {
-                int max = plugin.getConfig().getInt("match.max-players", 16);
+                int max = plugin.settings().getInt("match.max-players", 16);
                 if (game.totalPlayers() < max) return arena;
             }
         }

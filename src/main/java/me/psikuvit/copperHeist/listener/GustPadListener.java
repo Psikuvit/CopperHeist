@@ -5,6 +5,8 @@ import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.util.Cooldowns;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,8 +16,6 @@ import org.bukkit.util.Vector;
 
 /** Launches players who step on a gust pad - upward, plus a forward push in the direction they're facing. */
 public class GustPadListener implements Listener {
-
-    private static final long COOLDOWN_SECONDS = 1;
 
     private final CopperHeist plugin;
     private final Cooldowns cooldowns = new Cooldowns();
@@ -42,16 +42,21 @@ public class GustPadListener implements Listener {
             Location loc = pad.location();
             if (loc.getBlockX() == to.getBlockX() && loc.getBlockY() == to.getBlockY() && loc.getBlockZ() == to.getBlockZ()) {
                 launch(player, pad.power());
-                cooldowns.set(player.getUniqueId(), COOLDOWN_SECONDS);
+                cooldowns.set(player.getUniqueId(), plugin.settings().getLong("gust-pads.cooldown-seconds", 1));
                 return;
             }
         }
     }
 
     private void launch(Player player, double power) {
-        Vector push = player.getLocation().getDirection().setY(0);
-        push = push.lengthSquared() < 0.0001 ? new Vector() : push.normalize().multiply(0.5 * power);
-        player.setVelocity(push.setY(0.9 * power));
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1.0f, 1.4f);
+        double push = plugin.settings().getDouble("gust-pads.push-multiplier", 0.5);
+        double lift = plugin.settings().getDouble("gust-pads.lift-multiplier", 0.9);
+        Vector direction = player.getLocation().getDirection().setY(0);
+        direction = direction.lengthSquared() < 0.0001 ? new Vector() : direction.normalize().multiply(push * power);
+        player.setVelocity(direction.setY(lift * power));
+
+        NamespacedKey soundKey = NamespacedKey.fromString(plugin.settings().getString("gust-pads.sound", "entity.ender_dragon.flap"));
+        Sound sound = soundKey == null ? null : Registry.SOUNDS.get(soundKey);
+        if (sound != null) player.getWorld().playSound(player.getLocation(), sound, 1.0f, 1.4f);
     }
 }
