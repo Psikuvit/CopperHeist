@@ -33,6 +33,7 @@ public class DockLockManager {
     }
 
     public boolean isEnemyDock(Team playerTeam, Location chestLocation) {
+        if (!game.feature("lockpicking")) return false;
         return game.getArena().site(playerTeam.opposite()).dockChests.contains(chestLocation);
     }
 

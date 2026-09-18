@@ -204,7 +204,7 @@ public class GolemManager {
         }
 
         int value = LootItem.getValue(carried) * carried.getAmount();
-        if (game.getState() == GameState.FINAL_RUSH) {
+        if (game.isFinalRushActive()) {
             value = (int) Math.round(value * plugin.settings().getDouble("final-rush.loot-multiplier", 2.0));
         }
         GameTeam gameTeam = game.getTeam(golem.getTeam());

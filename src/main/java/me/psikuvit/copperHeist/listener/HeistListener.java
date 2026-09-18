@@ -77,6 +77,10 @@ public class HeistListener implements Listener {
     }
 
     private void placeAlarm(Player player, Game game, GamePlayer gp, Location loc, ItemStack item) {
+        if (!game.feature("alarms")) {
+            player.sendActionBar(plugin.getMessageService().get("feature-disabled"));
+            return;
+        }
         var alarmManager = game.getAlarmManager();
         Team team = gp.getTeam();
         if (!alarmManager.isWithinPlacementRange(team, loc)) {
@@ -94,6 +98,10 @@ public class HeistListener implements Listener {
     }
 
     private void placeDrill(Player player, Game game, GamePlayer gp, Location loc, ItemStack item) {
+        if (!game.feature("vault-drill")) {
+            player.sendActionBar(plugin.getMessageService().get("feature-disabled"));
+            return;
+        }
         Team attackerTeam = gp.getTeam();
         Team defenderTeam = attackerTeam.opposite();
         Arena.TeamSite defenderSite = game.getArena().site(defenderTeam);
@@ -128,7 +136,12 @@ public class HeistListener implements Listener {
         Player player = event.getPlayer();
         GamePlayer gp = game.getGamePlayer(player.getUniqueId());
         if (gp == null || gp.getTeam() != npcTeam) return;
-        player.openInventory(player.isSneaking() ? game.getRoleService().buildRoleMenu() : plugin.getShopService().buildMenu());
+        boolean roleMenu = player.isSneaking();
+        if (!game.feature(roleMenu ? "roles" : "shop")) {
+            player.sendActionBar(plugin.getMessageService().get("feature-disabled"));
+            return;
+        }
+        player.openInventory(roleMenu ? game.getRoleService().buildRoleMenu() : plugin.getShopService().buildMenu());
     }
 
     @EventHandler

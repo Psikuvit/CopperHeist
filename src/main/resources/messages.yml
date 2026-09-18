@@ -40,6 +40,7 @@ dock:
   unlocked: "<green>Lock picked!"
   interrupted: "<red>Lockpick interrupted - stay next to the chest."
 
+feature-disabled: "<red>That feature is disabled on this server."
 blocked-command: "<red>You can't use that command during a match."
 
 alarm:

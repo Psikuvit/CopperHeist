@@ -161,6 +161,16 @@ public class Game {
         return lootBagManager;
     }
 
+    /** features.<name> in config.yml - lets an owner switch whole mechanics off (default: on). */
+    public boolean feature(String name) {
+        return plugin.settings().getBoolean("features." + name, true);
+    }
+
+    /** Final Rush's bonuses (double loot, faster aging, glow, faster respawns) apply only while the phase is on and the feature enabled. */
+    public boolean isFinalRushActive() {
+        return state == GameState.FINAL_RUSH && feature("final-rush");
+    }
+
     public boolean isActive() {
         return state == GameState.SETUP || state == GameState.COLLECTION
                 || state == GameState.HEIST || state == GameState.FINAL_RUSH;
@@ -522,7 +532,7 @@ public class Game {
             lootSpawner.start();
             for (GameTeam gameTeam : teams.values()) gameTeam.markDelivery();
         }
-        if (target == GameState.FINAL_RUSH && plugin.settings().getBoolean("final-rush.all-players-glow", true)) {
+        if (target == GameState.FINAL_RUSH && feature("final-rush") && plugin.settings().getBoolean("final-rush.all-players-glow", true)) {
             for (Player player : onlinePlayers()) player.setGlowing(true);
         }
 
@@ -580,9 +590,9 @@ public class Game {
             golemManager.spawnStarting(team);
         }
 
-        relicManager.start();
-        alarmManager.start();
-        vaultDrillManager.start();
+        if (feature("relics")) relicManager.start();
+        if (feature("alarms")) alarmManager.start();
+        if (feature("vault-drill")) vaultDrillManager.start();
         lootBagManager.start();
         spawnShopNpcs();
         oxidationTask = new OxidationTask(this).runTaskTimer(plugin, 20L, 20L);

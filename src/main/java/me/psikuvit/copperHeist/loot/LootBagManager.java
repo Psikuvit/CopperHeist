@@ -55,6 +55,10 @@ public class LootBagManager {
 
     public LootBag create(Location location, List<ItemStack> items) {
         if (items.isEmpty() || location.getWorld() == null) return null;
+        if (!game.feature("loot-bags")) {
+            for (ItemStack item : items) location.getWorld().dropItemNaturally(location, item);
+            return null;
+        }
         Location base = location.clone().add(0, 0.5, 0);
         long lifetime = plugin.settings().getLong("loot.bag-despawn-seconds", 45) * 1000L;
 

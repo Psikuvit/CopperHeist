@@ -65,7 +65,7 @@ public class LootSpawner {
                 }
             }
         }
-        applyUnclaimedBonus();
+        if (game.feature("unclaimed-bonus")) applyUnclaimedBonus();
     }
 
     /** Caches refill slower than the central zone, and everything refills faster during Final Rush. */
@@ -74,7 +74,7 @@ public class LootSpawner {
         double seconds = zone == Arena.LootZone.CACHE
                 ? config.getDouble("loot.cache-respawn-seconds", 60)
                 : config.getDouble("loot.respawn-seconds", 35);
-        if (game.getState() == GameState.FINAL_RUSH) {
+        if (game.isFinalRushActive()) {
             seconds *= config.getDouble("final-rush.loot-respawn-multiplier", 0.5);
         }
         return (long) (seconds * 1000L);

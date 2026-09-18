@@ -169,6 +169,10 @@ public final class CopperHeistCommand {
         GamePlayer gp = game.getGamePlayer(player.getUniqueId());
         if (gp == null) return 0;
 
+        if (!game.feature("roles")) {
+            Msg.err(player, "Roles are disabled on this server.");
+            return 0;
+        }
         RoleDefinition role = plugin.getRoleRegistry().get(StringArgumentType.getString(ctx, "role"));
         if (role == null) {
             StringBuilder ids = new StringBuilder();
@@ -197,6 +201,10 @@ public final class CopperHeistCommand {
             Msg.err(player, "Join a match first.");
             return 0;
         }
+        if (!game.feature("roles")) {
+            Msg.err(player, "Roles are disabled on this server.");
+            return 0;
+        }
         player.openInventory(game.getRoleService().buildRoleMenu());
         return Command.SINGLE_SUCCESS;
     }
@@ -212,6 +220,10 @@ public final class CopperHeistCommand {
             return 0;
         }
         Game shopGame = plugin.getGameManager().getGame(player);
+        if (!shopGame.feature("shop")) {
+            Msg.err(player, "The shop is disabled on this server.");
+            return 0;
+        }
         GamePlayer shopGp = shopGame.getGamePlayer(player.getUniqueId());
         if (shopGame.isActive() && shopGp != null && !shopGame.isNearOwnSpawn(player, shopGp)) {
             Msg.err(player, "Use your team's shop NPC, or go back near your spawn to open the shop.");

@@ -74,6 +74,18 @@ relic:
 
 # Team look-and-feel. name/prefix are shown in chat, tab and scoreboard; color is a chat color name;
 # armor-color is a Bukkit color name (ORANGE, SILVER, ...) or a #RRGGBB hex for leather armor.
+# Switch whole mechanics on or off. Disabled features simply never start.
+features:
+  roles: true
+  shop: true
+  relics: true
+  alarms: true
+  vault-drill: true
+  lockpicking: true
+  loot-bags: true
+  final-rush: true
+  unclaimed-bonus: true
+
 teams:
   copper:
     name: Copper

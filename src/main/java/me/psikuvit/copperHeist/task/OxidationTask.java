@@ -29,7 +29,7 @@ public class OxidationTask extends BukkitRunnable {
     public void run() {
         if (!game.isActive()) return;
         long now = System.currentTimeMillis();
-        double agingMultiplier = game.getState() == GameState.FINAL_RUSH
+        double agingMultiplier = game.isFinalRushActive()
                 ? game.getPlugin().settings().getDouble("final-rush.aging-multiplier", 2.0) : 1.0;
         List<HeistGolem> golems = game.getGolemManager().all().stream().toList();
         for (HeistGolem golem : golems) {
