@@ -7,6 +7,7 @@ import me.psikuvit.copperHeist.event.PhaseChangeEvent;
 import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.task.OxidationTask;
 import me.psikuvit.copperHeist.heist.AlarmManager;
+import me.psikuvit.copperHeist.heist.DockLockManager;
 import me.psikuvit.copperHeist.heist.VaultDrillManager;
 import me.psikuvit.copperHeist.loot.LootBagManager;
 import me.psikuvit.copperHeist.loot.LootItem;
@@ -60,6 +61,7 @@ public class Game {
     private final AlarmManager alarmManager;
     private final VaultDrillManager vaultDrillManager;
     private final LootBagManager lootBagManager;
+    private final DockLockManager dockLocks;
 
     private final BukkitTask timerTask;
     private final BukkitTask sidebarTask;
@@ -79,6 +81,7 @@ public class Game {
         this.alarmManager = new AlarmManager(plugin, this);
         this.vaultDrillManager = new VaultDrillManager(plugin, this);
         this.lootBagManager = new LootBagManager(plugin, this);
+        this.dockLocks = new DockLockManager(plugin, this);
 
         World world = arena.getWorld();
         if (world != null) world.setGameRule(GameRules.IMMEDIATE_RESPAWN, true);
@@ -141,6 +144,10 @@ public class Game {
         return players.get(gp.getUuid()) == gp;
     }
 
+    public DockLockManager getDockLocks() {
+        return dockLocks;
+    }
+
     public LootBagManager getLootBagManager() {
         return lootBagManager;
     }
@@ -148,6 +155,12 @@ public class Game {
     public boolean isActive() {
         return state == GameState.SETUP || state == GameState.COLLECTION
                 || state == GameState.HEIST || state == GameState.FINAL_RUSH;
+    }
+
+    /** Hidden-score mode: each team only sees its own score until Final Rush. */
+    public boolean isScoreHidden() {
+        return plugin.getConfig().getBoolean("match.hidden-enemy-score", false)
+                && isActive() && state != GameState.FINAL_RUSH;
     }
 
     public boolean isHeistPhaseOrLater() {
@@ -335,7 +348,10 @@ public class Game {
         GameState from = state;
         state = target;
 
-        if (target == GameState.COLLECTION) lootSpawner.start();
+        if (target == GameState.COLLECTION) {
+            lootSpawner.start();
+            for (GameTeam gameTeam : teams.values()) gameTeam.markDelivery();
+        }
         if (target == GameState.FINAL_RUSH && plugin.getConfig().getBoolean("final-rush.all-players-glow", true)) {
             for (Player player : onlinePlayers()) player.setGlowing(true);
         }

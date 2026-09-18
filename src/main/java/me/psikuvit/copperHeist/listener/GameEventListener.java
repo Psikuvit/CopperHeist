@@ -45,9 +45,9 @@ public class GameEventListener implements Listener {
             broadcast(game, plugin.getMessageService().get("relic.delivered", "team", event.getTeam().displayName()));
             return;
         }
-        int total = game.getTeam(event.getTeam()).getScore();
+        String totalSuffix = game.isScoreHidden() ? "" : " (" + game.getTeam(event.getTeam()).getScore() + " total)";
         broadcast(game, Component.text(event.getTeam().displayName() + " delivered " + event.getValue()
-                + " loot! (" + total + " total)", event.getTeam().color()));
+                + " loot!" + totalSuffix, event.getTeam().color()));
     }
 
     @EventHandler

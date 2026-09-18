@@ -4,6 +4,7 @@ import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.golem.HeistGolem;
@@ -111,39 +112,45 @@ public class SidebarService {
     // ---- match board ----
 
     public void update(Game game) {
-        ScoreboardContext context = buildGameContext(game);
+        boolean perViewer = game.isScoreHidden();
+        ScoreboardContext shared = perViewer ? null : buildGameContext(game, null);
         for (Player player : game.onlinePlayers()) {
+            ScoreboardContext context = shared;
+            if (perViewer) {
+                GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+                context = buildGameContext(game, gp == null ? null : gp.getTeam());
+            }
             render(player, context);
         }
     }
 
-    private ScoreboardContext buildGameContext(Game game) {
+    private ScoreboardContext buildGameContext(Game game, Team viewer) {
         Component title = miniMessage.deserialize(config.getString("title", "<gold>COPPER HEIST"));
-        return ScoreboardContext.of(title, buildLines(game));
+        return ScoreboardContext.of(title, buildLines(game, viewer));
     }
 
-    private List<Component> buildLines(Game game) {
+    private List<Component> buildLines(Game game, Team viewer) {
         String stateKey = game.getState().name().toLowerCase(Locale.ROOT);
         List<String> templates = config.getStringList("states." + stateKey);
 
         List<Component> lines = new ArrayList<>();
         for (String template : templates) {
-            appendLine(lines, template, game);
+            appendLine(lines, template, game, viewer);
         }
         for (String template : config.getStringList("footer")) {
-            appendLine(lines, template, game);
+            appendLine(lines, template, game, viewer);
         }
         if (lines.size() > 15) lines = lines.subList(0, 15);
         return lines;
     }
 
-    private void appendLine(List<Component> lines, String template, Game game) {
+    private void appendLine(List<Component> lines, String template, Game game, Team viewer) {
         if (template.equals("<golems:copper>")) {
             appendGolemLines(lines, game, Team.COPPER);
         } else if (template.equals("<golems:iron>")) {
             appendGolemLines(lines, game, Team.IRON);
         } else {
-            lines.add(miniMessage.deserialize(substitute(template, game)));
+            lines.add(miniMessage.deserialize(substitute(template, game, viewer)));
         }
     }
 
@@ -157,7 +164,7 @@ public class SidebarService {
         }
     }
 
-    private String substitute(String template, Game game) {
+    private String substitute(String template, Game game, Team viewer) {
         var holder = game.getRelicManager().getHolder();
         String result = template
                 .replace("{arena}", game.getArena().getName())
@@ -168,11 +175,12 @@ public class SidebarService {
                 .replace("{max_players}", String.valueOf(plugin.getConfig().getInt("match.max-players", 16)))
                 .replace("{relic_holder}", holder != null ? holder.getName() : "-")
                 .replace("{relic_countdown}", formatTime(game.getRelicManager().getSecondsUntilSpawn()));
+        boolean hidden = game.isScoreHidden();
         for (Team team : Team.values()) {
             GameTeam gameTeam = game.getTeam(team);
             String prefix = team.name().toLowerCase(Locale.ROOT);
             result = result
-                    .replace("{" + prefix + "_score}", String.valueOf(gameTeam.getScore()))
+                    .replace("{" + prefix + "_score}", hidden && team != viewer ? "???" : String.valueOf(gameTeam.getScore()))
                     .replace("{" + prefix + "_steals}", String.valueOf(gameTeam.getSteals()))
                     .replace("{" + prefix + "_golem_count}", String.valueOf(gameTeam.getGolems().size()));
         }

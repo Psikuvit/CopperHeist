@@ -42,7 +42,8 @@ public class OxidationTask extends BukkitRunnable {
 
             WeatheringCopperState state = golem.getEntity().getWeatheringState();
             if (state == WeatheringCopperState.OXIDIZED) continue;
-            if ((now - golem.getStageChangedAtMillis()) * agingMultiplier < golem.getStageDurationMillis()) continue;
+            double multiplier = agingMultiplier * decayMultiplier(golem, now);
+            if ((now - golem.getStageChangedAtMillis()) * multiplier < golem.getStageDurationMillis()) continue;
 
             WeatheringCopperState next = GolemManager.nextStage(state);
             golem.getEntity().setWeatheringState(next);
@@ -57,6 +58,15 @@ public class OxidationTask extends BukkitRunnable {
                 for (Player player : game.onlinePlayers()) player.sendMessage(msg);
             }
         }
+    }
+
+    /** Anti-turtle: a team that hasn't delivered anything for a while sees its golems age faster. */
+    private double decayMultiplier(HeistGolem golem, long now) {
+        var config = game.getPlugin().getConfig();
+        if (!config.getBoolean("vault-decay.enabled", false) || game.getState() == GameState.SETUP) return 1.0;
+        long idleMillis = now - game.getTeam(golem.getTeam()).getLastDeliveryMillis();
+        if (idleMillis < config.getLong("vault-decay.after-seconds", 120) * 1000L) return 1.0;
+        return config.getDouble("vault-decay.aging-multiplier", 1.5);
     }
 
     private long rollDuration() {

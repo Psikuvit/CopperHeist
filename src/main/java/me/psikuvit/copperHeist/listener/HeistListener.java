@@ -58,6 +58,24 @@ public class HeistListener implements Listener {
         }
     }
 
+    /** Enemy dock chests need a lockpick channel before they'll open. */
+    @EventHandler
+    public void onDockClick(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getClickedBlock() == null) return;
+        Player player = event.getPlayer();
+        Game game = plugin.getGameManager().getGame(player);
+        if (game == null || !game.isActive()) return;
+        GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        if (gp == null) return;
+
+        Location chest = event.getClickedBlock().getLocation();
+        if (!game.getDockLocks().isEnemyDock(gp.getTeam(), chest)) return;
+        if (game.getDockLocks().isUnlocked(player.getUniqueId())) return;
+        event.setCancelled(true);
+        game.getDockLocks().begin(player, gp, chest);
+    }
+
     private void placeAlarm(Player player, Game game, GamePlayer gp, Location loc, ItemStack item) {
         var alarmManager = game.getAlarmManager();
         Team team = gp.getTeam();

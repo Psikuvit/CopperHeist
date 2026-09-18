@@ -35,6 +35,11 @@ phase:
     subtitle: "<gray>Loot value x2, golems age faster"
     chat: "<red>Final Rush! Delivered loot is worth double and everyone glows."
 
+dock:
+  picking: "<yellow>Picking lock... {percent}%"
+  unlocked: "<green>Lock picked!"
+  interrupted: "<red>Lockpick interrupted - stay next to the chest."
+
 alarm:
   placed: "<green>Alarm placed ({count}/{cap})."
   cap-reached: "<red>Your team already has the max number of alarms."

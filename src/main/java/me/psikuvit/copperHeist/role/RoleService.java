@@ -136,6 +136,10 @@ public class RoleService {
         return role == Role.RUNNER ? 0.5 : 1.0;
     }
 
+    public double lockpickMultiplier(Role role) {
+        return role == Role.THIEF ? 0.5 : 1.0;
+    }
+
     public double scrapeCooldownMultiplier(Role role) {
         return role == Role.MECHANIC ? 0.5 : 1.0;
     }

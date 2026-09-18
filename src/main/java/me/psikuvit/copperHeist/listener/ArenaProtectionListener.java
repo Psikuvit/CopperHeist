@@ -63,9 +63,14 @@ public class ArenaProtectionListener implements Listener {
         var loc = chest.getLocation();
         Team vaultTeam = arena.site(Team.COPPER).vaultChests.contains(loc) ? Team.COPPER
                 : arena.site(Team.IRON).vaultChests.contains(loc) ? Team.IRON : null;
-        if (vaultTeam == null) return;
-
         GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        if (vaultTeam == null) {
+            if (gp != null && game.isActive() && game.getDockLocks().isEnemyDock(gp.getTeam(), loc)
+                    && !game.getDockLocks().isUnlocked(player.getUniqueId())) {
+                event.setCancelled(true);
+            }
+            return;
+        }
         boolean breachingAttacker = gp != null && gp.getTeam() != vaultTeam && game.getVaultDrillManager().isBreached(vaultTeam);
         if (!breachingAttacker) {
             event.setCancelled(true);

@@ -15,6 +15,7 @@ public class GameTeam {
     private final List<HeistGolem> golems = new ArrayList<>();
     private int score = 0;
     private int steals = 0;
+    private long lastDeliveryMillis = System.currentTimeMillis();
     private int relicsDelivered = 0;
 
     public GameTeam(Team team) {
@@ -47,6 +48,14 @@ public class GameTeam {
 
     public void addRelicDelivered() {
         relicsDelivered++;
+    }
+
+    public long getLastDeliveryMillis() {
+        return lastDeliveryMillis;
+    }
+
+    public void markDelivery() {
+        lastDeliveryMillis = System.currentTimeMillis();
     }
 
     public int getSteals() {

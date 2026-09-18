@@ -138,6 +138,10 @@ public class GolemManager {
         }
     }
 
+    public boolean isInBounds(Location location) {
+        return game.getArena().isInBounds(location);
+    }
+
     public double currentSpeed(HeistGolem golem) {
         double base = plugin.getConfig().getDouble("golems.base-speed", 0.3);
         double multiplier = switch (golem.getEntity().getWeatheringState()) {
@@ -193,6 +197,7 @@ public class GolemManager {
         }
         GameTeam gameTeam = game.getTeam(golem.getTeam());
         gameTeam.addScore(value);
+        gameTeam.markDelivery();
         boolean relic = LootItem.isRelic(carried);
         if (relic) gameTeam.addRelicDelivered();
         UUID carrier = LootItem.getLastCarrier(carried);

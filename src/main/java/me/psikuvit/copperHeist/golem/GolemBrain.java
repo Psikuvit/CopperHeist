@@ -17,6 +17,8 @@ public class GolemBrain {
 
     private static final double ARRIVE_DISTANCE_SQUARED = 2.25; // 1.5 blocks
     private static final long STUCK_MILLIS = 8000;
+    private static final double OFF_PATH_DISTANCE_SQUARED = 16.0; // 4 blocks from the route
+    private static final long OFF_PATH_MILLIS = 2000;
 
     private final HeistGolem golem;
     private final GolemManager manager;
@@ -26,6 +28,7 @@ public class GolemBrain {
     private Location currentTarget;
     private Location lastPosition;
     private long lastMovedMillis = System.currentTimeMillis();
+    private long offPathSinceMillis = 0;
 
     public GolemBrain(HeistGolem golem, GolemManager manager) {
         this.golem = golem;
@@ -42,6 +45,10 @@ public class GolemBrain {
     }
 
     public void tick() {
+        if (!manager.isInBounds(golem.getEntity().getLocation())) {
+            returnToDock();
+            return;
+        }
         if (golem.isStunned()) {
             golem.getEntity().getPathfinder().stopPathfinding();
             return;
@@ -61,6 +68,52 @@ public class GolemBrain {
         }
 
         checkStuck();
+        checkOffPath();
+    }
+
+    /** Fell out of the arena (or got launched out of it) - back to the idle point, carrying whatever it had. */
+    private void returnToDock() {
+        golem.getEntity().teleport(golem.getDockIdle());
+        phase = HeistGolem.Phase.AT_DOCK;
+        waypointIndex = 0;
+        currentTarget = null;
+        lastPosition = golem.getEntity().getLocation();
+        lastMovedMillis = System.currentTimeMillis();
+    }
+
+    /** Knocked well away from its route (wind charge, explosion): after a couple of seconds, re-path from the nearest waypoint. */
+    private void checkOffPath() {
+        if (phase == HeistGolem.Phase.AT_DOCK) {
+            offPathSinceMillis = 0;
+            return;
+        }
+        List<Location> route = phase == HeistGolem.Phase.TO_VAULT ? golem.getWaypointsToVault() : golem.getWaypointsToDock();
+        if (route.isEmpty()) return;
+
+        Location here = golem.getEntity().getLocation();
+        int nearest = 0;
+        double nearestSquared = Double.MAX_VALUE;
+        for (int i = 0; i < route.size(); i++) {
+            Location point = route.get(i);
+            if (point.getWorld() != here.getWorld()) continue;
+            double d = here.distanceSquared(point);
+            if (d < nearestSquared) {
+                nearestSquared = d;
+                nearest = i;
+            }
+        }
+        if (nearestSquared <= OFF_PATH_DISTANCE_SQUARED) {
+            offPathSinceMillis = 0;
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (offPathSinceMillis == 0) {
+            offPathSinceMillis = now;
+        } else if (now - offPathSinceMillis >= OFF_PATH_MILLIS) {
+            waypointIndex = nearest;
+            currentTarget = null;
+            offPathSinceMillis = 0;
+        }
     }
 
     private void tickAtDock() {

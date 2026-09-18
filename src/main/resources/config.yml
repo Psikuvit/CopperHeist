@@ -10,12 +10,23 @@ match:
   ending-seconds: 10
   respawn-delay-seconds: 6
   forfeit-seconds: 30
+  hidden-enemy-score: false
   # Elapsed seconds since match start at which each phase ends. FINAL_RUSH
   # runs from heist-end-seconds until duration-seconds.
   phases:
     setup-seconds: 60
     collection-end-seconds: 480
     heist-end-seconds: 780
+
+dock:
+  lockpick-seconds: 4.0
+  unlock-window-seconds: 15
+
+# Optional anti-turtle rule: a team that delivers nothing for a while sees its golems age faster.
+vault-decay:
+  enabled: false
+  after-seconds: 120
+  aging-multiplier: 1.5
 
 spawn-protection:
   radius: 6
