@@ -18,6 +18,8 @@ public class GameManager {
     private final Map<UUID, HeistGolem> golemRegistry = new HashMap<>();
     private final Map<UUID, Game> golemOwner = new HashMap<>();
     private final Map<UUID, Game> heistEntityOwner = new HashMap<>();
+    private final Map<UUID, GamePlayer.SavedState> pendingRestore = new HashMap<>();
+    private boolean shuttingDown;
 
     public GameManager(CopperHeist plugin) {
         this.plugin = plugin;
@@ -85,10 +87,34 @@ public class GameManager {
         playerArena.remove(player.getUniqueId());
     }
 
+    /** Called on join: reconnects a player whose slot is still held, or restores the inventory/location they left a match with. */
+    public boolean onJoin(Player player) {
+        for (Game game : gamesByArena.values()) {
+            if (game.rejoin(player)) {
+                playerArena.put(player.getUniqueId(), game.getArena().getName().toLowerCase());
+                return true;
+            }
+        }
+        GamePlayer.SavedState saved = pendingRestore.remove(player.getUniqueId());
+        if (saved != null) Game.restoreState(player, saved);
+        return false;
+    }
+
+    /** Held until the player is next online - removing someone who has quit can't restore their state right then. */
+    public void stashRestore(UUID uuid, GamePlayer.SavedState state) {
+        pendingRestore.put(uuid, state);
+    }
+
+    public void shutdownAll() {
+        shuttingDown = true;
+        for (Game game : new java.util.ArrayList<>(gamesByArena.values())) game.shutdown();
+    }
+
     public void onQuit(Player player) {
         Game game = getGame(player);
         if (game == null) return;
         if (game.isSpectator(player)) game.removeSpectator(player, false);
+        else if (game.holdSlot(player)) return;
         else game.removePlayer(player, false);
         playerArena.remove(player.getUniqueId());
     }
@@ -96,6 +122,7 @@ public class GameManager {
     public void onGameFinished(Game finishedGame) {
         String arenaKey = finishedGame.getArena().getName().toLowerCase();
         playerArena.values().removeIf(arenaKey::equals);
+        if (shuttingDown) return;
         gamesByArena.put(finishedGame.getArena().getName().toLowerCase(), new Game(plugin, finishedGame.getArena()));
     }
 

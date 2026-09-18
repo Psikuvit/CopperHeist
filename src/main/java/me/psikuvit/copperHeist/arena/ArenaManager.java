@@ -5,10 +5,14 @@ import me.psikuvit.copperHeist.util.LocationUtil;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
+import org.bukkit.Location;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -68,12 +72,21 @@ public class ArenaManager {
         yaml.set("rare-points", LocationUtil.serializeList(arena.getLootPoints(Arena.LootZone.RARE)));
         yaml.set("cache-points", LocationUtil.serializeList(arena.getLootPoints(Arena.LootZone.CACHE)));
         yaml.set("relic-points", LocationUtil.serializeList(arena.getRelicPoints()));
+        List<Map<String, Object>> pads = new ArrayList<>();
+        for (Arena.GustPad pad : arena.getGustPads()) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("loc", LocationUtil.serialize(pad.location()));
+            entry.put("power", pad.power());
+            pads.add(entry);
+        }
+        yaml.set("gust-pads", pads);
         for (Team team : Team.values()) {
             Arena.TeamSite site = arena.site(team);
             String base = "teams." + team.name().toLowerCase();
             if (site.spawn != null) yaml.set(base + ".spawn", LocationUtil.serialize(site.spawn));
             if (site.golemIdle != null) yaml.set(base + ".golem-idle", LocationUtil.serialize(site.golemIdle));
             if (site.vaultDoor != null) yaml.set(base + ".vault-door", LocationUtil.serialize(site.vaultDoor));
+            if (site.shop != null) yaml.set(base + ".shop", LocationUtil.serialize(site.shop));
             yaml.set(base + ".dock-chests", LocationUtil.serializeList(site.dockChests));
             yaml.set(base + ".vault-chests", LocationUtil.serializeList(site.vaultChests));
             yaml.set(base + ".waypoints", LocationUtil.serializeList(site.waypoints));
@@ -100,11 +113,17 @@ public class ArenaManager {
         arena.getLootPoints(Arena.LootZone.RARE).addAll(LocationUtil.deserializeList(world, yaml.getList("rare-points")));
         arena.getLootPoints(Arena.LootZone.CACHE).addAll(LocationUtil.deserializeList(world, yaml.getList("cache-points")));
         arena.getRelicPoints().addAll(LocationUtil.deserializeList(world, yaml.getList("relic-points")));
+        for (Map<?, ?> entry : yaml.getMapList("gust-pads")) {
+            Location loc = LocationUtil.deserialize(world, entry.get("loc") instanceof List<?> l ? l : null);
+            double power = entry.get("power") instanceof Number n ? n.doubleValue() : 1.4;
+            if (loc != null) arena.getGustPads().add(new Arena.GustPad(loc, power));
+        }
         for (Team team : Team.values()) {
             Arena.TeamSite site = arena.site(team);
             String base = "teams." + team.name().toLowerCase();
             if (yaml.contains(base + ".spawn")) site.spawn = LocationUtil.deserialize(world, yaml.getList(base + ".spawn"));
             if (yaml.contains(base + ".golem-idle")) site.golemIdle = LocationUtil.deserialize(world, yaml.getList(base + ".golem-idle"));
+            if (yaml.contains(base + ".shop")) site.shop = LocationUtil.deserialize(world, yaml.getList(base + ".shop"));
             if (yaml.contains(base + ".vault-door")) site.vaultDoor = LocationUtil.deserialize(world, yaml.getList(base + ".vault-door"));
             site.dockChests.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".dock-chests")));
             site.vaultChests.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".vault-chests")));

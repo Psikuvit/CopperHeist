@@ -12,8 +12,12 @@ import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.CopperGolem;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
@@ -47,6 +51,41 @@ public class RoleService {
     public RoleService(CopperHeist plugin, Game game) {
         this.plugin = plugin;
         this.game = game;
+    }
+
+    /** Returns an error message, or null if the role was set (it applies on the next respawn during a match). */
+    public String trySetRole(GamePlayer gp, Role role) {
+        if (role != gp.getRole() && countOnTeam(gp.getTeam(), role) >= 2) {
+            return "Your team already has 2 " + role.displayName() + "s.";
+        }
+        gp.setRole(role);
+        return null;
+    }
+
+    /** One item per role, in Role order - the click listener maps slot index straight back to the role. */
+    public Inventory buildRoleMenu() {
+        Inventory inventory = Bukkit.createInventory(new RoleHolder(), 9, Component.text("Choose a role", NamedTextColor.GOLD));
+        for (Role role : Role.values()) {
+            ItemStack icon = new ItemStack(switch (role) {
+                case RUNNER -> Material.LEATHER_BOOTS;
+                case THIEF -> Material.IRON_SWORD;
+                case MECHANIC -> Material.STONE_AXE;
+                case GUARD -> Material.SHIELD;
+                case SABOTEUR -> Material.SPLASH_POTION;
+            });
+            var meta = icon.getItemMeta();
+            meta.displayName(Component.text(role.displayName(), role.color()).decoration(TextDecoration.ITALIC, false));
+            meta.lore(java.util.List.of(Component.text(switch (role) {
+                case RUNNER -> "Carrying loot slows you half as much.";
+                case THIEF -> "F: turn invisible. Picks locks twice as fast.";
+                case MECHANIC -> "Scrape and wax faster; instantly un-stun golems.";
+                case GUARD -> "+1 alarm and extra damage near your spawn.";
+                case SABOTEUR -> "F: reveal enemy golems. Starts with splash potions.";
+            }, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+            icon.setItemMeta(meta);
+            inventory.addItem(icon);
+        }
+        return inventory;
     }
 
     public int countOnTeam(Team team, Role role) {

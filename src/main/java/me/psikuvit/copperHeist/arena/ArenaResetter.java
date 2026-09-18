@@ -8,6 +8,8 @@ import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Firework;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -31,9 +33,10 @@ public class ArenaResetter {
         if (world == null) return;
         for (Entity entity : world.getEntities()) {
             if (!arena.isInBounds(entity.getLocation())) continue;
-            if (entity instanceof Item || entity instanceof Display) {
+            if (entity instanceof Item || entity instanceof Display || entity instanceof Interaction || entity instanceof Firework) {
                 entity.remove();
-            } else if (entity.getType() == EntityType.COPPER_GOLEM && Pdc.has(entity, PdcKeys.MATCH_ID)) {
+            } else if ((entity.getType() == EntityType.COPPER_GOLEM || entity.getType() == EntityType.VILLAGER)
+                    && Pdc.has(entity, PdcKeys.MATCH_ID)) {
                 // Only remove golems this plugin spawned - a real player-owned copper
                 // golem that happened to wander into the bounds is left alone.
                 entity.remove();

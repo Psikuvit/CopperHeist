@@ -24,6 +24,11 @@ public class Arena {
         public Location golemIdle;
         public final List<Location> waypoints = new ArrayList<>();
         public Location vaultDoor;
+        public Location shop;
+    }
+
+    /** A block that launches whoever steps on it; power scales both the lift and the forward push. */
+    public record GustPad(Location location, double power) {
     }
 
     private final String name;
@@ -36,6 +41,7 @@ public class Arena {
     private final Map<Team, TeamSite> sites = new EnumMap<>(Team.class);
     private final Map<LootZone, List<Location>> lootZones = new EnumMap<>(LootZone.class);
     private final List<Location> relicPoints = new ArrayList<>();
+    private final List<GustPad> gustPads = new ArrayList<>();
 
     public Arena(String name) {
         this.name = name;
@@ -119,6 +125,10 @@ public class Arena {
         return all;
     }
 
+    public List<GustPad> getGustPads() {
+        return gustPads;
+    }
+
     public List<Location> getRelicPoints() {
         return relicPoints;
     }
@@ -135,6 +145,37 @@ public class Arena {
         return loc.getX() >= minX && loc.getX() <= maxX
                 && loc.getY() >= minY && loc.getY() <= maxY
                 && loc.getZ() >= minZ && loc.getZ() <= maxZ;
+    }
+
+    /** Human-readable checklist for "arena validate": [OK] fine, [!] works but worth fixing, [X] blocks enabling. */
+    public List<String> report() {
+        List<String> lines = new ArrayList<>();
+        line(lines, lobby != null, "Lobby point", "No lobby set");
+        line(lines, bound1 != null && bound2 != null, "Arena bounds", "Arena bounds not set (setbounds1/setbounds2)");
+        int loot = allLootPoints().size();
+        if (loot < 3) lines.add("<red>[X] Only " + loot + " loot points (min 3)");
+        else if (loot < 6) lines.add("<yellow>[!] Only " + loot + " loot points (recommend 6+)");
+        else lines.add("<green>[OK] " + loot + " loot points (" + getLootPoints().size() + " common, "
+                + getLootPoints(LootZone.RARE).size() + " rare, " + getLootPoints(LootZone.CACHE).size() + " cache)");
+        if (relicPoints.isEmpty()) lines.add("<yellow>[!] No relic points - the relic will never spawn");
+        else lines.add("<green>[OK] " + relicPoints.size() + " relic points");
+        if (spectator == null) lines.add("<yellow>[!] No spectator point - spectators will use the lobby");
+        for (Team team : Team.values()) {
+            TeamSite site = sites.get(team);
+            String label = team.displayName();
+            line(lines, site.spawn != null, label + " spawn", label + " team has no spawn");
+            line(lines, !site.dockChests.isEmpty(), label + " dock: " + site.dockChests.size() + " chests", label + " team has no dock chests");
+            line(lines, !site.vaultChests.isEmpty(), label + " vault: " + site.vaultChests.size() + " chests", label + " team has no vault chests");
+            line(lines, site.vaultDoor != null, label + " vault door", label + " team has no vault door");
+            line(lines, site.golemIdle != null, label + " golem idle point", label + " team has no golem idle point");
+            line(lines, !site.waypoints.isEmpty(), label + " waypoints: " + site.waypoints.size(), label + " team has no waypoints");
+            if (site.shop == null) lines.add("<yellow>[!] " + label + " has no shop NPC point (use /ch shop instead)");
+        }
+        return lines;
+    }
+
+    private static void line(List<String> lines, boolean ok, String okText, String failText) {
+        lines.add(ok ? "<green>[OK] " + okText : "<red>[X] " + failText);
     }
 
     public List<String> validate() {

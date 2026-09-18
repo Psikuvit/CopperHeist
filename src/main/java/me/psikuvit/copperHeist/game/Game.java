@@ -17,7 +17,10 @@ import me.psikuvit.copperHeist.role.RoleService;
 import me.psikuvit.copperHeist.task.GameSidebarTask;
 import me.psikuvit.copperHeist.task.GameTimerTask;
 import me.psikuvit.copperHeist.task.GameUiTask;
+import me.psikuvit.copperHeist.task.RejoinExpiryTask;
 import me.psikuvit.copperHeist.task.RespawnTask;
+import me.psikuvit.copperHeist.util.Pdc;
+import me.psikuvit.copperHeist.util.PdcKeys;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -28,6 +31,7 @@ import org.bukkit.GameRules;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Villager;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -47,6 +51,9 @@ public class Game {
     private final Map<UUID, GamePlayer> players = new LinkedHashMap<>();
     private final Map<UUID, GamePlayer.SavedState> spectators = new LinkedHashMap<>();
     private boolean lootStarted;
+    private final Map<UUID, Team> shopNpcs = new LinkedHashMap<>();
+    private final Map<UUID, Long> disconnectedUntil = new LinkedHashMap<>();
+    private final java.util.Set<String> scoredLootIds = new java.util.HashSet<>();
 
     private GameState state = GameState.WAITING;
     private String matchId = UUID.randomUUID().toString();
@@ -221,7 +228,9 @@ public class Game {
         plugin.getLootWeightService().clearModifier(player);
         if (isActive()) dropCarriedLoot(player);
 
+        disconnectedUntil.remove(player.getUniqueId());
         if (online && gamePlayer.getSavedState() != null) restoreState(player, gamePlayer.getSavedState());
+        else if (!online && gamePlayer.getSavedState() != null) plugin.getGameManager().stashRestore(player.getUniqueId(), gamePlayer.getSavedState());
         if (online) {
             if (phaseBar != null) player.hideBossBar(phaseBar);
             player.setGlowing(false);
@@ -230,7 +239,7 @@ public class Game {
         }
     }
 
-    private void restoreState(Player player, GamePlayer.SavedState saved) {
+    public static void restoreState(Player player, GamePlayer.SavedState saved) {
         player.getInventory().setContents(saved.contents());
         player.getInventory().setArmorContents(saved.armor());
         player.setGameMode(saved.gameMode());
@@ -238,6 +247,105 @@ public class Game {
         player.setHealth(Math.min(saved.health(), maxHealth == null ? 20.0 : maxHealth.getValue()));
         player.setFoodLevel(saved.foodLevel());
         player.teleport(saved.location());
+    }
+
+    // ---- shop NPCs ----
+
+    private void spawnShopNpcs() {
+        for (Team team : Team.values()) {
+            Location loc = arena.site(team).shop;
+            if (loc == null || loc.getWorld() == null) continue;
+            Villager npc = loc.getWorld().spawn(loc, Villager.class, villager -> {
+                villager.setAI(false);
+                villager.setInvulnerable(true);
+                villager.setSilent(true);
+                villager.setPersistent(true);
+                villager.customName(Component.text(team.displayName() + " Shop", team.color()));
+                villager.setCustomNameVisible(true);
+            });
+            Pdc.set(npc, PdcKeys.MATCH_ID, matchId);
+            shopNpcs.put(npc.getUniqueId(), team);
+            plugin.getGameManager().registerHeistEntity(this, npc.getUniqueId());
+        }
+    }
+
+    private void removeShopNpcs() {
+        for (UUID id : shopNpcs.keySet()) {
+            var entity = Bukkit.getEntity(id);
+            if (entity != null) entity.remove();
+            plugin.getGameManager().unregisterHeistEntity(id);
+        }
+        shopNpcs.clear();
+    }
+
+    public Team shopNpcTeam(UUID entityId) {
+        return shopNpcs.get(entityId);
+    }
+
+    /** "/ch shop" only works from your own base during a match - approximated as a radius around your team's spawn. */
+    public boolean isNearOwnSpawn(Player player, GamePlayer gp) {
+        Location spawn = arena.site(gp.getTeam()).spawn;
+        if (spawn == null || !player.getWorld().equals(spawn.getWorld())) return true;
+        double radius = plugin.getConfig().getDouble("shop.command-radius", 15);
+        return player.getLocation().distanceSquared(spawn) <= radius * radius;
+    }
+
+    // ---- loot integrity ----
+
+    /** False if this loot id was already scored this match - a duplicated item is worth nothing the second time. */
+    public boolean markLootScored(String lootId) {
+        return scoredLootIds.add(lootId);
+    }
+
+    /** Loot from a different match (an old bag, a stale inventory) can't be carried into this one. */
+    private void purgeStaleLoot(Player player) {
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            if (LootItem.isLoot(item) && !matchId.equals(LootItem.getMatchId(item))) player.getInventory().setItem(i, null);
+        }
+    }
+
+    // ---- disconnects ----
+
+    /** Keeps a quitting player's slot open for a grace period: their loot drops now, but they can rejoin their team. */
+    public boolean holdSlot(Player player) {
+        GamePlayer gp = players.get(player.getUniqueId());
+        if (gp == null || !isActive()) return false;
+        dropCarriedLoot(player);
+        plugin.getLootWeightService().clearModifier(player);
+        int grace = plugin.getConfig().getInt("match.rejoin-grace-seconds", 60);
+        disconnectedUntil.put(player.getUniqueId(), System.currentTimeMillis() + grace * 1000L);
+        new RejoinExpiryTask(this, player.getUniqueId()).runTaskLater(plugin, grace * 20L);
+        return true;
+    }
+
+    public boolean rejoin(Player player) {
+        if (disconnectedUntil.remove(player.getUniqueId()) == null) return false;
+        GamePlayer gp = players.get(player.getUniqueId());
+        if (gp == null || !isActive()) return false;
+        player.getInventory().clear();
+        beginRespawnWait(player, gp);
+        return true;
+    }
+
+    public void expireDisconnected(UUID uuid) {
+        if (disconnectedUntil.containsKey(uuid)) removeOffline(uuid);
+    }
+
+    /** Removes a player who isn't online - their saved state is held until they next join. */
+    public void removeOffline(UUID uuid) {
+        disconnectedUntil.remove(uuid);
+        GamePlayer gp = players.remove(uuid);
+        if (gp == null) return;
+        teams.get(gp.getTeam()).getMembers().remove(uuid);
+        if (gp.getSavedState() != null) plugin.getGameManager().stashRestore(uuid, gp.getSavedState());
+    }
+
+    /** Plugin disable: end any running match and send everyone back where they came from. */
+    public void shutdown() {
+        if (state == GameState.RESETTING) return;
+        if (isActive() || state == GameState.STARTING) end();
+        beginReset();
     }
 
     // ---- spectators ----
@@ -476,6 +584,7 @@ public class Game {
         alarmManager.start();
         vaultDrillManager.start();
         lootBagManager.start();
+        spawnShopNpcs();
         oxidationTask = new OxidationTask(this).runTaskTimer(plugin, 20L, 20L);
         uiTask = new GameUiTask(this).runTaskTimer(plugin, 10L, 10L);
 
@@ -526,6 +635,7 @@ public class Game {
         if (++uiTicks % 2 == 0) spawnGuardTick();
         golemManager.syncLabels();
         for (Player player : onlinePlayers()) {
+            purgeStaleLoot(player);
             plugin.getLootWeightService().recalc(player);
         }
     }
@@ -539,6 +649,7 @@ public class Game {
         alarmManager.stop();
         vaultDrillManager.stop();
         lootBagManager.stop();
+        removeShopNpcs();
         if (oxidationTask != null) oxidationTask.cancel();
         if (uiTask != null) uiTask.cancel();
         if (phaseBar != null) {
@@ -572,7 +683,7 @@ public class Game {
         for (UUID uuid : new ArrayList<>(players.keySet())) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) removePlayer(player, true);
-            else players.remove(uuid);
+            else removeOffline(uuid);
         }
 
         for (UUID uuid : new ArrayList<>(spectators.keySet())) {

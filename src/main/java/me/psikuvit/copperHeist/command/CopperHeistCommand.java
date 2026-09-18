@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.command;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -59,6 +60,7 @@ public final class CopperHeistCommand {
                     .then(literal("list").executes(commands::executeList))
                     .then(literal("shop").executes(commands::executeShop))
                     .then(literal("role")
+                            .executes(commands::executeRoleMenu)
                             .then(argument("role", StringArgumentType.word())
                                     .suggests(RoleSuggestions.ROLES)
                                     .executes(commands::executeRole)))
@@ -174,13 +176,27 @@ public final class CopperHeistCommand {
             return 0;
         }
 
-        if (role != gp.getRole() && game.getRoleService().countOnTeam(gp.getTeam(), role) >= 2) {
-            Msg.err(player, "Your team already has 2 " + role.displayName() + "s.");
+        String error = game.getRoleService().trySetRole(gp, role);
+        if (error != null) {
+            Msg.err(player, error);
             return 0;
         }
-
-        gp.setRole(role);
         Msg.ok(player, "Role set to " + role.displayName() + (game.isActive() ? " - applies next respawn." : "."));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeRoleMenu(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "Only players can pick a role.");
+            return 0;
+        }
+        Game game = plugin.getGameManager().getGame(player);
+        if (game == null || game.getGamePlayer(player.getUniqueId()) == null) {
+            Msg.err(player, "Join a match first.");
+            return 0;
+        }
+        player.openInventory(game.getRoleService().buildRoleMenu());
         return Command.SINGLE_SUCCESS;
     }
 
@@ -192,6 +208,12 @@ public final class CopperHeistCommand {
         }
         if (plugin.getGameManager().getGame(player) == null) {
             Msg.err(player, "Join a match first.");
+            return 0;
+        }
+        Game shopGame = plugin.getGameManager().getGame(player);
+        GamePlayer shopGp = shopGame.getGamePlayer(player.getUniqueId());
+        if (shopGame.isActive() && shopGp != null && !shopGame.isNearOwnSpawn(player, shopGp)) {
+            Msg.err(player, "Use your team's shop NPC, or go back near your spawn to open the shop.");
             return 0;
         }
         player.openInventory(plugin.getShopService().buildMenu());
@@ -397,14 +419,14 @@ public final class CopperHeistCommand {
                     Msg.ok(player, "Set corner 2 of arena bounds.");
                 }))
                 .then(arenaOnly("validate", (player, arena) -> {
-                    List<String> issues = arena.validate();
-                    if (issues.isEmpty()) {
-                        Msg.ok(player, "All checks passed for " + arena.getName() + ".");
-                        return;
-                    }
-                    Msg.err(player, issues.size() + " issue(s) with " + arena.getName() + ":");
-                    for (String issue : issues) Msg.err(player, " - " + issue);
+                    for (String line : arena.report()) Msg.send(player, line);
+                    if (arena.validate().isEmpty()) Msg.ok(player, arena.getName() + " is ready to enable.");
                 }))
+                .then(arenaTeam("setshop", (player, arena, team) -> {
+                    arena.site(team).shop = player.getLocation();
+                    Msg.ok(player, "Set " + team.displayName() + " shop NPC point for " + arena.getName() + ".");
+                }))
+                .then(addPadCommand())
                 .then(arenaOnly("save", (player, arena) -> {
                     plugin.getArenaManager().save(arena);
                     Msg.ok(player, "Saved " + arena.getName() + ".");
@@ -448,6 +470,24 @@ public final class CopperHeistCommand {
                                     }
                                     return runArenaOnly(ctx, (player, arena) -> addLootPoint(player, arena, zone));
                                 })));
+    }
+
+    /** /ch arena addpad <arena> [power] - marks the block you're standing in as a gust pad. */
+    private LiteralArgumentBuilder<CommandSourceStack> addPadCommand() {
+        return literal("addpad")
+                .then(argument("name", StringArgumentType.word())
+                        .suggests(arenaSuggestions)
+                        .executes(ctx -> runArenaOnly(ctx, (player, arena) -> addPad(player, arena, 1.4)))
+                        .then(argument("power", DoubleArgumentType.doubleArg(0.2, 5.0))
+                                .executes(ctx -> {
+                                    double power = DoubleArgumentType.getDouble(ctx, "power");
+                                    return runArenaOnly(ctx, (player, arena) -> addPad(player, arena, power));
+                                })));
+    }
+
+    private void addPad(Player player, Arena arena, double power) {
+        arena.getGustPads().add(new Arena.GustPad(player.getLocation().getBlock().getLocation(), power));
+        Msg.ok(player, "Added gust pad (power " + power + ", " + arena.getGustPads().size() + " total).");
     }
 
     private void addLootPoint(Player player, Arena arena, Arena.LootZone zone) {

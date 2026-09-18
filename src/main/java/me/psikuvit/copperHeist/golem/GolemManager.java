@@ -175,6 +175,13 @@ public class GolemManager {
     public void deposit(HeistGolem golem) {
         ItemStack carried = golem.getCarried();
         if (carried == null) return;
+        String lootId = Pdc.get(carried, PdcKeys.LOOT_ID);
+        if (lootId != null && !game.markLootScored(lootId)) {
+            plugin.getLogger().warning("Ignored a duplicate loot item (" + lootId + ") delivered by a " + golem.getTeam() + " golem");
+            golem.setCarried(null);
+            updateLabel(golem);
+            return;
+        }
         Arena.TeamSite site = game.getArena().site(golem.getTeam());
         boolean placed = false;
         for (Location loc : site.vaultChests) {

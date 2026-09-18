@@ -114,6 +114,23 @@ public class HeistListener implements Listener {
         item.setAmount(item.getAmount() - 1);
     }
 
+    /** Right-click a team's shop NPC to open the shop; sneak-click for the role picker. */
+    @EventHandler
+    public void onShopNpc(PlayerInteractEntityEvent event) {
+        if (event.getRightClicked().getType() != EntityType.VILLAGER) return;
+        Game game = plugin.getGameManager().getGameForHeistEntity(event.getRightClicked().getUniqueId());
+        if (game == null) return;
+        Team npcTeam = game.shopNpcTeam(event.getRightClicked().getUniqueId());
+        if (npcTeam == null) return;
+        event.setCancelled(true);
+        if (event.getHand() != EquipmentSlot.HAND) return;
+
+        Player player = event.getPlayer();
+        GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        if (gp == null || gp.getTeam() != npcTeam) return;
+        player.openInventory(player.isSneaking() ? game.getRoleService().buildRoleMenu() : plugin.getShopService().buildMenu());
+    }
+
     @EventHandler
     public void onBagInteract(PlayerInteractEntityEvent event) {
         if (event.getRightClicked().getType() != EntityType.INTERACTION) return;

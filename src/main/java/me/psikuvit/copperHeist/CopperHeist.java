@@ -9,6 +9,7 @@ import me.psikuvit.copperHeist.listener.ArenaProtectionListener;
 import me.psikuvit.copperHeist.listener.CombatListener;
 import me.psikuvit.copperHeist.listener.GameEventListener;
 import me.psikuvit.copperHeist.listener.GolemInteractListener;
+import me.psikuvit.copperHeist.listener.GustPadListener;
 import me.psikuvit.copperHeist.listener.HeistListener;
 import me.psikuvit.copperHeist.listener.LobbyListener;
 import me.psikuvit.copperHeist.listener.LootListener;
@@ -56,6 +57,7 @@ public final class CopperHeist extends JavaPlugin {
         shopService.load();
 
         arenaManager.loadAll();
+        arenaManager.all().forEach(arenaResetter::reset);
 
         getServer().getPluginManager().registerEvents(new PlayerConnectionListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this), this);
@@ -67,6 +69,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RoleListener(this), this);
         getServer().getPluginManager().registerEvents(new GameEventListener(this), this);
         getServer().getPluginManager().registerEvents(new HeistListener(this), this);
+        getServer().getPluginManager().registerEvents(new GustPadListener(this), this);
 
         CopperHeistCommand.register(this);
 
@@ -76,9 +79,7 @@ public final class CopperHeist extends JavaPlugin {
     @Override
     public void onDisable() {
         if (gameManager == null) return;
-        for (var game : gameManager.all()) {
-            game.forceStop();
-        }
+        gameManager.shutdownAll();
     }
 
     public ArenaManager getArenaManager() {
