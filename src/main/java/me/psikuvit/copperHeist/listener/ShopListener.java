@@ -5,8 +5,9 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.role.RoleDefinition;
 import me.psikuvit.copperHeist.role.RoleHolder;
-import me.psikuvit.copperHeist.shop.ShopHolder;
 import me.psikuvit.copperHeist.shop.ShopEntry;
+import me.psikuvit.copperHeist.shop.ShopHolder;
+import me.psikuvit.copperHeist.ui.Text;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.entity.Player;
@@ -39,14 +40,14 @@ public class ShopListener implements Listener {
         if (gp == null) return;
 
         RoleDefinition role = roleList.get(slot);
-        String error = game.getRoleService().trySetRole(gp, role);
+        Text error = game.getRoleService().trySetRole(gp, role);
         player.closeInventory();
+        var messages = plugin.getMessageService();
         if (error != null) {
-            player.sendMessage(net.kyori.adventure.text.Component.text(error, net.kyori.adventure.text.format.NamedTextColor.RED));
+            player.sendMessage(messages.err(player, error));
             return;
         }
-        player.sendMessage(net.kyori.adventure.text.Component.text("Role set to " + role.displayName()
-                + (game.isActive() ? " - applies next respawn." : "."), net.kyori.adventure.text.format.NamedTextColor.GREEN));
+        player.sendMessage(messages.ok(player, game.isActive() ? "command.role-set-next" : "command.role-set", "role", role.displayName()));
     }
 
     @EventHandler

@@ -16,23 +16,24 @@ import me.psikuvit.copperHeist.event.VaultDrillPlacedEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.entity.Firework;
-import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.meta.FireworkMeta;
+
+import java.util.Locale;
 
 /**
  * Reacts to this plugin's own custom events (see the event package) with the
  * player-facing side effect - a broadcast, a title. Keeping this separate
  * from the managers that fire those events means GolemManager/RelicManager/
  * Game don't need to know how a moment gets announced, just that it happened.
+ * Every line is a lang key, so each player reads it in their own language.
  */
 public class GameEventListener implements Listener {
 
@@ -46,12 +47,17 @@ public class GameEventListener implements Listener {
     public void onLootDelivered(LootDeliveredEvent event) {
         Game game = event.getGame();
         if (event.isRelic()) {
-            broadcast(game, plugin.getMessageService().get("relic.delivered", "team", event.getTeam().displayName()));
+            broadcast(game, "relic.delivered", "team", event.getTeam().displayName(), "value", event.getValue());
             return;
         }
-        String totalSuffix = game.isScoreHidden() ? "" : " (" + game.getTeam(event.getTeam()).getScore() + " total)";
-        broadcast(game, Component.text(event.getTeam().displayName() + " delivered " + event.getValue()
-                + " loot!" + totalSuffix, event.getTeam().color()));
+        Team team = event.getTeam();
+        var messages = plugin.getMessageService();
+        for (Player player : game.onlinePlayers()) {
+            String total = game.isScoreHidden() ? ""
+                    : messages.rawFor(player, "event.total-suffix", "total", game.getTeam(team).getScore());
+            player.sendMessage(messages.get(player, "event.loot-delivered", "color", colorName(team),
+                    "team", team.displayName(), "value", event.getValue(), "total", total));
+        }
     }
 
     @EventHandler
@@ -61,94 +67,114 @@ public class GameEventListener implements Listener {
             thief.addSteal();
             thief.addStolenValue(event.getValue());
         }
-        broadcast(event.getGame(), Component.text(event.getThief().getName() + " stole loot from "
-                + event.getVictimTeam().displayName() + "!", NamedTextColor.YELLOW));
+        broadcast(event.getGame(), "event.loot-stolen", "player", event.getThief().getName(),
+                "victim", event.getVictimTeam().displayName());
     }
 
     @EventHandler
     public void onRelicSpawn(RelicSpawnEvent event) {
-        broadcast(event.getGame(), plugin.getMessageService().get("relic.spawned"));
+        broadcast(event.getGame(), "relic.spawned");
     }
 
     @EventHandler
     public void onRelicPickup(RelicPickupEvent event) {
-        broadcast(event.getGame(), plugin.getMessageService().get("relic.picked-up", "player", event.getPlayer().getName()));
+        broadcast(event.getGame(), "relic.picked-up", "player", event.getPlayer().getName());
     }
 
     @EventHandler
     public void onRelicLost(RelicLostEvent event) {
-        broadcast(event.getGame(), plugin.getMessageService().get("relic.lost"));
+        broadcast(event.getGame(), "relic.lost");
     }
 
     @EventHandler
     public void onMatchEnd(MatchEndEvent event) {
         Team winner = event.getWinner();
-        Component summary = winner != null
-                ? Component.text("WINNER: " + winner.displayName().toUpperCase() + " TEAM ("
-                        + event.getCopperScore() + " - " + event.getIronScore() + ")", winner.color())
-                : Component.text("DRAW (" + event.getCopperScore() + " - " + event.getIronScore() + ")", NamedTextColor.YELLOW);
-        broadcast(event.getGame(), summary);
-        broadcastHighlights(event.getGame());
-        if (winner != null) launchFireworks(event.getGame(), winner);
-
-        Component title = winner != null
-                ? Component.text(winner.displayName() + " WINS", winner.color())
-                : Component.text("DRAW", NamedTextColor.YELLOW);
-        Component subtitle = Component.text(event.getCopperScore() + " - " + event.getIronScore(), NamedTextColor.GRAY);
-        for (Player player : event.getGame().onlinePlayers()) {
-            player.showTitle(Title.title(title, subtitle));
+        Game game = event.getGame();
+        var messages = plugin.getMessageService();
+        for (Player player : game.onlinePlayers()) {
+            if (winner != null) {
+                player.sendMessage(messages.get(player, "match.winner", "color", colorName(winner),
+                        "team", winner.displayName().toUpperCase(Locale.ROOT),
+                        "copper", event.getCopperScore(), "iron", event.getIronScore()));
+                player.showTitle(Title.title(
+                        messages.get(player, "match.title-win", "color", colorName(winner), "team", winner.displayName()),
+                        messages.get(player, "match.subtitle", "copper", event.getCopperScore(), "iron", event.getIronScore())));
+            } else {
+                player.sendMessage(messages.get(player, "match.draw", "copper", event.getCopperScore(), "iron", event.getIronScore()));
+                player.showTitle(Title.title(messages.get(player, "match.title-draw"),
+                        messages.get(player, "match.subtitle", "copper", event.getCopperScore(), "iron", event.getIronScore())));
+            }
         }
+        broadcastHighlights(game);
+        if (winner != null) launchFireworks(game, winner);
     }
 
     @EventHandler
     public void onPhaseChange(PhaseChangeEvent event) {
-        String key = "phase." + event.getTo().name().toLowerCase().replace('_', '-');
-        Component title = plugin.getMessageService().get(key + ".title");
-        Component subtitle = plugin.getMessageService().get(key + ".subtitle");
+        String key = "phase." + event.getTo().name().toLowerCase(Locale.ROOT).replace('_', '-');
+        var messages = plugin.getMessageService();
         for (Player player : event.getGame().onlinePlayers()) {
-            player.showTitle(Title.title(title, subtitle));
+            player.showTitle(Title.title(messages.get(player, key + ".title"), messages.get(player, key + ".subtitle")));
+            player.sendMessage(messages.get(player, key + ".chat"));
         }
-        broadcast(event.getGame(), plugin.getMessageService().get(key + ".chat"));
     }
 
     @EventHandler
     public void onAlarmTriggered(AlarmTriggeredEvent event) {
-        broadcastTeam(event.getGame(), event.getAlarm().getTeam(), plugin.getMessageService().get("alarm.triggered"));
+        broadcastTeam(event.getGame(), event.getAlarm().team(), "alarm.triggered");
     }
 
     @EventHandler
     public void onAlarmDestroyed(AlarmDestroyedEvent event) {
-        broadcast(event.getGame(), plugin.getMessageService().get("alarm.destroyed", "player", event.getDestroyer().getName()));
+        broadcast(event.getGame(), "alarm.destroyed", "player", event.getDestroyer().getName());
     }
 
     @EventHandler
     public void onVaultDrillPlaced(VaultDrillPlacedEvent event) {
-        broadcast(event.getGame(), plugin.getMessageService().get("drill.placed",
-                "team", event.getDrill().getAttacker().displayName(), "target", event.getDrill().getDefender().displayName()));
+        broadcast(event.getGame(), "drill.placed", "team", event.getDrill().getAttacker().displayName(),
+                "target", event.getDrill().getDefender().displayName());
     }
 
     @EventHandler
     public void onVaultDrillCompleted(VaultDrillCompletedEvent event) {
-        broadcast(event.getGame(), plugin.getMessageService().get("drill.completed",
-                "target", event.getDrill().getDefender().displayName(), "seconds", event.getBreachSeconds()));
-        broadcastTeamTitle(event.getGame(), event.getDrill().getDefender(),
-                plugin.getMessageService().get("drill.breached.title"), plugin.getMessageService().get("drill.breached.subtitle"));
+        broadcast(event.getGame(), "drill.completed", "target", event.getDrill().getDefender().displayName(),
+                "seconds", event.getBreachSeconds());
+        broadcastTeamTitle(event.getGame(), event.getDrill().getDefender(), "drill.breached.title", "drill.breached.subtitle");
     }
 
     @EventHandler
     public void onVaultDrillDestroyed(VaultDrillDestroyedEvent event) {
-        broadcast(event.getGame(), plugin.getMessageService().get("drill.destroyed", "player", event.getDestroyer().getName()));
+        broadcast(event.getGame(), "drill.destroyed", "player", event.getDestroyer().getName());
     }
 
-    private void broadcastTeamTitle(Game game, Team team, Component title, Component subtitle) {
+    // ---- helpers ----
+
+    private String colorName(Team team) {
+        return team.color().toString();
+    }
+
+    private void broadcast(Game game, String key, Object... placeholders) {
+        for (Player player : game.onlinePlayers()) player.sendMessage(plugin.getMessageService().get(player, key, placeholders));
+    }
+
+    private void broadcastTeam(Game game, Team team, String key, Object... placeholders) {
         for (Player player : game.onlinePlayers()) {
             GamePlayer gp = game.getGamePlayer(player.getUniqueId());
-            if (gp != null && gp.getTeam() == team) player.showTitle(Title.title(title, subtitle));
+            if (gp != null && gp.getTeam() == team) player.sendMessage(plugin.getMessageService().get(player, key, placeholders));
+        }
+    }
+
+    private void broadcastTeamTitle(Game game, Team team, String titleKey, String subtitleKey) {
+        var messages = plugin.getMessageService();
+        for (Player player : game.onlinePlayers()) {
+            GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+            if (gp == null || gp.getTeam() != team) continue;
+            player.showTitle(Title.title(messages.get(player, titleKey), messages.get(player, subtitleKey)));
         }
     }
 
     private void launchFireworks(Game game, Team winner) {
-        Color color = winner == Team.COPPER ? Color.ORANGE : Color.SILVER;
+        Color color = winner.armorColor();
         for (Player player : game.onlinePlayers()) {
             GamePlayer gp = game.getGamePlayer(player.getUniqueId());
             if (gp == null || gp.getTeam() != winner) continue;
@@ -175,37 +201,19 @@ public class GameEventListener implements Listener {
             if (gp.mvpScore() > 0 && (mvp == null || gp.mvpScore() > mvp.mvpScore())) mvp = gp;
             if (gp.getKills() > 0 && (topKiller == null || gp.getKills() > topKiller.getKills())) topKiller = gp;
         }
-        if (mvp != null) {
-            broadcast(game, plugin.getMessageService().get("summary.mvp",
-                    "player", nameOf(mvp), "delivered", mvp.getDelivered()));
-        }
+        if (mvp != null) broadcast(game, "summary.mvp", "player", nameOf(mvp), "delivered", mvp.getDelivered());
         if (topThief != null) {
-            broadcast(game, plugin.getMessageService().get("summary.top-thief",
-                    "player", nameOf(topThief), "count", topThief.getSteals(), "value", topThief.getStolenValue()));
+            broadcast(game, "summary.top-thief", "player", nameOf(topThief), "count", topThief.getSteals(),
+                    "value", topThief.getStolenValue());
         }
         if (topMechanic != null) {
-            broadcast(game, plugin.getMessageService().get("summary.best-mechanic",
-                    "player", nameOf(topMechanic), "count", topMechanic.getScrapes()));
+            broadcast(game, "summary.best-mechanic", "player", nameOf(topMechanic), "count", topMechanic.getScrapes());
         }
-        if (topKiller != null) {
-            broadcast(game, plugin.getMessageService().get("summary.most-kills",
-                    "player", nameOf(topKiller), "count", topKiller.getKills()));
-        }
+        if (topKiller != null) broadcast(game, "summary.most-kills", "player", nameOf(topKiller), "count", topKiller.getKills());
     }
 
     private String nameOf(GamePlayer gp) {
         Player player = Bukkit.getPlayer(gp.getUuid());
         return player != null ? player.getName() : "?";
-    }
-
-    private void broadcast(Game game, Component message) {
-        for (Player player : game.onlinePlayers()) player.sendMessage(message);
-    }
-
-    private void broadcastTeam(Game game, Team team, Component message) {
-        for (Player player : game.onlinePlayers()) {
-            GamePlayer gp = game.getGamePlayer(player.getUniqueId());
-            if (gp != null && gp.getTeam() == team) player.sendMessage(message);
-        }
     }
 }

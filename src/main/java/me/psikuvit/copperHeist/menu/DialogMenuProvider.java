@@ -11,7 +11,9 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.role.RoleDefinition;
 import me.psikuvit.copperHeist.shop.ShopEntry;
+import me.psikuvit.copperHeist.ui.Text;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -39,11 +41,11 @@ public class DialogMenuProvider implements MenuProvider {
     public void openShop(Player player, Game game, GamePlayer gamePlayer) {
         List<ActionButton> buttons = new ArrayList<>();
         for (ShopEntry entry : plugin.getShopService().entries()) {
-            Component label = MINI.deserialize(entry.name()).append(Component.text(" - " + entry.cost()));
+            Component label = MINI.deserialize(plugin.getShopService().entryName(entry, player)).append(Component.text(" - " + entry.cost()));
             List<Component> lore = new ArrayList<>();
-            for (String line : entry.lore()) lore.add(MINI.deserialize(line));
+            for (String line : plugin.getShopService().entryLore(entry, player)) lore.add(MINI.deserialize(line));
             buttons.add(ActionButton.builder(label)
-                    .tooltip(Component.join(net.kyori.adventure.text.JoinConfiguration.newlines(), lore))
+                    .tooltip(Component.join(JoinConfiguration.newlines(), lore))
                     .width(200)
                     .action(callback(player.getUniqueId(), () -> {
                         Game current = plugin.getGameManager().getGame(player);
@@ -52,28 +54,31 @@ public class DialogMenuProvider implements MenuProvider {
                     }))
                     .build());
         }
-        show(player, MINI.deserialize(plugin.getShopService().menuTitle()), "Spend loot value you're carrying.", buttons);
+        show(player, MINI.deserialize(plugin.getShopService().menuTitle(player)),
+                plugin.getMessageService().get(player, "menu.shop-intro"), buttons);
     }
 
     @Override
     public void openRoles(Player player, Game game, GamePlayer gamePlayer) {
         List<ActionButton> buttons = new ArrayList<>();
         for (RoleDefinition role : plugin.getRoleRegistry().all()) {
-            buttons.add(ActionButton.builder(Component.text(role.displayName(), role.color()))
-                    .tooltip(role.description().isBlank() ? null : MINI.deserialize(role.description()))
+            String description = game.getRoleService().description(role, player);
+            buttons.add(ActionButton.builder(Component.text(game.getRoleService().displayName(role, player), role.color()))
+                    .tooltip(description.isBlank() ? null : MINI.deserialize(description))
                     .width(200)
                     .action(callback(player.getUniqueId(), () -> {
                         Game current = plugin.getGameManager().getGame(player);
                         GamePlayer gp = current == null ? null : current.getGamePlayer(player.getUniqueId());
                         if (gp == null) return;
-                        String error = current.getRoleService().trySetRole(gp, role);
-                        player.sendMessage(error != null ? Component.text(error, net.kyori.adventure.text.format.NamedTextColor.RED)
-                                : Component.text("Role set to " + role.displayName()
-                                + (current.isActive() ? " - applies next respawn." : "."), net.kyori.adventure.text.format.NamedTextColor.GREEN));
+                        Text error = current.getRoleService().trySetRole(gp, role);
+                        var messages = plugin.getMessageService();
+                        player.sendMessage(error != null ? messages.err(player, error)
+                                : messages.ok(player, current.isActive() ? "command.role-set-next" : "command.role-set", "role", role.displayName()));
                     }))
                     .build());
         }
-        show(player, Component.text("Choose a role"), "Your role decides your kit and ability.", buttons);
+        var messages = plugin.getMessageService();
+        show(player, messages.get(player, "menu.role-title"), messages.get(player, "menu.role-intro"), buttons);
     }
 
     private DialogAction callback(UUID viewer, Runnable task) {
@@ -81,13 +86,13 @@ public class DialogMenuProvider implements MenuProvider {
                 ClickCallback.Options.builder().uses(ClickCallback.UNLIMITED_USES).build());
     }
 
-    private void show(Player player, Component title, String intro, List<ActionButton> buttons) {
-        ActionButton close = ActionButton.builder(Component.text("Close")).width(120).build();
+    private void show(Player player, Component title, Component intro, List<ActionButton> buttons) {
+        ActionButton close = ActionButton.builder(plugin.getMessageService().get(player, "menu.close")).width(120).build();
         Dialog dialog = Dialog.create(factory -> factory.empty()
                 .base(DialogBase.builder(title)
                         .canCloseWithEscape(true)
                         .afterAction(DialogBase.DialogAfterAction.NONE)
-                        .body(List.of(DialogBody.plainMessage(Component.text(intro))))
+                        .body(List.of(DialogBody.plainMessage(intro)))
                         .build())
                 .type(DialogType.multiAction(buttons, close, 2)));
         player.showDialog(dialog);

@@ -54,8 +54,8 @@ public class AlarmManager {
         if (task != null) task.cancel();
         for (List<Alarm> teamAlarms : alarms.values()) {
             for (Alarm alarm : teamAlarms) {
-                plugin.getGameManager().unregisterHeistEntity(alarm.getHitbox().getUniqueId());
-                alarm.getHitbox().remove();
+                plugin.getGameManager().unregisterHeistEntity(alarm.hitbox().getUniqueId());
+                alarm.hitbox().remove();
             }
             teamAlarms.clear();
         }
@@ -95,16 +95,16 @@ public class AlarmManager {
     public Alarm findByEntity(UUID entityId) {
         for (List<Alarm> teamAlarms : alarms.values()) {
             for (Alarm alarm : teamAlarms) {
-                if (alarm.getHitbox().getUniqueId().equals(entityId)) return alarm;
+                if (alarm.hitbox().getUniqueId().equals(entityId)) return alarm;
             }
         }
         return null;
     }
 
     public void destroy(Alarm alarm, Player destroyer) {
-        alarms.get(alarm.getTeam()).remove(alarm);
-        plugin.getGameManager().unregisterHeistEntity(alarm.getHitbox().getUniqueId());
-        alarm.getHitbox().remove();
+        alarms.get(alarm.team()).remove(alarm);
+        plugin.getGameManager().unregisterHeistEntity(alarm.hitbox().getUniqueId());
+        alarm.hitbox().remove();
         Bukkit.getPluginManager().callEvent(new AlarmDestroyedEvent(game, alarm, destroyer));
     }
 
@@ -114,7 +114,7 @@ public class AlarmManager {
 
         for (Team team : Team.values()) {
             for (Alarm alarm : alarms.get(team)) {
-                if (!triggerCooldowns.isReady(alarm.getHitbox().getUniqueId())) continue;
+                if (!triggerCooldowns.isReady(alarm.hitbox().getUniqueId())) continue;
                 Player intruder = findIntruder(alarm, team, radius);
                 if (intruder != null) trigger(alarm, intruder);
             }
@@ -122,7 +122,7 @@ public class AlarmManager {
     }
 
     private Player findIntruder(Alarm alarm, Team owningTeam, double radius) {
-        Location loc = alarm.getLocation();
+        Location loc = alarm.location();
         if (loc.getWorld() == null) return null;
         for (Player player : loc.getWorld().getPlayers()) {
             if (player.isSneaking()) continue;
@@ -135,11 +135,11 @@ public class AlarmManager {
 
     private void trigger(Alarm alarm, Player intruder) {
         int cooldown = plugin.settings().getInt("alarms.cooldown-seconds", 8);
-        triggerCooldowns.set(alarm.getHitbox().getUniqueId(), cooldown);
+        triggerCooldowns.set(alarm.hitbox().getUniqueId(), cooldown);
 
         int glowSeconds = plugin.settings().getInt("alarms.intruder-glow-seconds", 3);
         intruder.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, glowSeconds * 20, 0, false, false));
-        intruder.getWorld().playSound(alarm.getLocation(), Sound.BLOCK_TRIPWIRE_CLICK_ON, 1.0f, 0.8f);
+        intruder.getWorld().playSound(alarm.location(), Sound.BLOCK_TRIPWIRE_CLICK_ON, 1.0f, 0.8f);
 
         Bukkit.getPluginManager().callEvent(new AlarmTriggeredEvent(game, alarm, intruder));
     }

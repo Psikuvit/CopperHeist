@@ -5,8 +5,6 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.HeistGolem;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -53,9 +51,10 @@ public class OxidationTask extends BukkitRunnable {
 
             if (next == WeatheringCopperState.OXIDIZED) {
                 int index = game.getTeam(golem.getTeam()).getGolems().indexOf(golem) + 1;
-                Component msg = Component.text(golem.getTeam().displayName() + " golem #" + index
-                        + " has fully oxidized! Scrape it with an axe.", NamedTextColor.RED);
-                for (Player player : game.onlinePlayers()) player.sendMessage(msg);
+                for (Player player : game.onlinePlayers()) {
+                    player.sendMessage(game.getPlugin().getMessageService().get(player, "golem.fully-oxidized",
+                            "team", golem.getTeam().displayName(), "number", index));
+                }
             }
         }
     }

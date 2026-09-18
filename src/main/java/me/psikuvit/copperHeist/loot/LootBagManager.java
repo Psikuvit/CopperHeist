@@ -6,8 +6,6 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.task.LootBagTask;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
@@ -114,7 +112,7 @@ public class LootBagManager {
         }
 
         if (!tookAny) {
-            player.sendActionBar(plugin.getMessageService().get("actionbar.carry-limit",
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.carry-limit",
                     "limit", plugin.settings().getInt("loot.carry-limit", 80)));
             return;
         }
@@ -157,6 +155,6 @@ public class LootBagManager {
 
     private void updateLabel(LootBag bag) {
         long seconds = Math.max(0, (bag.getExpiresAtMillis() - System.currentTimeMillis()) / 1000);
-        bag.getLabel().text(Component.text("Loot Bag [" + bag.totalValue() + "] " + seconds + "s", NamedTextColor.YELLOW));
+        bag.getLabel().text(plugin.getMessageService().get("loot-bag.label", "value", bag.totalValue(), "seconds", seconds));
     }
 }

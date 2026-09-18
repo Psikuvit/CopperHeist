@@ -12,6 +12,7 @@ import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
+import me.psikuvit.copperHeist.arena.ArenaCheck;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameState;
@@ -19,6 +20,7 @@ import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootTierDefinition;
 import me.psikuvit.copperHeist.role.RoleDefinition;
+import me.psikuvit.copperHeist.ui.Text;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
 import org.bukkit.command.CommandSender;
@@ -32,15 +34,40 @@ import java.util.concurrent.ThreadLocalRandom;
 import static io.papermc.paper.command.brigadier.Commands.argument;
 import static io.papermc.paper.command.brigadier.Commands.literal;
 
-/** /ch ... - see copper_heist_design.txt §13 for the command list this mirrors. */
+/** The /ch command tree. Every message it sends is a lang key resolved in the sender's language. */
 public final class CopperHeistCommand {
 
     private static final String ADMIN_ARENA = "copperheist.admin.arena";
     private static final String ADMIN_DEBUG = "copperheist.admin.debug";
     private static final String ADMIN_RELOAD = "copperheist.admin.reload";
 
+    private static final SuggestionProvider<CommandSourceStack> PHASE_SUGGESTIONS = (ctx, builder) -> {
+        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
+        for (GameState phase : new GameState[]{GameState.SETUP, GameState.COLLECTION, GameState.HEIST, GameState.FINAL_RUSH}) {
+            String name = phase.name().toLowerCase(Locale.ROOT);
+            if (name.startsWith(remaining)) builder.suggest(name);
+        }
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<CommandSourceStack> LOOT_ZONES = (ctx, builder) -> {
+        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
+        for (Arena.LootZone zone : Arena.LootZone.values()) {
+            String name = zone.name().toLowerCase(Locale.ROOT);
+            if (name.startsWith(remaining)) builder.suggest(name);
+        }
+        return builder.buildFuture();
+    };
+
     private final CopperHeist plugin;
     private final SuggestionProvider<CommandSourceStack> arenaSuggestions;
+    private final SuggestionProvider<CommandSourceStack> tierSuggestions = (ctx, builder) -> {
+        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
+        for (LootTierDefinition tier : LootItem.tiers().all()) {
+            if (tier.id().startsWith(remaining)) builder.suggest(tier.id());
+        }
+        return builder.buildFuture();
+    };
 
     private CopperHeistCommand(CopperHeist plugin) {
         this.plugin = plugin;
@@ -115,11 +142,11 @@ public final class CopperHeistCommand {
     private int executeJoin(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            Msg.err(sender, "Only players can join a match.");
+            Msg.err(sender, "command.player-only-join");
             return 0;
         }
         String arenaName = optionalString(ctx, "arena");
-        String error = plugin.getGameManager().join(player, arenaName);
+        Text error = plugin.getGameManager().join(player, arenaName);
         if (error != null) {
             Msg.err(player, error);
             return 0;
@@ -131,26 +158,27 @@ public final class CopperHeistCommand {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) return 0;
         if (plugin.getGameManager().getGame(player) == null) {
-            Msg.err(player, "You're not in a match.");
+            Msg.err(player, "command.not-in-match");
             return 0;
         }
         plugin.getGameManager().leave(player);
-        Msg.ok(player, "You left the arena.");
+        Msg.ok(player, "command.left-arena");
         return Command.SINGLE_SUCCESS;
     }
 
     private int executeList(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         if (plugin.getArenaManager().all().isEmpty()) {
-            Msg.err(sender, "No arenas configured yet.");
+            Msg.err(sender, "command.no-arenas");
             return Command.SINGLE_SUCCESS;
         }
         for (Arena arena : plugin.getArenaManager().all()) {
             Game game = plugin.getGameManager().peek(arena);
-            String state = game != null ? game.getState().name() : "WAITING";
+            String state = game != null ? game.getState().name() : GameState.WAITING.name();
             int players = game != null ? game.totalPlayers() : 0;
-            Msg.send(sender, "<gold>" + arena.getName() + "</gold> <gray>[" + (arena.isEnabled() ? "enabled" : "disabled")
-                    + "]</gray> " + state + " (" + players + " players)");
+            Msg.info(sender, "command.arena-line", "arena", arena.getName(),
+                    "status", Msg.word(sender, arena.isEnabled() ? "status.enabled" : "status.disabled"),
+                    "state", state, "players", players);
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -158,51 +186,51 @@ public final class CopperHeistCommand {
     private int executeRole(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            Msg.err(sender, "Only players can pick a role.");
+            Msg.err(sender, "command.player-only-role");
             return 0;
         }
         Game game = plugin.getGameManager().getGame(player);
         if (game == null) {
-            Msg.err(player, "Join a match first.");
+            Msg.err(player, "command.join-first");
             return 0;
         }
         GamePlayer gp = game.getGamePlayer(player.getUniqueId());
         if (gp == null) return 0;
 
         if (!game.feature("roles")) {
-            Msg.err(player, "Roles are disabled on this server.");
+            Msg.err(player, "command.roles-disabled");
             return 0;
         }
         RoleDefinition role = plugin.getRoleRegistry().get(StringArgumentType.getString(ctx, "role"));
         if (role == null) {
             StringBuilder ids = new StringBuilder();
             for (RoleDefinition def : plugin.getRoleRegistry().all()) ids.append(ids.isEmpty() ? "" : ", ").append(def.id());
-            Msg.err(player, "Unknown role. Choose: " + ids + ".");
+            Msg.err(player, "command.unknown-role", "roles", ids);
             return 0;
         }
 
-        String error = game.getRoleService().trySetRole(gp, role);
+        Text error = game.getRoleService().trySetRole(gp, role);
         if (error != null) {
             Msg.err(player, error);
             return 0;
         }
-        Msg.ok(player, "Role set to " + role.displayName() + (game.isActive() ? " - applies next respawn." : "."));
+        Msg.ok(player, game.isActive() ? "command.role-set-next" : "command.role-set", "role", role.displayName());
         return Command.SINGLE_SUCCESS;
     }
 
     private int executeRoleMenu(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            Msg.err(sender, "Only players can pick a role.");
+            Msg.err(sender, "command.player-only-role");
             return 0;
         }
         Game game = plugin.getGameManager().getGame(player);
         if (game == null || game.getGamePlayer(player.getUniqueId()) == null) {
-            Msg.err(player, "Join a match first.");
+            Msg.err(player, "command.join-first");
             return 0;
         }
         if (!game.feature("roles")) {
-            Msg.err(player, "Roles are disabled on this server.");
+            Msg.err(player, "command.roles-disabled");
             return 0;
         }
         plugin.providers().menu().resolve(plugin.settings().getString("ui.menu", "chest"))
@@ -213,43 +241,28 @@ public final class CopperHeistCommand {
     private int executeShop(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            Msg.err(sender, "Only players can open the shop.");
-            return 0;
-        }
-        if (plugin.getGameManager().getGame(player) == null) {
-            Msg.err(player, "Join a match first.");
+            Msg.err(sender, "command.player-only-shop");
             return 0;
         }
         Game shopGame = plugin.getGameManager().getGame(player);
+        if (shopGame == null) {
+            Msg.err(player, "command.join-first");
+            return 0;
+        }
         if (!shopGame.feature("shop")) {
-            Msg.err(player, "The shop is disabled on this server.");
+            Msg.err(player, "command.shop-disabled");
             return 0;
         }
         GamePlayer shopGp = shopGame.getGamePlayer(player.getUniqueId());
         if (shopGame.isActive() && shopGp != null && !shopGame.isNearOwnSpawn(player, shopGp)) {
-            Msg.err(player, "Use your team's shop NPC, or go back near your spawn to open the shop.");
+            Msg.err(player, "command.shop-too-far");
             return 0;
         }
         plugin.providers().menu().resolve(plugin.settings().getString("ui.menu", "chest")).openShop(player, shopGame, shopGp);
         return Command.SINGLE_SUCCESS;
     }
 
-    private final SuggestionProvider<CommandSourceStack> tierSuggestions = (ctx, builder) -> {
-        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-        for (LootTierDefinition tier : LootItem.tiers().all()) {
-            if (tier.id().startsWith(remaining)) builder.suggest(tier.id());
-        }
-        return builder.buildFuture();
-    };
-
-    private static final SuggestionProvider<CommandSourceStack> PHASE_SUGGESTIONS = (ctx, builder) -> {
-        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-        for (GameState phase : new GameState[]{GameState.SETUP, GameState.COLLECTION, GameState.HEIST, GameState.FINAL_RUSH}) {
-            String name = phase.name().toLowerCase(Locale.ROOT);
-            if (name.startsWith(remaining)) builder.suggest(name);
-        }
-        return builder.buildFuture();
-    };
+    // ---- admin / debug commands ----
 
     private int executeReload(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
@@ -261,7 +274,7 @@ public final class CopperHeistCommand {
         Team.configure(plugin.getConfig().getConfigurationSection("teams"));
         plugin.getRoleRegistry().load();
         plugin.getLootTiers().load();
-        Msg.ok(sender, "Reloaded config, messages, scoreboard, shop, roles and lobby kit (arenas and running matches are untouched).");
+        Msg.ok(sender, "command.reloaded");
         return Command.SINGLE_SUCCESS;
     }
 
@@ -273,15 +286,15 @@ public final class CopperHeistCommand {
         try {
             phase = GameState.valueOf(StringArgumentType.getString(ctx, "phase").toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            Msg.err(sender, "Unknown phase. Use setup, collection, heist or final_rush.");
+            Msg.err(sender, "command.unknown-phase");
             return 0;
         }
         Game game = plugin.getGameManager().peek(arena);
         if (game == null || !game.forcePhase(phase)) {
-            Msg.err(sender, "That arena has no running match, or that isn't a match phase.");
+            Msg.err(sender, "command.phase-failed");
             return 0;
         }
-        Msg.ok(sender, "Jumping " + arena.getName() + " to " + phase.name() + " on the next tick.");
+        Msg.ok(sender, "command.jumping", "arena", arena.getName(), "phase", phase.name());
         return Command.SINGLE_SUCCESS;
     }
 
@@ -291,25 +304,25 @@ public final class CopperHeistCommand {
         if (arena == null) return 0;
         Game game = plugin.getGameManager().peek(arena);
         if (game == null || !game.isActive() || !game.getRelicManager().forceSpawn()) {
-            Msg.err(sender, "No running match there, or a relic is already in play.");
+            Msg.err(sender, "command.relic-failed");
             return 0;
         }
-        Msg.ok(sender, "Spawned the relic in " + arena.getName() + ".");
+        Msg.ok(sender, "command.relic-spawned", "arena", arena.getName());
         return Command.SINGLE_SUCCESS;
     }
 
     private int executeSpectate(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            Msg.err(sender, "Only players can spectate.");
+            Msg.err(sender, "command.player-only-spectate");
             return 0;
         }
-        String error = plugin.getGameManager().spectate(player, StringArgumentType.getString(ctx, "arena"));
+        Text error = plugin.getGameManager().spectate(player, StringArgumentType.getString(ctx, "arena"));
         if (error != null) {
             Msg.err(player, error);
             return 0;
         }
-        Msg.ok(player, "Spectating - use /ch leave to stop.");
+        Msg.ok(player, "command.spectating");
         return Command.SINGLE_SUCCESS;
     }
 
@@ -318,7 +331,7 @@ public final class CopperHeistCommand {
         Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "arena"));
         if (arena == null) return 0;
         plugin.getGameManager().getGame(arena).forceStart();
-        Msg.ok(sender, "Forced start on " + arena.getName() + ".");
+        Msg.ok(sender, "command.forced-start", "arena", arena.getName());
         return Command.SINGLE_SUCCESS;
     }
 
@@ -327,19 +340,19 @@ public final class CopperHeistCommand {
         Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "arena"));
         if (arena == null) return 0;
         plugin.getGameManager().getGame(arena).forceStop();
-        Msg.ok(sender, "Forced stop on " + arena.getName() + ".");
+        Msg.ok(sender, "command.forced-stop", "arena", arena.getName());
         return Command.SINGLE_SUCCESS;
     }
 
     private int executeGiveLoot(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            Msg.err(sender, "Only players can be given loot.");
+            Msg.err(sender, "command.player-only-giveloot");
             return 0;
         }
         Game game = plugin.getGameManager().getGame(player);
         if (game == null) {
-            Msg.err(player, "Join a match first.");
+            Msg.err(player, "command.join-first");
             return 0;
         }
         int amount = 1;
@@ -354,7 +367,7 @@ public final class CopperHeistCommand {
             if (fixedTier == null) {
                 StringBuilder ids = new StringBuilder();
                 for (LootTierDefinition def : LootItem.tiers().all()) ids.append(ids.isEmpty() ? "" : ", ").append(def.id());
-                Msg.err(player, "Unknown tier. Use one of: " + ids + ".");
+                Msg.err(player, "command.unknown-tier", "tiers", ids);
                 return 0;
             }
         }
@@ -362,7 +375,7 @@ public final class CopperHeistCommand {
             LootTierDefinition tier = fixedTier != null ? fixedTier : LootItem.tiers().rollAny(ThreadLocalRandom.current());
             if (tier != null) player.getInventory().addItem(LootItem.create(tier, game.getMatchId()));
         }
-        Msg.ok(player, "Gave you " + amount + " loot item(s).");
+        Msg.ok(player, "command.gave-loot", "amount", amount);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -376,120 +389,118 @@ public final class CopperHeistCommand {
                                 .executes(this::executeCreate)))
                 .then(arenaOnly("setlobby", (player, arena) -> {
                     arena.setLobby(player.getLocation());
-                    Msg.ok(player, "Set lobby for " + arena.getName() + ".");
+                    Msg.ok(player, "setup.lobby-set", "arena", arena.getName());
                 }))
                 .then(arenaOnly("setspectator", (player, arena) -> {
                     arena.setSpectator(player.getLocation());
-                    Msg.ok(player, "Set spectator point for " + arena.getName() + ".");
+                    Msg.ok(player, "setup.spectator-set", "arena", arena.getName());
                 }))
                 .then(arenaTeam("setspawn", (player, arena, team) -> {
                     arena.site(team).spawn = player.getLocation();
-                    Msg.ok(player, "Set " + team.displayName() + " spawn for " + arena.getName() + ".");
+                    Msg.ok(player, "setup.spawn-set", "team", team.displayName(), "arena", arena.getName());
                 }))
                 .then(arenaTeam("adddock", (player, arena, team) -> {
                     Location loc = targetedChest(player);
                     if (loc == null) {
-                        Msg.err(player, "Look directly at a chest to mark it as a dock chest.");
+                        Msg.err(player, "setup.dock-look");
                         return;
                     }
                     arena.site(team).dockChests.add(loc);
-                    Msg.ok(player, "Added " + team.displayName() + " dock chest (" + arena.site(team).dockChests.size() + " total).");
+                    Msg.ok(player, "setup.dock-added", "team", team.displayName(), "count", arena.site(team).dockChests.size());
                 }))
                 .then(arenaTeam("addvaultchest", (player, arena, team) -> {
                     Location loc = targetedChest(player);
                     if (loc == null) {
-                        Msg.err(player, "Look directly at a chest to mark it as a vault chest.");
+                        Msg.err(player, "setup.vault-chest-look");
                         return;
                     }
                     arena.site(team).vaultChests.add(loc);
-                    Msg.ok(player, "Added " + team.displayName() + " vault chest (" + arena.site(team).vaultChests.size() + " total).");
+                    Msg.ok(player, "setup.vault-chest-added", "team", team.displayName(), "count", arena.site(team).vaultChests.size());
                 }))
                 .then(arenaTeam("setvaultdoor", (player, arena, team) -> {
                     Location loc = targetedBlock(player);
                     if (loc == null) {
-                        Msg.err(player, "Look directly at the vault door block to mark it.");
+                        Msg.err(player, "setup.vault-door-look");
                         return;
                     }
                     arena.site(team).vaultDoor = loc;
-                    Msg.ok(player, "Set " + team.displayName() + " vault door for " + arena.getName() + ".");
+                    Msg.ok(player, "setup.vault-door-set", "team", team.displayName(), "arena", arena.getName());
                 }))
                 .then(arenaTeam("setgolemidle", (player, arena, team) -> {
                     arena.site(team).golemIdle = player.getLocation();
-                    Msg.ok(player, "Set " + team.displayName() + " golem idle point.");
+                    Msg.ok(player, "setup.golem-idle-set", "team", team.displayName());
                 }))
                 .then(arenaTeam("addwaypoint", (player, arena, team) -> {
                     arena.site(team).waypoints.add(player.getLocation());
-                    Msg.ok(player, "Added " + team.displayName() + " waypoint #" + arena.site(team).waypoints.size()
-                            + " (dock->vault order matters - last one should be at the vault).");
+                    Msg.ok(player, "setup.waypoint-added", "team", team.displayName(), "number", arena.site(team).waypoints.size());
                 }))
                 .then(addLootCommand())
                 .then(arenaOnly("addrelic", (player, arena) -> {
                     arena.getRelicPoints().add(player.getLocation());
-                    Msg.ok(player, "Added relic point (" + arena.getRelicPoints().size() + " total).");
+                    Msg.ok(player, "setup.relic-added", "count", arena.getRelicPoints().size());
                 }))
                 .then(arenaOnly("setbounds1", (player, arena) -> {
                     arena.setBound1(player.getLocation());
-                    Msg.ok(player, "Set corner 1 of arena bounds.");
+                    Msg.ok(player, "setup.bounds-1");
                 }))
                 .then(arenaOnly("setbounds2", (player, arena) -> {
                     arena.setBound2(player.getLocation());
-                    Msg.ok(player, "Set corner 2 of arena bounds.");
+                    Msg.ok(player, "setup.bounds-2");
                 }))
                 .then(arenaOnly("validate", (player, arena) -> {
-                    for (String line : arena.report()) Msg.send(player, line);
-                    if (arena.validate().isEmpty()) Msg.ok(player, arena.getName() + " is ready to enable.");
+                    for (ArenaCheck check : arena.report()) {
+                        String key = switch (check.level()) {
+                            case OK -> "command.check-ok";
+                            case WARN -> "command.check-warn";
+                            case ERROR -> "command.check-fail";
+                        };
+                        Msg.info(player, key, "text", Msg.word(player, check.text().key(), check.text().args()));
+                    }
+                    if (arena.validate().isEmpty()) Msg.ok(player, "setup.ready", "arena", arena.getName());
                 }))
                 .then(arenaTeam("setshop", (player, arena, team) -> {
                     arena.site(team).shop = player.getLocation();
-                    Msg.ok(player, "Set " + team.displayName() + " shop NPC point for " + arena.getName() + ".");
+                    Msg.ok(player, "setup.shop-set", "team", team.displayName(), "arena", arena.getName());
                 }))
                 .then(addPadCommand())
                 .then(arenaOnly("save", (player, arena) -> {
                     plugin.getArenaManager().save(arena);
-                    Msg.ok(player, "Saved " + arena.getName() + ".");
+                    Msg.ok(player, "setup.saved", "arena", arena.getName());
                 }))
                 .then(arenaOnly("enable", (player, arena) -> {
-                    List<String> issues = arena.validate();
+                    List<ArenaCheck> issues = arena.validate();
                     if (!issues.isEmpty()) {
-                        Msg.err(player, "Fix these before enabling: " + String.join(", ", issues));
+                        Msg.err(player, "setup.fix-before-enabling");
+                        for (ArenaCheck issue : issues) Msg.err(player, issue.text());
                         return;
                     }
                     arena.setEnabled(true);
                     plugin.getArenaManager().save(arena);
-                    Msg.ok(player, arena.getName() + " is now enabled and joinable.");
+                    Msg.ok(player, "setup.enabled", "arena", arena.getName());
                 }));
     }
 
-    private static final SuggestionProvider<CommandSourceStack> LOOT_TIERS = (ctx, builder) -> {
-        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-        for (Arena.LootZone zone : Arena.LootZone.values()) {
-            String name = zone.name().toLowerCase(Locale.ROOT);
-            if (name.startsWith(remaining)) builder.suggest(name);
-        }
-        return builder.buildFuture();
-    };
-
-    /** /ch arena addloot <arena> [common|rare|cache] - tier defaults to common. */
+    /** /ch arena addloot [arena] [common|rare|cache] - the zone defaults to common. */
     private LiteralArgumentBuilder<CommandSourceStack> addLootCommand() {
         return literal("addloot")
                 .then(argument("name", StringArgumentType.word())
                         .suggests(arenaSuggestions)
                         .executes(ctx -> runArenaOnly(ctx, (player, arena) -> addLootPoint(player, arena, Arena.LootZone.COMMON)))
                         .then(argument("tier", StringArgumentType.word())
-                                .suggests(LOOT_TIERS)
+                                .suggests(LOOT_ZONES)
                                 .executes(ctx -> {
                                     Arena.LootZone zone;
                                     try {
                                         zone = Arena.LootZone.valueOf(StringArgumentType.getString(ctx, "tier").toUpperCase(Locale.ROOT));
                                     } catch (IllegalArgumentException ex) {
-                                        Msg.err(ctx.getSource().getSender(), "Unknown tier. Use common, rare or cache.");
+                                        Msg.err(ctx.getSource().getSender(), "setup.unknown-loot-tier");
                                         return 0;
                                     }
                                     return runArenaOnly(ctx, (player, arena) -> addLootPoint(player, arena, zone));
                                 })));
     }
 
-    /** /ch arena addpad <arena> [power] - marks the block you're standing in as a gust pad. */
+    /** /ch arena addpad [arena] [power] - marks the block you're standing in as a gust pad. */
     private LiteralArgumentBuilder<CommandSourceStack> addPadCommand() {
         return literal("addpad")
                 .then(argument("name", StringArgumentType.word())
@@ -504,29 +515,28 @@ public final class CopperHeistCommand {
 
     private void addPad(Player player, Arena arena, double power) {
         arena.getGustPads().add(new Arena.GustPad(player.getLocation().getBlock().getLocation(), power));
-        Msg.ok(player, "Added gust pad (power " + power + ", " + arena.getGustPads().size() + " total).");
+        Msg.ok(player, "setup.pad-added", "power", power, "count", arena.getGustPads().size());
     }
 
     private void addLootPoint(Player player, Arena arena, Arena.LootZone zone) {
         arena.getLootPoints(zone).add(player.getLocation());
-        Msg.ok(player, "Added " + zone.name().toLowerCase(Locale.ROOT) + " loot point ("
-                + arena.getLootPoints(zone).size() + " total).");
+        Msg.ok(player, "setup.loot-added", "zone", zone.name().toLowerCase(Locale.ROOT), "count", arena.getLootPoints(zone).size());
     }
 
     private int executeCreate(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            Msg.err(sender, "Arena setup must be run in-game.");
+            Msg.err(sender, "setup.in-game-only");
             return 0;
         }
         String name = StringArgumentType.getString(ctx, "name");
         if (plugin.getArenaManager().get(name) != null) {
-            Msg.err(player, "Arena '" + name + "' already exists.");
+            Msg.err(player, "setup.arena-exists", "arena", name);
             return 0;
         }
         Arena arena = plugin.getArenaManager().create(name);
         arena.setWorldName(player.getWorld().getName());
-        Msg.ok(player, "Created arena '" + name + "' in world " + arena.getWorldName() + ".");
+        Msg.ok(player, "setup.arena-created", "arena", name, "world", arena.getWorldName());
         return Command.SINGLE_SUCCESS;
     }
 
@@ -559,7 +569,7 @@ public final class CopperHeistCommand {
     private int runArenaOnly(CommandContext<CommandSourceStack> ctx, ArenaAction action) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            Msg.err(sender, "Arena setup must be run in-game.");
+            Msg.err(sender, "setup.in-game-only");
             return 0;
         }
         Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "name"));
@@ -571,7 +581,7 @@ public final class CopperHeistCommand {
     private int runArenaTeam(CommandContext<CommandSourceStack> ctx, ArenaTeamAction action) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            Msg.err(sender, "Arena setup must be run in-game.");
+            Msg.err(sender, "setup.in-game-only");
             return 0;
         }
         Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "name"));
@@ -580,7 +590,7 @@ public final class CopperHeistCommand {
         try {
             team = Team.valueOf(StringArgumentType.getString(ctx, "team").toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            Msg.err(sender, "Unknown team '" + StringArgumentType.getString(ctx, "team") + "'. Use copper or iron.");
+            Msg.err(sender, "setup.unknown-team", "team", StringArgumentType.getString(ctx, "team"));
             return 0;
         }
         action.run(player, arena, team);
@@ -591,7 +601,7 @@ public final class CopperHeistCommand {
 
     private Arena requireArena(CommandSender sender, String name) {
         Arena arena = plugin.getArenaManager().get(name);
-        if (arena == null) Msg.err(sender, "No arena named '" + name + "'.");
+        if (arena == null) Msg.err(sender, "command.no-such-arena", "arena", name);
         return arena;
     }
 

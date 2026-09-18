@@ -6,8 +6,6 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.GameMode;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.EntityType;
@@ -79,7 +77,7 @@ public class ArenaProtectionListener implements Listener {
         boolean breachingAttacker = gp != null && gp.getTeam() != vaultTeam && game.getVaultDrillManager().isBreached(vaultTeam);
         if (!breachingAttacker) {
             event.setCancelled(true);
-            player.sendMessage(Component.text("Only golems can deliver loot into the vault.", NamedTextColor.RED));
+            player.sendMessage(plugin.getMessageService().get(player, "vault.locked"));
         }
     }
 
@@ -123,7 +121,7 @@ public class ArenaProtectionListener implements Listener {
         if (label.contains(":")) label = label.substring(label.indexOf(':') + 1);
         if (!plugin.settings().getStringList("match.allowed-commands").contains(label)) {
             event.setCancelled(true);
-            player.sendMessage(plugin.getMessageService().get("blocked-command"));
+            player.sendMessage(plugin.getMessageService().get(player, "blocked-command"));
         }
     }
 

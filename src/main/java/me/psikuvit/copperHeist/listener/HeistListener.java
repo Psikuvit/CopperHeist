@@ -79,28 +79,28 @@ public class HeistListener implements Listener {
 
     private void placeAlarm(Player player, Game game, GamePlayer gp, Location loc, ItemStack item) {
         if (!game.feature("alarms")) {
-            player.sendActionBar(plugin.getMessageService().get("feature-disabled"));
+            player.sendActionBar(plugin.getMessageService().get(player, "feature-disabled"));
             return;
         }
         var alarmManager = game.getAlarmManager();
         Team team = gp.getTeam();
         if (!alarmManager.isWithinPlacementRange(team, loc)) {
-            player.sendActionBar(plugin.getMessageService().get("alarm.too-far"));
+            player.sendActionBar(plugin.getMessageService().get(player, "alarm.too-far"));
             return;
         }
         Alarm alarm = alarmManager.place(team, loc);
         if (alarm == null) {
-            player.sendActionBar(plugin.getMessageService().get("alarm.cap-reached"));
+            player.sendActionBar(plugin.getMessageService().get(player, "alarm.cap-reached"));
             return;
         }
         item.setAmount(item.getAmount() - 1);
-        player.sendActionBar(plugin.getMessageService().get("alarm.placed",
+        player.sendActionBar(plugin.getMessageService().get(player, "alarm.placed",
                 "count", alarmManager.countFor(team), "cap", alarmManager.capFor(team)));
     }
 
     private void placeDrill(Player player, Game game, GamePlayer gp, Location loc, ItemStack item) {
         if (!game.feature("vault-drill")) {
-            player.sendActionBar(plugin.getMessageService().get("feature-disabled"));
+            player.sendActionBar(plugin.getMessageService().get(player, "feature-disabled"));
             return;
         }
         Team attackerTeam = gp.getTeam();
@@ -110,11 +110,11 @@ public class HeistListener implements Listener {
 
         long cooldown = game.getVaultDrillManager().cooldownRemainingSeconds(attackerTeam);
         if (cooldown > 0) {
-            player.sendActionBar(plugin.getMessageService().get("drill.on-cooldown", "seconds", cooldown));
+            player.sendActionBar(plugin.getMessageService().get(player, "drill.on-cooldown", "seconds", cooldown));
             return;
         }
         if (game.getVaultDrillManager().isActive(defenderTeam)) {
-            player.sendActionBar(plugin.getMessageService().get("drill.already-active"));
+            player.sendActionBar(plugin.getMessageService().get(player, "drill.already-active"));
             return;
         }
 
@@ -149,7 +149,7 @@ public class HeistListener implements Listener {
 
         boolean roleMenu = player.isSneaking();
         if (!game.feature(roleMenu ? "roles" : "shop")) {
-            player.sendActionBar(plugin.getMessageService().get("feature-disabled"));
+            player.sendActionBar(plugin.getMessageService().get(player, "feature-disabled"));
             return;
         }
         var menus = plugin.providers().menu().resolve(plugin.settings().getString("ui.menu", "chest"));
@@ -182,7 +182,7 @@ public class HeistListener implements Listener {
         Alarm alarm = game.getAlarmManager().findByEntity(victim.getUniqueId());
         if (alarm != null) {
             GamePlayer gp = game.getGamePlayer(attacker.getUniqueId());
-            if (gp != null && gp.getTeam() != alarm.getTeam()) game.getAlarmManager().destroy(alarm, attacker);
+            if (gp != null && gp.getTeam() != alarm.team()) game.getAlarmManager().destroy(alarm, attacker);
             return;
         }
 

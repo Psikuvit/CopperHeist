@@ -5,6 +5,8 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class GamePlayer {
@@ -25,8 +27,8 @@ public class GamePlayer {
     private int relicsDelivered;
     private long protectedUntilMillis;
     private boolean ghost;
-    private final java.util.Map<String, Integer> purchases = new java.util.HashMap<>();
-    private final java.util.Map<String, Long> purchaseCooldowns = new java.util.HashMap<>();
+    private final Map<String, Integer> purchases = new HashMap<>();
+    private final Map<String, Long> purchaseCooldowns = new HashMap<>();
     private UUID lastAttacker;
     private long lastAttackMillis;
 

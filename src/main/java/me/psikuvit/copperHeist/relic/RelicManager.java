@@ -56,7 +56,7 @@ public class RelicManager {
         if (schedule.isEmpty()) schedule = List.of(180);
         scheduleIndex = 0;
         replayingLost = false;
-        secondsUntilSpawn = schedule.get(0);
+        secondsUntilSpawn = schedule.getFirst();
         warned = false;
         task = new RelicSpawnTask(this).runTaskTimer(plugin, 20L, 20L);
     }

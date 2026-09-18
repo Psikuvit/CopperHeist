@@ -16,11 +16,11 @@ public class ChestMenuProvider implements MenuProvider {
 
     @Override
     public void openShop(Player player, Game game, GamePlayer gamePlayer) {
-        player.openInventory(plugin.getShopService().buildMenu());
+        player.openInventory(plugin.getShopService().buildMenu(player));
     }
 
     @Override
     public void openRoles(Player player, Game game, GamePlayer gamePlayer) {
-        player.openInventory(game.getRoleService().buildRoleMenu());
+        player.openInventory(game.getRoleService().buildRoleMenu(player));
     }
 }

@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist;
 import me.psikuvit.copperHeist.arena.ArenaManager;
 import me.psikuvit.copperHeist.arena.ArenaResetter;
 import me.psikuvit.copperHeist.command.CopperHeistCommand;
+import me.psikuvit.copperHeist.command.Msg;
 import me.psikuvit.copperHeist.config.ConfigMigrator;
 import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.game.Team;
@@ -66,6 +67,7 @@ public final class CopperHeist extends JavaPlugin {
         gameManager = new GameManager(this);
         messageService = new MessageService(this);
         messageService.load();
+        Msg.init(messageService);
         sidebarService = new SidebarService(this);
         sidebarService.load();
         sidebarService.startHub();

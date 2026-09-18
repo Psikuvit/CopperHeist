@@ -8,11 +8,12 @@ import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Display;
-import org.bukkit.entity.Firework;
-import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class ArenaResetter implements ArenaResetStrategy {
             if (!arena.isInBounds(entity.getLocation())) continue;
             if (entity instanceof Item || entity instanceof Display || entity instanceof Interaction || entity instanceof Firework) {
                 entity.remove();
-            } else if (!(entity instanceof org.bukkit.entity.Player) && Pdc.has(entity, PdcKeys.MATCH_ID)) {
+            } else if (!(entity instanceof Player) && Pdc.has(entity, PdcKeys.MATCH_ID)) {
                 // Only remove golems this plugin spawned - a real player-owned copper
                 // golem that happened to wander into the bounds is left alone.
                 entity.remove();

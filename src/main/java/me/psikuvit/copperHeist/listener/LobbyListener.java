@@ -3,8 +3,6 @@ package me.psikuvit.copperHeist.listener;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -37,7 +35,7 @@ public class LobbyListener implements Listener {
             case "leave_arena" -> {
                 if (plugin.getGameManager().getGame(player) != null) {
                     plugin.getGameManager().leave(player);
-                    player.sendMessage(Component.text("You left the arena.", NamedTextColor.GREEN));
+                    player.sendMessage(plugin.getMessageService().ok(player, "command.left-arena"));
                 }
             }
             default -> {

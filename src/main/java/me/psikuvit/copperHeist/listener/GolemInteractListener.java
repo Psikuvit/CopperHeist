@@ -40,7 +40,7 @@ public class GolemInteractListener implements Listener {
         if (gp != null && gp.getTeam() == golem.getTeam() && golem.isStunned()
                 && game.getRoleService().canClearStun(gp)) {
             golem.clearStun();
-            player.sendActionBar(plugin.getMessageService().get("actionbar.stun-cleared"));
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.stun-cleared"));
             return;
         }
 
@@ -76,35 +76,35 @@ public class GolemInteractListener implements Listener {
 
         event.setCancelled(true);
         game.getGolemManager().stormReset(gp.getTeam());
-        player.sendActionBar(plugin.getMessageService().get("actionbar.storm-rod-used"));
+        player.sendActionBar(plugin.getMessageService().get(player, "actionbar.storm-rod-used"));
         item.setAmount(item.getAmount() - 1);
     }
 
     private void handleWax(Player player, HeistGolem golem, Game game, ItemStack honeycomb) {
         game.getGolemManager().wax(golem);
         honeycomb.setAmount(honeycomb.getAmount() - 1);
-        player.sendActionBar(plugin.getMessageService().get("actionbar.golem-waxed"));
+        player.sendActionBar(plugin.getMessageService().get(player, "actionbar.golem-waxed"));
     }
 
     private void handleScrape(Player player, HeistGolem golem, Game game, GamePlayer gp) {
         WeatheringCopperState before = golem.getEntity().getWeatheringState();
         if (golem.isWaxed()) {
-            player.sendActionBar(plugin.getMessageService().get("actionbar.golem-already-fresh"));
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.golem-already-fresh"));
             return;
         }
         if (before == WeatheringCopperState.UNAFFECTED) {
-            player.sendActionBar(plugin.getMessageService().get("actionbar.golem-already-fresh"));
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.golem-already-fresh"));
             return;
         }
         double multiplier = gp == null ? 1.0 : game.getRoleService().scrapeCooldownMultiplier(gp.getRole());
         boolean scraped = game.getGolemManager().scrape(golem, multiplier);
         if (scraped) {
             if (gp != null) gp.addScrape();
-            player.sendActionBar(plugin.getMessageService().get("actionbar.golem-scraped",
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.golem-scraped",
                     "before", before.name(), "after", golem.getEntity().getWeatheringState().name()));
         } else {
             long remaining = game.getGolemManager().scrapeCooldownRemaining(golem.getEntity().getUniqueId());
-            player.sendActionBar(plugin.getMessageService().get("actionbar.scrape-cooldown", "seconds", remaining));
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.scrape-cooldown", "seconds", remaining));
         }
     }
 
@@ -115,7 +115,7 @@ public class GolemInteractListener implements Listener {
         int currentValue = plugin.getLootWeightService().getCarriedValue(player);
         int itemValue = LootItem.getValue(carried) * carried.getAmount();
         if (currentValue + itemValue > carryLimit) {
-            player.sendActionBar(plugin.getMessageService().get("actionbar.golem-carry-limit"));
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.golem-carry-limit"));
             return;
         }
         LootItem.setLastTeam(carried, golem.getTeam());
@@ -123,6 +123,6 @@ public class GolemInteractListener implements Listener {
         player.getInventory().addItem(carried);
         golem.setCarried(null);
         game.getGolemManager().updateLabel(golem);
-        player.sendActionBar(plugin.getMessageService().get("actionbar.golem-stack-taken"));
+        player.sendActionBar(plugin.getMessageService().get(player, "actionbar.golem-stack-taken"));
     }
 }

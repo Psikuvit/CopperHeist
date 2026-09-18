@@ -3,8 +3,10 @@ package me.psikuvit.copperHeist.game;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.golem.HeistGolem;
+import me.psikuvit.copperHeist.ui.Text;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +32,7 @@ public class GameManager {
     }
 
     public Game getGame(Arena arena) {
-        return gamesByArena.computeIfAbsent(arena.getName().toLowerCase(), k -> new Game(plugin, arena));
+        return gamesByArena.computeIfAbsent(arena.getName().toLowerCase(), _ -> new Game(plugin, arena));
     }
 
     /** Like {@link #getGame(Arena)} but never creates one - safe for read-only listing. */
@@ -43,13 +45,13 @@ public class GameManager {
         return arenaName == null ? null : gamesByArena.get(arenaName);
     }
 
-    public String join(Player player, String arenaName) {
+    public Text join(Player player, String arenaName) {
         Arena arena = arenaName != null ? plugin.getArenaManager().get(arenaName) : findJoinableArena();
-        if (arena == null) return "No joinable arena available right now.";
-        if (!arena.isEnabled()) return "That arena isn't enabled.";
+        if (arena == null) return Text.of("join-error.no-arena");
+        if (!arena.isEnabled()) return Text.of("join-error.not-enabled");
 
         Game game = getGame(arena);
-        if (!game.addPlayer(player)) return "Couldn't join " + arena.getName() + " (full or already running).";
+        if (!game.addPlayer(player)) return Text.of("join-error.failed", "arena", arena.getName());
         playerArena.put(player.getUniqueId(), arena.getName().toLowerCase());
         return null;
     }
@@ -66,15 +68,15 @@ public class GameManager {
         return null;
     }
 
-    public String spectate(Player player, String arenaName) {
-        if (getGame(player) != null) return "Leave your current match first.";
+    public Text spectate(Player player, String arenaName) {
+        if (getGame(player) != null) return Text.of("spectate.leave-first");
         Arena arena = plugin.getArenaManager().get(arenaName);
-        if (arena == null) return "No arena named '" + arenaName + "'.";
+        if (arena == null) return Text.of("command.no-such-arena", "arena", arenaName);
         Game game = peek(arena);
         if (game == null || (game.getState() == GameState.WAITING && game.totalPlayers() == 0)) {
-            return "Nothing to spectate there right now.";
+            return Text.of("spectate.nothing");
         }
-        if (!game.addSpectator(player)) return "That arena has no spectator or lobby point set.";
+        if (!game.addSpectator(player)) return Text.of("spectate.no-point");
         playerArena.put(player.getUniqueId(), arena.getName().toLowerCase());
         return null;
     }
@@ -107,7 +109,7 @@ public class GameManager {
 
     public void shutdownAll() {
         shuttingDown = true;
-        for (Game game : new java.util.ArrayList<>(gamesByArena.values())) game.shutdown();
+        for (Game game : new ArrayList<>(gamesByArena.values())) game.shutdown();
     }
 
     public void onQuit(Player player) {

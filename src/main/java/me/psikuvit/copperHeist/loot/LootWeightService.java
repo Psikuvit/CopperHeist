@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.loot;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
+import org.bukkit.GameMode;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -82,8 +83,8 @@ public class LootWeightService {
             attribute.addModifier(modifier);
         }
         int carryLimit = plugin.settings().getInt("loot.carry-limit", 80);
-        if (player.getGameMode() == org.bukkit.GameMode.SPECTATOR) return; // the respawn countdown owns the bar while dead
-        player.sendActionBar(plugin.getMessageService().get("actionbar.carrying",
+        if (player.getGameMode() == GameMode.SPECTATOR) return; // the respawn countdown owns the bar while dead
+        player.sendActionBar(plugin.getMessageService().get(player, "actionbar.carrying",
                 "value", carried, "limit", carryLimit, "speed", Math.round(penalty * 100), "ability", ability));
     }
 

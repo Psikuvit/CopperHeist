@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.arena;
 
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.ui.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -147,53 +148,60 @@ public class Arena {
                 && loc.getZ() >= minZ && loc.getZ() <= maxZ;
     }
 
-    /** Human-readable checklist for "arena validate": [OK] fine, [!] works but worth fixing, [X] blocks enabling. */
-    public List<String> report() {
-        List<String> lines = new ArrayList<>();
-        line(lines, lobby != null, "Lobby point", "No lobby set");
-        line(lines, bound1 != null && bound2 != null, "Arena bounds", "Arena bounds not set (setbounds1/setbounds2)");
+    /** The full "arena validate" checklist. Errors block enabling; warnings are just advice. */
+    public List<ArenaCheck> report() {
+        List<ArenaCheck> checks = new ArrayList<>();
+        check(checks, lobby != null, Text.of("arena.check.lobby-ok"), Text.of("arena.check.lobby-fail"));
+        check(checks, bound1 != null && bound2 != null, Text.of("arena.check.bounds-ok"), Text.of("arena.check.bounds-fail"));
+
         int loot = allLootPoints().size();
-        if (loot < 3) lines.add("<red>[X] Only " + loot + " loot points (min 3)");
-        else if (loot < 6) lines.add("<yellow>[!] Only " + loot + " loot points (recommend 6+)");
-        else lines.add("<green>[OK] " + loot + " loot points (" + getLootPoints().size() + " common, "
-                + getLootPoints(LootZone.RARE).size() + " rare, " + getLootPoints(LootZone.CACHE).size() + " cache)");
-        if (relicPoints.isEmpty()) lines.add("<yellow>[!] No relic points - the relic will never spawn");
-        else lines.add("<green>[OK] " + relicPoints.size() + " relic points");
-        if (spectator == null) lines.add("<yellow>[!] No spectator point - spectators will use the lobby");
+        if (loot < 3) {
+            checks.add(new ArenaCheck(ArenaCheck.Level.ERROR, Text.of("arena.check.loot-fail", "count", loot)));
+        } else if (loot < 6) {
+            checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.loot-warn", "count", loot)));
+        } else {
+            checks.add(new ArenaCheck(ArenaCheck.Level.OK, Text.of("arena.check.loot-ok", "count", loot,
+                    "common", getLootPoints().size(), "rare", getLootPoints(LootZone.RARE).size(),
+                    "cache", getLootPoints(LootZone.CACHE).size())));
+        }
+
+        if (relicPoints.isEmpty()) {
+            checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.relic-warn")));
+        } else {
+            checks.add(new ArenaCheck(ArenaCheck.Level.OK, Text.of("arena.check.relic-ok", "count", relicPoints.size())));
+        }
+        if (spectator == null) checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.spectator-warn")));
+
         for (Team team : Team.values()) {
             TeamSite site = sites.get(team);
-            String label = team.displayName();
-            line(lines, site.spawn != null, label + " spawn", label + " team has no spawn");
-            line(lines, !site.dockChests.isEmpty(), label + " dock: " + site.dockChests.size() + " chests", label + " team has no dock chests");
-            line(lines, !site.vaultChests.isEmpty(), label + " vault: " + site.vaultChests.size() + " chests", label + " team has no vault chests");
-            line(lines, site.vaultDoor != null, label + " vault door", label + " team has no vault door");
-            line(lines, site.golemIdle != null, label + " golem idle point", label + " team has no golem idle point");
-            line(lines, !site.waypoints.isEmpty(), label + " waypoints: " + site.waypoints.size(), label + " team has no waypoints");
-            if (site.shop == null) lines.add("<yellow>[!] " + label + " has no shop NPC point (use /ch shop instead)");
+            String name = team.displayName();
+            check(checks, site.spawn != null, Text.of("arena.check.spawn-ok", "team", name),
+                    Text.of("arena.check.spawn-fail", "team", name));
+            check(checks, !site.dockChests.isEmpty(), Text.of("arena.check.dock-ok", "team", name, "count", site.dockChests.size()),
+                    Text.of("arena.check.dock-fail", "team", name));
+            check(checks, !site.vaultChests.isEmpty(), Text.of("arena.check.vault-ok", "team", name, "count", site.vaultChests.size()),
+                    Text.of("arena.check.vault-fail", "team", name));
+            check(checks, site.vaultDoor != null, Text.of("arena.check.vault-door-ok", "team", name),
+                    Text.of("arena.check.vault-door-fail", "team", name));
+            check(checks, site.golemIdle != null, Text.of("arena.check.golem-idle-ok", "team", name),
+                    Text.of("arena.check.golem-idle-fail", "team", name));
+            check(checks, !site.waypoints.isEmpty(), Text.of("arena.check.waypoints-ok", "team", name, "count", site.waypoints.size()),
+                    Text.of("arena.check.waypoints-fail", "team", name));
+            if (site.shop == null) checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.shop-warn", "team", name)));
         }
-        return lines;
+        return checks;
     }
 
-    private static void line(List<String> lines, boolean ok, String okText, String failText) {
-        lines.add(ok ? "<green>[OK] " + okText : "<red>[X] " + failText);
+    private static void check(List<ArenaCheck> checks, boolean ok, Text okText, Text failText) {
+        checks.add(ok ? new ArenaCheck(ArenaCheck.Level.OK, okText) : new ArenaCheck(ArenaCheck.Level.ERROR, failText));
     }
 
-    public List<String> validate() {
-        List<String> issues = new ArrayList<>();
-        if (lobby == null) issues.add("No lobby set");
-        if (bound1 == null || bound2 == null) issues.add("Arena bounds not set (setbounds1/setbounds2)");
-        int lootTotal = allLootPoints().size();
-        if (lootTotal < 3) issues.add("Only " + lootTotal + " loot points (recommend 3+)");
-        for (Team team : Team.values()) {
-            TeamSite site = sites.get(team);
-            String label = team.displayName();
-            if (site.spawn == null) issues.add(label + " team has no spawn");
-            if (site.dockChests.isEmpty()) issues.add(label + " team has no dock chests");
-            if (site.vaultChests.isEmpty()) issues.add(label + " team has no vault chests");
-            if (site.golemIdle == null) issues.add(label + " team has no golem idle point");
-            if (site.waypoints.isEmpty()) issues.add(label + " team has no waypoints");
-            if (site.vaultDoor == null) issues.add(label + " team has no vault door (Vault Drill breaches won't work)");
+    /** Only the blocking problems - empty means the arena can be enabled. */
+    public List<ArenaCheck> validate() {
+        List<ArenaCheck> errors = new ArrayList<>();
+        for (ArenaCheck check : report()) {
+            if (check.level() == ArenaCheck.Level.ERROR) errors.add(check);
         }
-        return issues;
+        return errors;
     }
 }

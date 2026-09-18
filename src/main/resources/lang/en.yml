@@ -1,0 +1,243 @@
+# MiniMessage-format strings. {placeholder} tokens are substituted in code.
+prefix: "<gray>[<gold>Copper Heist</gold>]</gray> "
+
+join: "<green>Joined arena {arena} on the {team} team!"
+
+relic:
+  incoming: "<light_purple>A Relic is surfacing..."
+  spawned: "<light_purple>The Relic has appeared!"
+  picked-up: "<light_purple>{player} picked up the Relic!"
+  lost: "<red>The Relic was lost! It will respawn soon."
+  delivered: "<light_purple>Relic delivered to {team} Vault (+{value})!"
+
+summary:
+  mvp: "<gold>MVP: <white>{player} <gray>({delivered} delivered)"
+  top-thief: "<yellow>Top Thief: <white>{player} <gray>({count} steals, {value} value)"
+  best-mechanic: "<yellow>Best Mechanic: <white>{player} <gray>({count} scrapes)"
+  most-kills: "<yellow>Most Kills: <white>{player} <gray>({count})"
+
+phase:
+  bar: "<gold>{phase} - {time} left"
+  setup:
+    title: "<blue>SETUP"
+    subtitle: "<gray>No loot yet - get ready"
+    chat: "<blue>Setup phase - loot appears when it ends."
+  collection:
+    title: "<green>COLLECTION"
+    subtitle: "<gray>Loot is spawning!"
+    chat: "<green>Collection phase - grab loot and get it to your dock."
+  heist:
+    title: "<yellow>HEIST PHASE"
+    subtitle: "<gray>Vault Drills unlocked"
+    chat: "<yellow>Heist phase - Vault Drills are now available in the shop."
+  final-rush:
+    title: "<red>FINAL RUSH"
+    subtitle: "<gray>Loot value x2, golems age faster"
+    chat: "<red>Final Rush! Delivered loot is worth double and everyone glows."
+
+dock:
+  picking: "<yellow>Picking lock... {percent}%"
+  unlocked: "<green>Lock picked!"
+  interrupted: "<red>Lockpick interrupted - stay next to the chest."
+
+feature-disabled: "<red>That feature is disabled on this server."
+blocked-command: "<red>You can't use that command during a match."
+
+alarm:
+  placed: "<green>Alarm placed ({count}/{cap})."
+  cap-reached: "<red>Your team already has the max number of alarms."
+  too-far: "<red>Alarms must be placed near your own spawn."
+  triggered: "<red>ALARM! An intruder was detected!"
+  destroyed: "<yellow>{player} destroyed an enemy alarm!"
+
+drill:
+  breached:
+    title: "<red><bold>VAULT BREACHED!"
+    subtitle: "<gray>Get back and defend it!"
+  no-door: "<red>This arena has no vault door set for that team."
+  already-active: "<red>A drill is already breaching that vault."
+  on-cooldown: "<red>Vault Drill on cooldown ({seconds}s)."
+  placed: "<gold>{team} placed a Vault Drill on the {target} Vault!"
+  completed: "<gold>The {target} Vault has been breached! Attackers have {seconds}s to loot it."
+  destroyed: "<green>{player} destroyed the Vault Drill!"
+  progress: "<gold>DRILL on {target} VAULT - {percent}%"
+
+actionbar:
+  shop-locked: "<red>That unlocks in the {phase} phase."
+  shop-limit: "<red>You can only buy that {limit} time(s) per match."
+  shop-cooldown: "<red>Available again in {seconds}s."
+  ability-dash: "<green>Dash!"
+  ability-heal: "<green>Healing pulse!"
+  respawning: "<red>Respawning in {seconds}..."
+  heist-only: "<red>Vault Drills unlock in the Heist phase."
+  carrying: "<gold>Carrying: {value}/{limit} value  |  Speed -{speed}%  |  Ability: {ability}"
+  carry-limit: "<red>Carrying too much loot! (limit {limit})"
+  golem-already-fresh: "<gray>This golem is already fresh."
+  golem-scraped: "<green>Scraped golem back to {before} -> {after}"
+  scrape-cooldown: "<red>Scrape on cooldown ({seconds}s)"
+  golem-carry-limit: "<red>Carrying too much to take this stack."
+  golem-stack-taken: "<gold>Took the oxidized golem's stack."
+  cant-afford: "<red>Not enough loot value - costs {cost}."
+  purchased: "<green>Bought {item}."
+  golem-cap-reached: "<red>Your team already has the max number of golems."
+  golem-waxed: "<green>Waxed! This golem won't age for a while."
+  storm-rod-used: "<gold>Storm Rod triggered - nearby golems reset to Fresh."
+  no-ability: "<gray>Your role has no active ability."
+  ability-cooldown: "<red>Ability on cooldown ({seconds}s)"
+  thief-invisible: "<green>You turned invisible! Breaks on attack or loot pickup."
+  saboteur-reveal: "<green>Enemy golems revealed for {seconds} seconds."
+  stun-cleared: "<green>Stun cleared - your golem is moving again."
+
+# Optional per-language overrides of text that is normally configured elsewhere (a translation file may
+# define any of these; English falls back to the source YAML):
+#   roles.<id>.name / roles.<id>.description       (roles.yml)
+#   shop.title, shop.items.<id>.name / .lore        (shop.yml)
+#   guide.title, guide.author, guide.pages          (guide.yml)
+
+game:
+  starting-soon: "<green>Enough players - starting in {seconds}s"
+  countdown-cancelled: "<red>Not enough players - countdown cancelled"
+  countdown: "<yellow>Starting in {seconds}..."
+  forfeit-warning: "<yellow>Other team left - {team} wins by forfeit in {seconds}s."
+  title: "<gold>COPPER HEIST"
+  subtitle: "<gray>Fill your vault!"
+
+golem:
+  oxidized-label: "<red>OXIDIZED"
+  fully-oxidized: "<red>{team} golem #{number} has fully oxidized! Scrape it with an axe."
+
+vault:
+  locked: "<red>Only golems can deliver loot into the vault."
+
+loot-bag:
+  label: "<yellow>Loot Bag [{value}] {seconds}s"
+
+lobby:
+  join-line: "<green>[Join] <gold>{arena}<gray> ({state}, {players} players)"
+  join-hover: "<green>Click to join {arena}"
+  no-arenas: "<red>No arenas are open right now."
+  compass-name: "<green>Join Arena"
+  compass-lore: "<gray>Right-click to see open arenas"
+  leave-name: "<red>Leave Arena"
+
+status:
+  enabled: "enabled"
+  disabled: "disabled"
+
+join-error:
+  no-arena: "No joinable arena available right now."
+  not-enabled: "That arena isn't enabled."
+  failed: "Couldn't join {arena} (full or already running)."
+
+spectate:
+  leave-first: "Leave your current match first."
+  nothing: "Nothing to spectate there right now."
+  no-point: "That arena has no spectator or lobby point set."
+
+role:
+  team-full: "Your team already has {count} {role}(s)."
+
+event:
+  total-suffix: " ({total} total)"
+  loot-delivered: "<{color}>{team} delivered {value} loot!{total}"
+  loot-stolen: "<yellow>{player} stole loot from {victim}!"
+
+match:
+  winner: "<{color}>WINNER: {team} TEAM ({copper} - {iron})"
+  draw: "<yellow>DRAW ({copper} - {iron})"
+  title-win: "<{color}>{team} WINS"
+  title-draw: "<yellow>DRAW"
+  subtitle: "<gray>{copper} - {iron}"
+
+menu:
+  role-title: "Choose a role"
+  role-intro: "Your role decides your kit and ability."
+  shop-intro: "Spend the loot value you're carrying."
+  close: "Close"
+
+command:
+  player-only-join: "Only players can join a match."
+  not-in-match: "You're not in a match."
+  left-arena: "You left the arena."
+  no-arenas: "No arenas configured yet."
+  arena-line: "<gold>{arena}</gold> <gray>[{status}]</gray> {state} ({players} players)"
+  player-only-role: "Only players can pick a role."
+  join-first: "Join a match first."
+  roles-disabled: "Roles are disabled on this server."
+  unknown-role: "Unknown role. Choose: {roles}."
+  role-set: "Role set to {role}."
+  role-set-next: "Role set to {role} - applies next respawn."
+  player-only-shop: "Only players can open the shop."
+  shop-disabled: "The shop is disabled on this server."
+  shop-too-far: "Use your team's shop NPC, or go back near your spawn to open the shop."
+  reloaded: "Reloaded config, language files, scoreboard, shop, roles, loot and lobby kit (arenas and running matches are untouched)."
+  unknown-phase: "Unknown phase. Use setup, collection, heist or final_rush."
+  phase-failed: "That arena has no running match, or that isn't a match phase."
+  jumping: "Jumping {arena} to {phase} on the next tick."
+  relic-failed: "No running match there, or a relic is already in play."
+  relic-spawned: "Spawned the relic in {arena}."
+  player-only-spectate: "Only players can spectate."
+  spectating: "Spectating - use /ch leave to stop."
+  forced-start: "Forced start on {arena}."
+  forced-stop: "Forced stop on {arena}."
+  player-only-giveloot: "Only players can be given loot."
+  unknown-tier: "Unknown tier. Use one of: {tiers}."
+  gave-loot: "Gave you {amount} loot item(s)."
+  no-such-arena: "No arena named '{arena}'."
+  check-ok: "<green>[OK] {text}"
+  check-warn: "<yellow>[!] {text}"
+  check-fail: "<red>[X] {text}"
+
+setup:
+  in-game-only: "Arena setup must be run in-game."
+  lobby-set: "Set lobby for {arena}."
+  spectator-set: "Set spectator point for {arena}."
+  spawn-set: "Set {team} spawn for {arena}."
+  dock-look: "Look directly at a chest to mark it as a dock chest."
+  dock-added: "Added {team} dock chest ({count} total)."
+  vault-chest-look: "Look directly at a chest to mark it as a vault chest."
+  vault-chest-added: "Added {team} vault chest ({count} total)."
+  vault-door-look: "Look directly at the vault door block to mark it."
+  vault-door-set: "Set {team} vault door for {arena}."
+  golem-idle-set: "Set {team} golem idle point."
+  waypoint-added: "Added {team} waypoint #{number} (dock->vault order matters - last one should be at the vault)."
+  relic-added: "Added relic point ({count} total)."
+  bounds-1: "Set corner 1 of arena bounds."
+  bounds-2: "Set corner 2 of arena bounds."
+  ready: "{arena} is ready to enable."
+  shop-set: "Set {team} shop NPC point for {arena}."
+  saved: "Saved {arena}."
+  fix-before-enabling: "Fix these before enabling:"
+  enabled: "{arena} is now enabled and joinable."
+  unknown-loot-tier: "Unknown tier. Use common, rare or cache."
+  pad-added: "Added gust pad (power {power}, {count} total)."
+  loot-added: "Added {zone} loot point ({count} total)."
+  arena-exists: "Arena '{arena}' already exists."
+  arena-created: "Created arena '{arena}' in world {world}."
+  unknown-team: "Unknown team '{team}'. Use copper or iron."
+
+arena:
+  check:
+    lobby-ok: "Lobby point"
+    lobby-fail: "No lobby set"
+    bounds-ok: "Arena bounds"
+    bounds-fail: "Arena bounds not set (setbounds1/setbounds2)"
+    loot-fail: "Only {count} loot points (min 3)"
+    loot-warn: "Only {count} loot points (recommend 6+)"
+    loot-ok: "{count} loot points ({common} common, {rare} rare, {cache} cache)"
+    relic-warn: "No relic points - the relic will never spawn"
+    relic-ok: "{count} relic points"
+    spectator-warn: "No spectator point - spectators will use the lobby"
+    spawn-ok: "{team} spawn"
+    spawn-fail: "{team} team has no spawn"
+    dock-ok: "{team} dock: {count} chests"
+    dock-fail: "{team} team has no dock chests"
+    vault-ok: "{team} vault: {count} chests"
+    vault-fail: "{team} team has no vault chests"
+    vault-door-ok: "{team} vault door"
+    vault-door-fail: "{team} team has no vault door"
+    golem-idle-ok: "{team} golem idle point"
+    golem-idle-fail: "{team} team has no golem idle point"
+    waypoints-ok: "{team} waypoints: {count}"
+    waypoints-fail: "{team} team has no waypoints"
+    shop-warn: "{team} has no shop NPC point (use /ch shop instead)"

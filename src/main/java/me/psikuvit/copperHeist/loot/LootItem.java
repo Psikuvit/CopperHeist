@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -39,7 +40,7 @@ public final class LootItem {
         if (tier.glint()) meta.setEnchantmentGlintOverride(true);
         if (tier.customModelData() != null) {
             var component = meta.getCustomModelDataComponent();
-            component.setFloats(java.util.List.of(tier.customModelData().floatValue()));
+            component.setFloats(List.of(tier.customModelData().floatValue()));
             meta.setCustomModelDataComponent(component);
         }
         item.setItemMeta(meta);

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 
 /** Loads loot.yml and answers "which tier do I roll here?". Other plugins may {@link #register} extra tiers. */
@@ -77,7 +78,7 @@ public class LootTierRegistry {
         return weighted(random, tier -> true);
     }
 
-    private LootTierDefinition weighted(RandomGenerator random, java.util.function.Predicate<LootTierDefinition> allowed) {
+    private LootTierDefinition weighted(RandomGenerator random, Predicate<LootTierDefinition> allowed) {
         List<LootTierDefinition> pool = new ArrayList<>();
         int total = 0;
         for (LootTierDefinition tier : tiers.values()) {

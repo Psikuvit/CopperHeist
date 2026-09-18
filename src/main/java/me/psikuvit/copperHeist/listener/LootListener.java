@@ -57,7 +57,7 @@ public class LootListener implements Listener {
         int itemValue = LootItem.getValue(item) * item.getAmount();
         if (!plugin.getLootWeightService().canCarry(player, item)) {
             event.setCancelled(true);
-            player.sendActionBar(plugin.getMessageService().get("actionbar.carry-limit", "limit", carryLimit));
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.carry-limit", "limit", carryLimit));
             return;
         }
 

@@ -5,28 +5,27 @@ import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.event.MatchEndEvent;
 import me.psikuvit.copperHeist.event.PhaseChangeEvent;
 import me.psikuvit.copperHeist.golem.GolemManager;
-import me.psikuvit.copperHeist.task.OxidationTask;
 import me.psikuvit.copperHeist.heist.AlarmManager;
 import me.psikuvit.copperHeist.heist.DockLockManager;
 import me.psikuvit.copperHeist.heist.VaultDrillManager;
 import me.psikuvit.copperHeist.loot.LootBagManager;
+import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.loot.LootSpawner;
 import me.psikuvit.copperHeist.npc.NpcHandle;
 import me.psikuvit.copperHeist.npc.NpcSpec;
 import me.psikuvit.copperHeist.npc.VillagerNpcProvider;
-import me.psikuvit.copperHeist.loot.LootItem;
-import me.psikuvit.copperHeist.loot.LootSpawner;
 import me.psikuvit.copperHeist.relic.RelicManager;
 import me.psikuvit.copperHeist.role.RoleService;
 import me.psikuvit.copperHeist.task.GameSidebarTask;
 import me.psikuvit.copperHeist.task.GameTimerTask;
 import me.psikuvit.copperHeist.task.GameUiTask;
+import me.psikuvit.copperHeist.task.OxidationTask;
 import me.psikuvit.copperHeist.task.RejoinExpiryTask;
 import me.psikuvit.copperHeist.task.RespawnTask;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
@@ -34,17 +33,21 @@ import org.bukkit.GameMode;
 import org.bukkit.GameRules;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class Game {
@@ -58,7 +61,7 @@ public class Game {
     private final Map<UUID, Team> shopNpcs = new LinkedHashMap<>();
     private final List<Entity> npcEntities = new ArrayList<>();
     private final Map<UUID, Long> disconnectedUntil = new LinkedHashMap<>();
-    private final java.util.Set<String> scoredLootIds = new java.util.HashSet<>();
+    private final Set<String> scoredLootIds = new HashSet<>();
 
     private GameState state = GameState.WAITING;
     private String matchId = UUID.randomUUID().toString();
@@ -231,7 +234,7 @@ public class Game {
         player.setGameMode(GameMode.SURVIVAL);
         if (arena.getLobby() != null) player.teleport(arena.getLobby());
         plugin.getLobbyKitService().giveLeaveItem(player);
-        player.sendMessage(plugin.getMessageService().getWithPrefix("join", "arena", arena.getName(), "team", team.displayName()));
+        player.sendMessage(plugin.getMessageService().getWithPrefix(player, "join", "arena", arena.getName(), "team", team.displayName()));
         return true;
     }
 
@@ -258,7 +261,7 @@ public class Game {
         player.getInventory().setContents(saved.contents());
         player.getInventory().setArmorContents(saved.armor());
         player.setGameMode(saved.gameMode());
-        var maxHealth = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+        var maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
         player.setHealth(Math.min(saved.health(), maxHealth == null ? 20.0 : maxHealth.getValue()));
         player.setFoodLevel(saved.foodLevel());
         player.teleport(saved.location());
@@ -448,7 +451,7 @@ public class Game {
         if (players.size() >= min) {
             state = GameState.STARTING;
             secondsRemaining = plugin.settings().getInt("match.starting-countdown-seconds", 10);
-            broadcast(Component.text("Enough players - starting in " + secondsRemaining + "s", NamedTextColor.GREEN));
+            broadcast("game.starting-soon", "seconds", secondsRemaining);
         }
     }
 
@@ -456,14 +459,14 @@ public class Game {
         int min = plugin.settings().getInt("match.min-players", 6);
         if (players.size() < min) {
             state = GameState.WAITING;
-            broadcast(Component.text("Not enough players - countdown cancelled", NamedTextColor.RED));
+            broadcast("game.countdown-cancelled");
             return;
         }
         secondsRemaining--;
         if (secondsRemaining <= 0) {
             start();
         } else if (secondsRemaining <= 5 || secondsRemaining % 10 == 0) {
-            broadcast(Component.text("Starting in " + secondsRemaining + "...", NamedTextColor.YELLOW));
+            broadcast("game.countdown", "seconds", secondsRemaining);
         }
     }
 
@@ -499,8 +502,7 @@ public class Game {
         }
         if (forfeitCountdown < 0) {
             forfeitCountdown = plugin.settings().getInt("match.forfeit-seconds", 30);
-            broadcast(Component.text("Other team left - " + remaining.displayName() + " wins by forfeit in "
-                    + forfeitCountdown + "s.", NamedTextColor.YELLOW));
+            broadcast("game.forfeit-warning", "team", remaining.displayName(), "seconds", forfeitCountdown);
             return false;
         }
         if (--forfeitCountdown <= 0) {
@@ -554,7 +556,7 @@ public class Game {
         if (phaseBar == null) return;
         phaseBar.name(plugin.getMessageService().get("phase.bar",
                 "phase", state.name().replace('_', ' '), "time", formatTime(secondsRemaining)));
-        phaseBar.progress(Math.max(0f, Math.min(1f, secondsRemaining / (float) matchDurationSeconds)));
+        phaseBar.progress(Math.clamp(secondsRemaining / (float) matchDurationSeconds, 0f, 1f));
         phaseBar.color(switch (state) {
             case SETUP -> BossBar.Color.BLUE;
             case COLLECTION -> BossBar.Color.GREEN;
@@ -615,8 +617,8 @@ public class Game {
 
         for (Player player : onlinePlayers()) {
             player.showTitle(Title.title(
-                    Component.text("COPPER HEIST", NamedTextColor.GOLD),
-                    Component.text("Fill your vault!", NamedTextColor.GRAY),
+                    plugin.getMessageService().get(player, "game.title"),
+                    plugin.getMessageService().get(player, "game.subtitle"),
                     Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(2), Duration.ofMillis(500))));
         }
     }
@@ -683,6 +685,11 @@ public class Game {
 
         GameTeam copper = teams.get(Team.COPPER);
         GameTeam iron = teams.get(Team.IRON);
+        Team winner = getTeam(copper, iron);
+        Bukkit.getPluginManager().callEvent(new MatchEndEvent(this, winner, copper.getScore(), iron.getScore()));
+    }
+
+    private @Nullable Team getTeam(GameTeam copper, GameTeam iron) {
         Team winner = null;
         if (copper.getScore() != iron.getScore()) {
             winner = copper.getScore() > iron.getScore() ? Team.COPPER : Team.IRON;
@@ -693,7 +700,7 @@ public class Game {
         }
 
         if (forfeitWinner != null) winner = forfeitWinner;
-        Bukkit.getPluginManager().callEvent(new MatchEndEvent(this, winner, copper.getScore(), iron.getScore()));
+        return winner;
     }
 
     private void beginReset() {
@@ -718,7 +725,7 @@ public class Game {
         plugin.getGameManager().onGameFinished(this);
     }
 
-    private void broadcast(Component message) {
-        for (Player player : onlinePlayers()) player.sendMessage(message);
+    private void broadcast(String key, Object... placeholders) {
+        for (Player player : onlinePlayers()) player.sendMessage(plugin.getMessageService().get(player, key, placeholders));
     }
 }

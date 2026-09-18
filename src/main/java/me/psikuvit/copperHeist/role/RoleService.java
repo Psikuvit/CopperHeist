@@ -6,6 +6,7 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.role.ability.AbilityContext;
 import me.psikuvit.copperHeist.role.ability.RoleAbility;
+import me.psikuvit.copperHeist.ui.Text;
 import me.psikuvit.copperHeist.util.Cooldowns;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -59,32 +60,45 @@ public class RoleService {
         return plugin.getRoleRegistry();
     }
 
-    /** Returns an error message, or null if the role was set (it applies on the next respawn during a match). */
-    public String trySetRole(GamePlayer gp, RoleDefinition role) {
+    /** Returns why the role couldn't be set, or null if it was (it applies on the next respawn during a match). */
+    public Text trySetRole(GamePlayer gp, RoleDefinition role) {
         int max = roles().maxPerTeam(role);
         if (!role.id().equals(gp.getRole().id()) && countOnTeam(gp.getTeam(), role) >= max) {
-            return "Your team already has " + max + " " + role.displayName() + (max == 1 ? "." : "s.");
+            return Text.of("role.team-full", "count", max, "role", role.displayName());
         }
         gp.setRole(role);
         return null;
     }
 
     /** One item per role, in registry order - the click listener maps slot index straight back to the role. */
-    public Inventory buildRoleMenu() {
+    public Inventory buildRoleMenu(Player viewer) {
         List<RoleDefinition> all = roles().all();
         int size = Math.max(9, (all.size() + 8) / 9 * 9);
-        Inventory inventory = Bukkit.createInventory(new RoleHolder(), size, Component.text("Choose a role", NamedTextColor.GOLD));
+        Inventory inventory = Bukkit.createInventory(new RoleHolder(), size,
+                plugin.getMessageService().get(viewer, "menu.role-title").colorIfAbsent(NamedTextColor.GOLD));
         for (RoleDefinition role : all) {
             ItemStack icon = new ItemStack(role.icon());
             ItemMeta meta = icon.getItemMeta();
-            meta.displayName(Component.text(role.displayName(), role.color()).decoration(TextDecoration.ITALIC, false));
-            if (!role.description().isBlank()) {
-                meta.lore(List.of(miniMessage.deserialize(role.description()).decoration(TextDecoration.ITALIC, false)));
+            meta.displayName(Component.text(displayName(role, viewer), role.color()).decoration(TextDecoration.ITALIC, false));
+            String description = description(role, viewer);
+            if (!description.isBlank()) {
+                meta.lore(List.of(miniMessage.deserialize(description).decoration(TextDecoration.ITALIC, false)));
             }
             icon.setItemMeta(meta);
             inventory.addItem(icon);
         }
         return inventory;
+    }
+
+    /** A role's name in the viewer's language: lang key roles.&lt;id&gt;.name if a translation defines it, else roles.yml. */
+    public String displayName(RoleDefinition role, Player viewer) {
+        String translated = plugin.getMessageService().rawOrNull(viewer, "roles." + role.id() + ".name");
+        return translated != null ? translated : role.displayName();
+    }
+
+    public String description(RoleDefinition role, Player viewer) {
+        String translated = plugin.getMessageService().rawOrNull(viewer, "roles." + role.id() + ".description");
+        return translated != null ? translated : role.description();
     }
 
     public int countOnTeam(Team team, RoleDefinition role) {
@@ -226,7 +240,7 @@ public class RoleService {
     public void activate(Player player, GamePlayer gp) {
         AbilitySpec spec = gp.getRole().ability();
         if (spec == null) {
-            player.sendActionBar(plugin.getMessageService().get("actionbar.no-ability"));
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.no-ability"));
             return;
         }
         RoleAbility ability = plugin.getAbilityRegistry().get(spec.id());
@@ -237,14 +251,16 @@ public class RoleService {
 
         UUID id = player.getUniqueId();
         if (!abilityCooldowns.isReady(id)) {
-            player.sendActionBar(plugin.getMessageService().get("actionbar.ability-cooldown", "seconds", abilityCooldowns.remainingSeconds(id)));
+            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.ability-cooldown", "seconds", abilityCooldowns.remainingSeconds(id)));
             return;
         }
         ability.activate(new AbilityContext(plugin, game, player, gp, spec));
         abilityCooldowns.set(id, spec.cooldownSeconds());
 
         String custom = spec.text("message", null);
-        player.sendActionBar(custom != null ? miniMessage.deserialize(custom) : plugin.getMessageService().get(ability.defaultMessageKey()));
+        player.sendActionBar(custom != null ? miniMessage.deserialize(custom)
+                : plugin.getMessageService().get(player, ability.defaultMessageKey(),
+                "seconds", (int) spec.number("duration-seconds", 0)));
     }
 
     /** Breaks invisibility early on attack or loot pickup. */

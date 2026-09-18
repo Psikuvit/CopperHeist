@@ -88,8 +88,21 @@ public class ShopService {
         return new ArrayList<>(entries.values());
     }
 
-    public String menuTitle() {
-        return config.getString("menu.title", "<gold><bold>Copper Heist Shop");
+    /** Menu title in the viewer's language (lang key shop.title if a translation defines it, else shop.yml). */
+    public String menuTitle(Player viewer) {
+        String translated = plugin.getMessageService().rawOrNull(viewer, "shop.title");
+        return translated != null ? translated : config.getString("menu.title", "<gold><bold>Copper Heist Shop");
+    }
+
+    /** Entry name in the viewer's language (lang key shop.items.&lt;id&gt;.name, else shop.yml). */
+    public String entryName(ShopEntry entry, Player viewer) {
+        String translated = plugin.getMessageService().rawOrNull(viewer, "shop.items." + entry.id() + ".name");
+        return translated != null ? translated : entry.name();
+    }
+
+    public List<String> entryLore(ShopEntry entry, Player viewer) {
+        List<String> translated = plugin.getMessageService().listOrNull(viewer, "shop.items." + entry.id() + ".lore");
+        return translated != null ? translated : entry.lore();
     }
 
     public ShopEntry entry(String id) {
@@ -104,13 +117,12 @@ public class ShopService {
 
     // ---- menu ----
 
-    public Inventory buildMenu() {
+    public Inventory buildMenu(Player viewer) {
         List<ShopEntry> list = new ArrayList<>(entries.values());
         int rows = config.getInt("menu.rows", 0);
         if (rows <= 0) rows = Math.max(1, (list.size() + 8) / 9);
         rows = Math.min(6, rows);
-        Inventory inventory = Bukkit.createInventory(new ShopHolder(), rows * 9,
-                miniMessage.deserialize(config.getString("menu.title", "<gold><bold>Copper Heist Shop")));
+        Inventory inventory = Bukkit.createInventory(new ShopHolder(), rows * 9, miniMessage.deserialize(menuTitle(viewer)));
 
         Material filler = Material.matchMaterial(config.getString("menu.filler", ""));
         if (filler != null && filler != Material.AIR) {
@@ -122,7 +134,7 @@ public class ShopService {
         }
 
         for (ShopEntry entry : list) {
-            ItemStack display = buildDisplayItem(entry);
+            ItemStack display = buildDisplayItem(entry, viewer);
             if (entry.slot() >= 0 && entry.slot() < inventory.getSize()) {
                 inventory.setItem(entry.slot(), display);
                 continue;
@@ -137,15 +149,15 @@ public class ShopService {
         return inventory;
     }
 
-    private ItemStack buildDisplayItem(ShopEntry entry) {
+    private ItemStack buildDisplayItem(ShopEntry entry, Player viewer) {
         ItemStack stack = "give-item".equals(entry.action()) ? GiveItemAction.createStack(entry)
                 : new ItemStack(entry.material(), Math.max(1, entry.amount()));
         ItemMeta meta = stack.getItemMeta();
         String costFormat = config.getString("menu.cost-format", " - {cost} value").replace("{cost}", String.valueOf(entry.cost()));
-        meta.displayName(miniMessage.deserialize(entry.name()).append(Component.text(costFormat))
+        meta.displayName(miniMessage.deserialize(entryName(entry, viewer)).append(Component.text(costFormat))
                 .decoration(TextDecoration.ITALIC, false));
         List<Component> lore = new ArrayList<>();
-        for (String line : entry.lore()) lore.add(miniMessage.deserialize(line).decoration(TextDecoration.ITALIC, false));
+        for (String line : entryLore(entry, viewer)) lore.add(miniMessage.deserialize(line).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         stack.setItemMeta(meta);
         Pdc.set(stack, PdcKeys.SHOP_ITEM, entry.id());
@@ -158,16 +170,16 @@ public class ShopService {
         var messages = plugin.getMessageService();
 
         if (entry.minPhase() != null && !(game.isActive() && game.getState().ordinal() >= entry.minPhase().ordinal())) {
-            player.sendActionBar(messages.get("actionbar.shop-locked", "phase", entry.minPhase().name().replace('_', ' ')));
+            player.sendActionBar(messages.get(player, "actionbar.shop-locked", "phase", entry.minPhase().name().replace('_', ' ')));
             return;
         }
         if (entry.maxPerPlayer() > 0 && gp.purchaseCount(entry.id()) >= entry.maxPerPlayer()) {
-            player.sendActionBar(messages.get("actionbar.shop-limit", "limit", entry.maxPerPlayer()));
+            player.sendActionBar(messages.get(player, "actionbar.shop-limit", "limit", entry.maxPerPlayer()));
             return;
         }
         long cooldown = gp.purchaseCooldownRemaining(entry.id());
         if (cooldown > 0) {
-            player.sendActionBar(messages.get("actionbar.shop-cooldown", "seconds", cooldown));
+            player.sendActionBar(messages.get(player, "actionbar.shop-cooldown", "seconds", cooldown));
             return;
         }
 
@@ -179,18 +191,18 @@ public class ShopService {
         ShopPurchase purchase = new ShopPurchase(plugin, game, player, gp, entry);
         String refusal = action.check(purchase);
         if (refusal != null) {
-            player.sendActionBar(messages.get(refusal));
+            player.sendActionBar(messages.get(player, refusal));
             return;
         }
 
         if (!charge(player, entry.cost())) {
-            player.sendActionBar(messages.get("actionbar.cant-afford", "cost", entry.cost()));
+            player.sendActionBar(messages.get(player, "actionbar.cant-afford", "cost", entry.cost()));
             return;
         }
 
         action.perform(purchase);
         gp.recordPurchase(entry.id(), entry.cooldownSeconds());
-        player.sendActionBar(messages.get("actionbar.purchased", "item", entry.name()));
+        player.sendActionBar(messages.get(player, "actionbar.purchased", "item", entry.name()));
     }
 
     /** Removes tagged loot worth at least cost, smallest-value pieces first, or refuses if there isn't enough. */

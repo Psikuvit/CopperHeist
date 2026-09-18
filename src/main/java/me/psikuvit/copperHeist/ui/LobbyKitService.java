@@ -4,12 +4,12 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.config.ConfigFiles;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
@@ -44,52 +44,57 @@ public class LobbyKitService {
     }
 
     public void giveHubKit(Player player) {
-        player.getInventory().setItem(0, createJoinCompass());
-        player.getInventory().setItem(1, createGuideBook());
+        player.getInventory().setItem(0, createJoinCompass(player));
+        player.getInventory().setItem(1, createGuideBook(player));
     }
 
     public void giveLeaveItem(Player player) {
-        player.getInventory().setItem(8, createLeaveItem());
+        player.getInventory().setItem(8, createLeaveItem(player));
     }
 
     public void sendArenaList(Player player) {
+        var messages = plugin.getMessageService();
         boolean any = false;
         for (Arena arena : plugin.getArenaManager().all()) {
             if (!arena.isEnabled()) continue;
             any = true;
 
             Game game = plugin.getGameManager().peek(arena);
-            String state = game != null ? game.getState().name() : "WAITING";
+            String state = game != null ? game.getState().name() : GameState.WAITING.name();
             int players = game != null ? game.totalPlayers() : 0;
 
-            Component line = Component.text("[Join] ", NamedTextColor.GREEN)
-                    .append(Component.text(arena.getName(), NamedTextColor.GOLD))
-                    .append(Component.text(" (" + state + ", " + players + " players)", NamedTextColor.GRAY))
+            Component line = messages.get(player, "lobby.join-line", "arena", arena.getName(), "state", state, "players", players)
                     .clickEvent(ClickEvent.runCommand("/ch join " + arena.getName()))
-                    .hoverEvent(HoverEvent.showText(Component.text("Click to join " + arena.getName(), NamedTextColor.GREEN)));
+                    .hoverEvent(HoverEvent.showText(messages.get(player, "lobby.join-hover", "arena", arena.getName())));
             player.sendMessage(line);
         }
-        if (!any) player.sendMessage(Component.text("No arenas are open right now.", NamedTextColor.RED));
+        if (!any) player.sendMessage(messages.get(player, "lobby.no-arenas"));
     }
 
-    private ItemStack createJoinCompass() {
+    private ItemStack createJoinCompass(Player viewer) {
+        var messages = plugin.getMessageService();
         ItemStack item = new ItemStack(Material.COMPASS);
         Pdc.set(item, PdcKeys.LOBBY_ITEM, "join_compass");
 
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Join Arena", NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
-        meta.lore(List.of(Component.text("Right-click to see open arenas", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+        meta.displayName(messages.get(viewer, "lobby.compass-name").decoration(TextDecoration.ITALIC, false));
+        meta.lore(List.of(messages.get(viewer, "lobby.compass-lore").decoration(TextDecoration.ITALIC, false)));
         item.setItemMeta(meta);
         return item;
     }
 
-    private ItemStack createGuideBook() {
+    /** The guide book: a translation's guide.pages (in lang/) wins over the single-language guide.yml. */
+    private ItemStack createGuideBook(Player viewer) {
+        var messages = plugin.getMessageService();
         ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
         if (item.getItemMeta() instanceof BookMeta meta) {
-            meta.title(miniMessage.deserialize(guide.getString("book-title", "Copper Heist Guide")));
-            meta.author(miniMessage.deserialize(guide.getString("book-author", "Copper Heist")));
+            String title = messages.rawOrNull(viewer, "guide.title");
+            String author = messages.rawOrNull(viewer, "guide.author");
+            List<String> pageTexts = messages.listOrNull(viewer, "guide.pages");
+            meta.title(miniMessage.deserialize(title != null ? title : guide.getString("book-title", "Copper Heist Guide")));
+            meta.author(miniMessage.deserialize(author != null ? author : guide.getString("book-author", "Copper Heist")));
             List<Component> pages = new ArrayList<>();
-            for (String page : guide.getStringList("pages")) {
+            for (String page : pageTexts != null ? pageTexts : guide.getStringList("pages")) {
                 pages.add(miniMessage.deserialize(page));
             }
             meta.pages(pages);
@@ -99,12 +104,12 @@ public class LobbyKitService {
         return item;
     }
 
-    private ItemStack createLeaveItem() {
+    private ItemStack createLeaveItem(Player viewer) {
         ItemStack item = new ItemStack(Material.RED_BED);
         Pdc.set(item, PdcKeys.LOBBY_ITEM, "leave_arena");
 
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Leave Arena", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(plugin.getMessageService().get(viewer, "lobby.leave-name").decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }

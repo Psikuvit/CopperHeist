@@ -16,7 +16,6 @@ import me.psikuvit.copperHeist.util.Cooldowns;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
@@ -133,7 +132,7 @@ public class GolemManager {
             int value = LootItem.getValue(golem.getCarried()) * golem.getCarried().getAmount();
             label.text(Component.text("[" + value + "]", golem.getTeam().color()));
         } else if (golem.getEntity().getWeatheringState() == WeatheringCopperState.OXIDIZED) {
-            label.text(Component.text("OXIDIZED", NamedTextColor.RED));
+            label.text(plugin.getMessageService().get("golem.oxidized-label"));
         } else {
             label.text(Component.empty());
         }

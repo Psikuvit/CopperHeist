@@ -40,6 +40,19 @@ public final class ConfigFiles {
         return user;
     }
 
+    /** Loads any YAML file (no copying), layering {@code defaults} underneath; a syntax error yields defaults only. */
+    public static YamlConfiguration loadFile(JavaPlugin plugin, File file, YamlConfiguration defaults) {
+        YamlConfiguration yaml = new YamlConfiguration();
+        try {
+            yaml.load(file);
+        } catch (IOException | InvalidConfigurationException ex) {
+            plugin.getLogger().log(Level.SEVERE, file.getName() + " could not be read (" + ex.getMessage() + ") - using defaults.");
+            yaml = new YamlConfiguration();
+        }
+        if (defaults != null) yaml.setDefaults(defaults);
+        return yaml;
+    }
+
     public static YamlConfiguration bundled(JavaPlugin plugin, String name) {
         try (InputStream in = plugin.getResource(name)) {
             if (in == null) return null;

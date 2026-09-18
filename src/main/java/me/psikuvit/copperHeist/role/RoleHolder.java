@@ -2,12 +2,13 @@ package me.psikuvit.copperHeist.role;
 
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.jspecify.annotations.NonNull;
 
 /** Marker so the click listener can tell the role picker apart from any other open inventory. */
 public class RoleHolder implements InventoryHolder {
 
     @Override
-    public Inventory getInventory() {
+    public @NonNull Inventory getInventory() {
         throw new UnsupportedOperationException("marker holder only");
     }
 }

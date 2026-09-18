@@ -1,5 +1,6 @@
 package me.psikuvit.copperHeist.provider;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -18,7 +19,7 @@ public final class ProviderRegistry<T> {
     private final String defaultId;
     private final Logger logger;
     private final Map<String, Supplier<T>> factories = new LinkedHashMap<>();
-    private final Set<String> warned = new java.util.HashSet<>();
+    private final Set<String> warned = new HashSet<>();
 
     public ProviderRegistry(String featureName, String defaultId, Logger logger) {
         this.featureName = featureName;

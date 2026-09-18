@@ -40,7 +40,7 @@ public final class Settings {
             if (section != null && section.isSet(path)) return section;
         }
         // Nothing sets it explicitly: the base layer's bundled defaults (or the caller's default) apply.
-        return layers.get(layers.size() - 1).get();
+        return layers.getLast().get();
     }
 
     public boolean has(String path) {
