@@ -8,6 +8,7 @@ import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.GameMode;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -23,9 +24,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+
+import java.util.Locale;
 
 public class ArenaProtectionListener implements Listener {
 
@@ -106,6 +111,27 @@ public class ArenaProtectionListener implements Listener {
                     return;
                 }
             }
+        }
+    }
+
+    /** Only whitelisted commands work during a match (admins with copperheist.admin.bypass are exempt). */
+    @EventHandler
+    public void onCommand(PlayerCommandPreprocessEvent event) {
+        Player player = event.getPlayer();
+        if (plugin.getGameManager().getGame(player) == null || player.hasPermission("copperheist.admin.bypass")) return;
+        String label = event.getMessage().substring(1).split(" ")[0].toLowerCase(Locale.ROOT);
+        if (label.contains(":")) label = label.substring(label.indexOf(':') + 1);
+        if (!plugin.getConfig().getStringList("match.allowed-commands").contains(label)) {
+            event.setCancelled(true);
+            player.sendMessage(plugin.getMessageService().get("blocked-command"));
+        }
+    }
+
+    @EventHandler
+    public void onGameModeChange(PlayerGameModeChangeEvent event) {
+        if (event.getCause() != PlayerGameModeChangeEvent.Cause.COMMAND) return;
+        if (event.getNewGameMode() == GameMode.CREATIVE && plugin.getGameManager().getGame(event.getPlayer()) != null) {
+            event.setCancelled(true);
         }
     }
 

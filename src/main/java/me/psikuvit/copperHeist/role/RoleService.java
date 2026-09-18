@@ -136,6 +136,14 @@ public class RoleService {
         return role == Role.RUNNER ? 0.5 : 1.0;
     }
 
+    /** Action-bar text for the F-key ability: READY, seconds left, or a dash if the role has none. */
+    public String abilityStatus(Player player, GamePlayer gp) {
+        if (gp.getRole() != Role.THIEF && gp.getRole() != Role.SABOTEUR) return "<gray>-";
+        UUID id = player.getUniqueId();
+        if (abilityCooldowns.isReady(id)) return "<green>READY";
+        return "<red>" + abilityCooldowns.remainingSeconds(id) + "s";
+    }
+
     public double lockpickMultiplier(Role role) {
         return role == Role.THIEF ? 0.5 : 1.0;
     }

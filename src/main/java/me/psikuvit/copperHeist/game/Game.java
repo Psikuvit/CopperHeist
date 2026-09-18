@@ -45,6 +45,8 @@ public class Game {
     private final Arena arena;
     private final Map<Team, GameTeam> teams = new EnumMap<>(Team.class);
     private final Map<UUID, GamePlayer> players = new LinkedHashMap<>();
+    private final Map<UUID, GamePlayer.SavedState> spectators = new LinkedHashMap<>();
+    private boolean lootStarted;
 
     private GameState state = GameState.WAITING;
     private String matchId = UUID.randomUUID().toString();
@@ -219,20 +221,79 @@ public class Game {
         plugin.getLootWeightService().clearModifier(player);
         if (isActive()) dropCarriedLoot(player);
 
-        if (online && gamePlayer.getSavedState() != null) {
-            GamePlayer.SavedState saved = gamePlayer.getSavedState();
-            player.getInventory().setContents(saved.contents());
-            player.getInventory().setArmorContents(saved.armor());
-            player.setGameMode(saved.gameMode());
-            player.setHealth(Math.min(saved.health(), player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
-            player.setFoodLevel(saved.foodLevel());
-            player.teleport(saved.location());
-        }
+        if (online && gamePlayer.getSavedState() != null) restoreState(player, gamePlayer.getSavedState());
         if (online) {
             if (phaseBar != null) player.hideBossBar(phaseBar);
             player.setGlowing(false);
+            plugin.getSidebarService().clearMatchDecor(player);
             plugin.getSidebarService().showHub(player);
         }
+    }
+
+    private void restoreState(Player player, GamePlayer.SavedState saved) {
+        player.getInventory().setContents(saved.contents());
+        player.getInventory().setArmorContents(saved.armor());
+        player.setGameMode(saved.gameMode());
+        var maxHealth = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+        player.setHealth(Math.min(saved.health(), maxHealth == null ? 20.0 : maxHealth.getValue()));
+        player.setFoodLevel(saved.foodLevel());
+        player.teleport(saved.location());
+    }
+
+    // ---- spectators ----
+
+    public boolean addSpectator(Player player) {
+        Location where = arena.getSpectator() != null ? arena.getSpectator() : arena.getLobby();
+        if (where == null) return false;
+        spectators.put(player.getUniqueId(), new GamePlayer.SavedState(
+                player.getInventory().getContents().clone(),
+                player.getInventory().getArmorContents().clone(),
+                player.getLocation().clone(),
+                player.getGameMode(),
+                player.getHealth(),
+                player.getFoodLevel()));
+        player.getInventory().clear();
+        player.setGameMode(GameMode.SPECTATOR);
+        player.teleport(where);
+        return true;
+    }
+
+    public void removeSpectator(Player player, boolean online) {
+        GamePlayer.SavedState saved = spectators.remove(player.getUniqueId());
+        if (saved == null || !online) return;
+        restoreState(player, saved);
+        plugin.getSidebarService().clearMatchDecor(player);
+        plugin.getSidebarService().showHub(player);
+    }
+
+    public boolean isSpectator(Player player) {
+        return spectators.containsKey(player.getUniqueId());
+    }
+
+    public List<Player> spectatorPlayers() {
+        List<Player> result = new ArrayList<>();
+        for (UUID uuid : spectators.keySet()) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) result.add(player);
+        }
+        return result;
+    }
+
+    // ---- debug controls ----
+
+    /** Jumps the clock to the start of a phase (the next tick performs the transition); returns false if the match isn't running or the phase isn't one of the four. */
+    public boolean forcePhase(GameState target) {
+        if (!isActive()) return false;
+        int elapsed = switch (target) {
+            case SETUP -> 0;
+            case COLLECTION -> plugin.getConfig().getInt("match.phases.setup-seconds", 60);
+            case HEIST -> plugin.getConfig().getInt("match.phases.collection-end-seconds", 480);
+            case FINAL_RUSH -> plugin.getConfig().getInt("match.phases.heist-end-seconds", 780);
+            default -> -1;
+        };
+        if (elapsed < 0) return false;
+        secondsRemaining = matchDurationSeconds - elapsed;
+        return true;
     }
 
     // ---- state machine ----
@@ -348,7 +409,8 @@ public class Game {
         GameState from = state;
         state = target;
 
-        if (target == GameState.COLLECTION) {
+        if (target != GameState.SETUP && !lootStarted) {
+            lootStarted = true;
             lootSpawner.start();
             for (GameTeam gameTeam : teams.values()) gameTeam.markDelivery();
         }
@@ -393,6 +455,7 @@ public class Game {
         state = GameState.SETUP;
         matchId = UUID.randomUUID().toString();
         matchDurationSeconds = plugin.getConfig().getInt("match.duration-seconds", 900);
+        lootStarted = false;
         secondsRemaining = matchDurationSeconds;
 
         for (Team team : Team.values()) {
@@ -510,6 +573,12 @@ public class Game {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) removePlayer(player, true);
             else players.remove(uuid);
+        }
+
+        for (UUID uuid : new ArrayList<>(spectators.keySet())) {
+            Player spectator = Bukkit.getPlayer(uuid);
+            if (spectator != null) removeSpectator(spectator, true);
+            else spectators.remove(uuid);
         }
 
         if (timerTask != null) timerTask.cancel();

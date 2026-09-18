@@ -11,6 +11,7 @@ match:
   respawn-delay-seconds: 6
   forfeit-seconds: 30
   hidden-enemy-score: false
+  allowed-commands: [ch, copperheist, msg, tell, w, r, reply]
   # Elapsed seconds since match start at which each phase ends. FINAL_RUSH
   # runs from heist-end-seconds until duration-seconds.
   phases:

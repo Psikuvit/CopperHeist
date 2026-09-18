@@ -30,6 +30,7 @@ public class Arena {
     private String worldName;
     private boolean enabled = false;
     private Location lobby;
+    private Location spectator;
     private Location bound1;
     private Location bound2;
     private final Map<Team, TeamSite> sites = new EnumMap<>(Team.class);
@@ -73,6 +74,14 @@ public class Arena {
 
     public void setLobby(Location lobby) {
         this.lobby = lobby;
+    }
+
+    public Location getSpectator() {
+        return spectator;
+    }
+
+    public void setSpectator(Location spectator) {
+        this.spectator = spectator;
     }
 
     public Location getBound1() {

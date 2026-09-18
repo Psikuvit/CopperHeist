@@ -67,10 +67,14 @@ public class LootWeightService {
         int carried = getCarriedValue(player);
 
         double roleMultiplier = 1.0;
+        String ability = "<gray>-";
         Game game = plugin.getGameManager().getGame(player);
         if (game != null) {
             GamePlayer gp = game.getGamePlayer(player.getUniqueId());
-            if (gp != null) roleMultiplier = game.getRoleService().speedPenaltyMultiplier(gp.getRole());
+            if (gp != null) {
+                roleMultiplier = game.getRoleService().speedPenaltyMultiplier(gp.getRole());
+                ability = game.getRoleService().abilityStatus(player, gp);
+            }
         }
         double penalty = getSpeedPenalty(carried, roleMultiplier);
         if (penalty > 0) {
@@ -78,8 +82,9 @@ public class LootWeightService {
             attribute.addModifier(modifier);
         }
         int carryLimit = plugin.getConfig().getInt("loot.carry-limit", 80);
+        if (player.getGameMode() == org.bukkit.GameMode.SPECTATOR) return; // the respawn countdown owns the bar while dead
         player.sendActionBar(plugin.getMessageService().get("actionbar.carrying",
-                "value", carried, "limit", carryLimit, "speed", Math.round(penalty * 100)));
+                "value", carried, "limit", carryLimit, "speed", Math.round(penalty * 100), "ability", ability));
     }
 
     public void clearModifier(Player player) {

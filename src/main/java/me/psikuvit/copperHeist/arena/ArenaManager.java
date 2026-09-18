@@ -61,6 +61,7 @@ public class ArenaManager {
         yaml.set("enabled", arena.isEnabled());
         yaml.set("world", arena.getWorldName());
         if (arena.getLobby() != null) yaml.set("lobby", LocationUtil.serialize(arena.getLobby()));
+        if (arena.getSpectator() != null) yaml.set("spectator", LocationUtil.serialize(arena.getSpectator()));
         if (arena.getBound1() != null) yaml.set("bound1", LocationUtil.serialize(arena.getBound1()));
         if (arena.getBound2() != null) yaml.set("bound2", LocationUtil.serialize(arena.getBound2()));
         yaml.set("loot-points", LocationUtil.serializeList(arena.getLootPoints()));
@@ -92,6 +93,7 @@ public class ArenaManager {
         arena.setWorldName(world);
         arena.setEnabled(yaml.getBoolean("enabled", false));
         if (yaml.contains("lobby")) arena.setLobby(LocationUtil.deserialize(world, yaml.getList("lobby")));
+        if (yaml.contains("spectator")) arena.setSpectator(LocationUtil.deserialize(world, yaml.getList("spectator")));
         if (yaml.contains("bound1")) arena.setBound1(LocationUtil.deserialize(world, yaml.getList("bound1")));
         if (yaml.contains("bound2")) arena.setBound2(LocationUtil.deserialize(world, yaml.getList("bound2")));
         arena.getLootPoints().addAll(LocationUtil.deserializeList(world, yaml.getList("loot-points")));

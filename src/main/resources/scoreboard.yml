@@ -29,6 +29,10 @@ hub:
     - ""
     - "<gray>/ch join <arena>"
 
+tab:
+  header: "<gold><bold>COPPER HEIST <gray>- Arena: <white>{arena}"
+  footer: "<gold>Copper {copper_score} <dark_gray>|</dark_gray> <gray>Iron {iron_score} <dark_gray>|</dark_gray> <white>{time}"
+
 golem-line: " - {stage}{carrying}"
 
 footer:

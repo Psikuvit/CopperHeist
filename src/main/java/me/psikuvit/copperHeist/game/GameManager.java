@@ -64,21 +64,38 @@ public class GameManager {
         return null;
     }
 
+    public String spectate(Player player, String arenaName) {
+        if (getGame(player) != null) return "Leave your current match first.";
+        Arena arena = plugin.getArenaManager().get(arenaName);
+        if (arena == null) return "No arena named '" + arenaName + "'.";
+        Game game = peek(arena);
+        if (game == null || (game.getState() == GameState.WAITING && game.totalPlayers() == 0)) {
+            return "Nothing to spectate there right now.";
+        }
+        if (!game.addSpectator(player)) return "That arena has no spectator or lobby point set.";
+        playerArena.put(player.getUniqueId(), arena.getName().toLowerCase());
+        return null;
+    }
+
     public void leave(Player player) {
         Game game = getGame(player);
         if (game == null) return;
-        game.removePlayer(player, true);
+        if (game.isSpectator(player)) game.removeSpectator(player, true);
+        else game.removePlayer(player, true);
         playerArena.remove(player.getUniqueId());
     }
 
     public void onQuit(Player player) {
         Game game = getGame(player);
         if (game == null) return;
-        game.removePlayer(player, false);
+        if (game.isSpectator(player)) game.removeSpectator(player, false);
+        else game.removePlayer(player, false);
         playerArena.remove(player.getUniqueId());
     }
 
     public void onGameFinished(Game finishedGame) {
+        String arenaKey = finishedGame.getArena().getName().toLowerCase();
+        playerArena.values().removeIf(arenaKey::equals);
         gamesByArena.put(finishedGame.getArena().getName().toLowerCase(), new Game(plugin, finishedGame.getArena()));
     }
 

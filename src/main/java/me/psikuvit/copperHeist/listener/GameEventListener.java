@@ -20,6 +20,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.entity.Firework;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -85,6 +89,7 @@ public class GameEventListener implements Listener {
                 : Component.text("DRAW (" + event.getCopperScore() + " - " + event.getIronScore() + ")", NamedTextColor.YELLOW);
         broadcast(event.getGame(), summary);
         broadcastHighlights(event.getGame());
+        if (winner != null) launchFireworks(event.getGame(), winner);
 
         Component title = winner != null
                 ? Component.text(winner.displayName() + " WINS", winner.color())
@@ -126,11 +131,35 @@ public class GameEventListener implements Listener {
     public void onVaultDrillCompleted(VaultDrillCompletedEvent event) {
         broadcast(event.getGame(), plugin.getMessageService().get("drill.completed",
                 "target", event.getDrill().getDefender().displayName(), "seconds", event.getBreachSeconds()));
+        broadcastTeamTitle(event.getGame(), event.getDrill().getDefender(),
+                plugin.getMessageService().get("drill.breached.title"), plugin.getMessageService().get("drill.breached.subtitle"));
     }
 
     @EventHandler
     public void onVaultDrillDestroyed(VaultDrillDestroyedEvent event) {
         broadcast(event.getGame(), plugin.getMessageService().get("drill.destroyed", "player", event.getDestroyer().getName()));
+    }
+
+    private void broadcastTeamTitle(Game game, Team team, Component title, Component subtitle) {
+        for (Player player : game.onlinePlayers()) {
+            GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+            if (gp != null && gp.getTeam() == team) player.showTitle(Title.title(title, subtitle));
+        }
+    }
+
+    private void launchFireworks(Game game, Team winner) {
+        Color color = winner == Team.COPPER ? Color.ORANGE : Color.SILVER;
+        for (Player player : game.onlinePlayers()) {
+            GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+            if (gp == null || gp.getTeam() != winner) continue;
+            player.getWorld().spawn(player.getLocation(), Firework.class, firework -> {
+                FireworkMeta meta = firework.getFireworkMeta();
+                meta.addEffect(FireworkEffect.builder().withColor(color).withFade(Color.WHITE)
+                        .with(FireworkEffect.Type.BALL_LARGE).build());
+                meta.setPower(1);
+                firework.setFireworkMeta(meta);
+            });
+        }
     }
 
     private void broadcastHighlights(Game game) {

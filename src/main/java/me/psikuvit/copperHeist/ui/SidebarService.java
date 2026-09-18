@@ -121,7 +121,68 @@ public class SidebarService {
                 context = buildGameContext(game, gp == null ? null : gp.getTeam());
             }
             render(player, context);
+            GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+            Team viewer = gp == null ? null : gp.getTeam();
+            syncMatchTeams(player, game);
+            updateTabList(player, game, viewer);
         }
+        ScoreboardContext spectatorContext = buildGameContext(game, null);
+        for (Player spectator : game.spectatorPlayers()) render(spectator, spectatorContext);
+    }
+
+    /** Team-colored names and [C]/[I] prefixes, with nametags hidden from the other team; the tab list sorts by these team names. */
+    private void syncMatchTeams(Player viewer, Game game) {
+        Scoreboard board = boards.get(viewer.getUniqueId());
+        if (board == null) return;
+        for (Team team : Team.values()) {
+            String name = "ch_" + team.name().toLowerCase(Locale.ROOT);
+            org.bukkit.scoreboard.Team sbTeam = board.getTeam(name);
+            if (sbTeam == null) {
+                sbTeam = board.registerNewTeam(name);
+                sbTeam.color(team.color());
+                sbTeam.prefix(Component.text(team.prefix(), team.color()));
+                sbTeam.setAllowFriendlyFire(false);
+                sbTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY,
+                        org.bukkit.scoreboard.Team.OptionStatus.FOR_OWN_TEAM);
+            }
+            java.util.Set<String> wanted = new java.util.HashSet<>();
+            for (Player member : game.onlinePlayers()) {
+                GamePlayer gp = game.getGamePlayer(member.getUniqueId());
+                if (gp != null && gp.getTeam() == team) wanted.add(member.getName());
+            }
+            for (String entry : new ArrayList<>(sbTeam.getEntries())) {
+                if (!wanted.contains(entry)) sbTeam.removeEntry(entry);
+            }
+            for (String entry : wanted) {
+                if (!sbTeam.hasEntry(entry)) sbTeam.addEntry(entry);
+            }
+        }
+    }
+
+    private void updateTabList(Player player, Game game, Team viewer) {
+        Component header = miniMessage.deserialize(substitute(
+                config.getString("tab.header", "<gold><bold>COPPER HEIST <gray>- Arena: <white>{arena}"), game, viewer));
+        Component footer = miniMessage.deserialize(substitute(
+                config.getString("tab.footer", "<gold>Copper {copper_score} <gray>| Iron {iron_score} <gray>| <white>{time}"), game, viewer));
+        player.sendPlayerListHeaderAndFooter(header, footer);
+
+        GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        if (gp != null) {
+            player.playerListName(Component.text(player.getName(), gp.getTeam().color())
+                    .append(Component.text(" [" + gp.getRole().displayName() + "]", net.kyori.adventure.text.format.NamedTextColor.GRAY)));
+        }
+    }
+
+    /** Removes the match-only scoreboard teams and tab list decoration when a player leaves a match. */
+    public void clearMatchDecor(Player player) {
+        Scoreboard board = boards.get(player.getUniqueId());
+        if (board != null) {
+            for (org.bukkit.scoreboard.Team leftover : new ArrayList<>(board.getTeams())) {
+                if (leftover.getName().startsWith("ch_")) leftover.unregister();
+            }
+        }
+        player.playerListName(null);
+        player.sendPlayerListHeaderAndFooter(Component.empty(), Component.empty());
     }
 
     private ScoreboardContext buildGameContext(Game game, Team viewer) {
@@ -222,7 +283,7 @@ public class SidebarService {
             board.resetScores(entry);
         }
         for (org.bukkit.scoreboard.Team leftoverTeam : new ArrayList<>(board.getTeams())) {
-            leftoverTeam.unregister();
+            if (leftoverTeam.getName().startsWith("l")) leftoverTeam.unregister();
         }
 
         List<Component> lines = context.getLines();

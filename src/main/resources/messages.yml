@@ -40,6 +40,8 @@ dock:
   unlocked: "<green>Lock picked!"
   interrupted: "<red>Lockpick interrupted - stay next to the chest."
 
+blocked-command: "<red>You can't use that command during a match."
+
 alarm:
   placed: "<green>Alarm placed ({count}/{cap})."
   cap-reached: "<red>Your team already has the max number of alarms."
@@ -48,6 +50,9 @@ alarm:
   destroyed: "<yellow>{player} destroyed an enemy alarm!"
 
 drill:
+  breached:
+    title: "<red><bold>VAULT BREACHED!"
+    subtitle: "<gray>Get back and defend it!"
   no-door: "<red>This arena has no vault door set for that team."
   already-active: "<red>A drill is already breaching that vault."
   on-cooldown: "<red>Vault Drill on cooldown ({seconds}s)."
@@ -59,7 +64,7 @@ drill:
 actionbar:
   respawning: "<red>Respawning in {seconds}..."
   heist-only: "<red>Vault Drills unlock in the Heist phase."
-  carrying: "<gold>Carrying: {value}/{limit} value  |  Speed -{speed}%"
+  carrying: "<gold>Carrying: {value}/{limit} value  |  Speed -{speed}%  |  Ability: {ability}"
   carry-limit: "<red>Carrying too much loot! (limit {limit})"
   golem-already-fresh: "<gray>This golem is already fresh."
   golem-scraped: "<green>Scraped golem back to {before} -> {after}"

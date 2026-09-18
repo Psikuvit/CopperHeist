@@ -123,6 +123,13 @@ public class RelicManager {
         return false;
     }
 
+    /** Debug: spawns the relic right now unless one is already on the ground or being carried. */
+    public boolean forceSpawn() {
+        if (groundEntity != null || holder != null) return false;
+        spawnRelic();
+        return true;
+    }
+
     private void spawnRelic() {
         List<Location> points = game.getArena().getRelicPoints();
         if (points.isEmpty()) return;

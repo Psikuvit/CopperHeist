@@ -13,6 +13,7 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
+import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.role.Role;
@@ -34,6 +35,7 @@ public final class CopperHeistCommand {
 
     private static final String ADMIN_ARENA = "copperheist.admin.arena";
     private static final String ADMIN_DEBUG = "copperheist.admin.debug";
+    private static final String ADMIN_RELOAD = "copperheist.admin.reload";
 
     private final CopperHeist plugin;
     private final SuggestionProvider<CommandSourceStack> arenaSuggestions;
@@ -74,7 +76,31 @@ public final class CopperHeistCommand {
                             .requires(src -> src.getSender().hasPermission(ADMIN_DEBUG))
                             .executes(commands::executeGiveLoot)
                             .then(argument("amount", IntegerArgumentType.integer(1))
-                                    .executes(commands::executeGiveLoot)))
+                                    .executes(commands::executeGiveLoot))
+                            .then(argument("tier", StringArgumentType.word())
+                                    .suggests(TIER_SUGGESTIONS)
+                                    .executes(commands::executeGiveLoot)
+                                    .then(argument("amount", IntegerArgumentType.integer(1))
+                                            .executes(commands::executeGiveLoot))))
+                    .then(literal("reload")
+                            .requires(src -> src.getSender().hasPermission(ADMIN_RELOAD))
+                            .executes(commands::executeReload))
+                    .then(literal("setphase")
+                            .requires(src -> src.getSender().hasPermission(ADMIN_DEBUG))
+                            .then(argument("arena", StringArgumentType.word())
+                                    .suggests(commands.arenaSuggestions)
+                                    .then(argument("phase", StringArgumentType.word())
+                                            .suggests(PHASE_SUGGESTIONS)
+                                            .executes(commands::executeSetPhase))))
+                    .then(literal("spawnrelic")
+                            .requires(src -> src.getSender().hasPermission(ADMIN_DEBUG))
+                            .then(argument("arena", StringArgumentType.word())
+                                    .suggests(commands.arenaSuggestions)
+                                    .executes(commands::executeSpawnRelic)))
+                    .then(literal("spectate")
+                            .then(argument("arena", StringArgumentType.word())
+                                    .suggests(commands.arenaSuggestions)
+                                    .executes(commands::executeSpectate)))
                     .then(commands.arenaRoot());
 
             registrar.register(root.build(), "Copper Heist");
@@ -172,6 +198,83 @@ public final class CopperHeistCommand {
         return Command.SINGLE_SUCCESS;
     }
 
+    private static final SuggestionProvider<CommandSourceStack> TIER_SUGGESTIONS = (ctx, builder) -> {
+        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
+        for (LootItem.Tier tier : LootItem.Tier.values()) {
+            String name = tier.name().toLowerCase(Locale.ROOT);
+            if (name.startsWith(remaining)) builder.suggest(name);
+        }
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<CommandSourceStack> PHASE_SUGGESTIONS = (ctx, builder) -> {
+        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
+        for (GameState phase : new GameState[]{GameState.SETUP, GameState.COLLECTION, GameState.HEIST, GameState.FINAL_RUSH}) {
+            String name = phase.name().toLowerCase(Locale.ROOT);
+            if (name.startsWith(remaining)) builder.suggest(name);
+        }
+        return builder.buildFuture();
+    };
+
+    private int executeReload(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        plugin.reloadConfig();
+        plugin.getMessageService().load();
+        plugin.getSidebarService().load();
+        plugin.getShopService().load();
+        plugin.getLobbyKitService().load();
+        Msg.ok(sender, "Reloaded config, messages, scoreboard, shop and lobby kit (arenas are untouched).");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeSetPhase(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "arena"));
+        if (arena == null) return 0;
+        GameState phase;
+        try {
+            phase = GameState.valueOf(StringArgumentType.getString(ctx, "phase").toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            Msg.err(sender, "Unknown phase. Use setup, collection, heist or final_rush.");
+            return 0;
+        }
+        Game game = plugin.getGameManager().peek(arena);
+        if (game == null || !game.forcePhase(phase)) {
+            Msg.err(sender, "That arena has no running match, or that isn't a match phase.");
+            return 0;
+        }
+        Msg.ok(sender, "Jumping " + arena.getName() + " to " + phase.name() + " on the next tick.");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeSpawnRelic(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "arena"));
+        if (arena == null) return 0;
+        Game game = plugin.getGameManager().peek(arena);
+        if (game == null || !game.isActive() || !game.getRelicManager().forceSpawn()) {
+            Msg.err(sender, "No running match there, or a relic is already in play.");
+            return 0;
+        }
+        Msg.ok(sender, "Spawned the relic in " + arena.getName() + ".");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeSpectate(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "Only players can spectate.");
+            return 0;
+        }
+        String error = plugin.getGameManager().spectate(player, StringArgumentType.getString(ctx, "arena"));
+        if (error != null) {
+            Msg.err(player, error);
+            return 0;
+        }
+        Msg.ok(player, "Spectating - use /ch leave to stop.");
+        return Command.SINGLE_SUCCESS;
+    }
+
     private int executeForceStart(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "arena"));
@@ -206,8 +309,18 @@ public final class CopperHeistCommand {
             amount = IntegerArgumentType.getInteger(ctx, "amount");
         } catch (IllegalArgumentException ignored) {
         }
+        LootItem.Tier fixedTier = null;
+        String tierName = optionalString(ctx, "tier");
+        if (tierName != null) {
+            try {
+                fixedTier = LootItem.Tier.valueOf(tierName.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ex) {
+                Msg.err(player, "Unknown tier. Use copper, gold, emerald, diamond or relic.");
+                return 0;
+            }
+        }
         for (int i = 0; i < amount; i++) {
-            LootItem.Tier tier = LootItem.randomTier(ThreadLocalRandom.current());
+            LootItem.Tier tier = fixedTier != null ? fixedTier : LootItem.randomTier(ThreadLocalRandom.current());
             player.getInventory().addItem(LootItem.create(tier, game.getMatchId()));
         }
         Msg.ok(player, "Gave you " + amount + " loot item(s).");
@@ -225,6 +338,10 @@ public final class CopperHeistCommand {
                 .then(arenaOnly("setlobby", (player, arena) -> {
                     arena.setLobby(player.getLocation());
                     Msg.ok(player, "Set lobby for " + arena.getName() + ".");
+                }))
+                .then(arenaOnly("setspectator", (player, arena) -> {
+                    arena.setSpectator(player.getLocation());
+                    Msg.ok(player, "Set spectator point for " + arena.getName() + ".");
                 }))
                 .then(arenaTeam("setspawn", (player, arena, team) -> {
                     arena.site(team).spawn = player.getLocation();
