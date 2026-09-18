@@ -11,7 +11,8 @@ relic:
   delivered: "<light_purple>Relic delivered to {team} Vault (+25)!"
 
 summary:
-  top-thief: "<yellow>Top Thief: <white>{player} <gray>({count} steals)"
+  mvp: "<gold>MVP: <white>{player} <gray>({delivered} delivered)"
+  top-thief: "<yellow>Top Thief: <white>{player} <gray>({count} steals, {value} value)"
   best-mechanic: "<yellow>Best Mechanic: <white>{player} <gray>({count} scrapes)"
   most-kills: "<yellow>Most Kills: <white>{player} <gray>({count})"
 

@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.event.LootDeliveredEvent;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
@@ -191,6 +192,14 @@ public class GolemManager {
         }
         GameTeam gameTeam = game.getTeam(golem.getTeam());
         gameTeam.addScore(value);
+        boolean relic = LootItem.isRelic(carried);
+        if (relic) gameTeam.addRelicDelivered();
+        UUID carrier = LootItem.getLastCarrier(carried);
+        GamePlayer carrierGp = carrier == null ? null : game.getGamePlayer(carrier);
+        if (carrierGp != null) {
+            carrierGp.addDelivered(value);
+            if (relic) carrierGp.addRelicDelivered();
+        }
         Bukkit.getPluginManager().callEvent(new LootDeliveredEvent(game, golem.getTeam(), carried, value));
 
         golem.setCarried(null);

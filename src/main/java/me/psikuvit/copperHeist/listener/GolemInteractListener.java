@@ -119,6 +119,7 @@ public class GolemInteractListener implements Listener {
             return;
         }
         LootItem.setLastTeam(carried, golem.getTeam());
+        LootItem.setLastCarrier(carried, player.getUniqueId());
         player.getInventory().addItem(carried);
         golem.setCarried(null);
         game.getGolemManager().updateLabel(golem);

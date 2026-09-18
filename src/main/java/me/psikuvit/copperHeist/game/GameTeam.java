@@ -15,6 +15,7 @@ public class GameTeam {
     private final List<HeistGolem> golems = new ArrayList<>();
     private int score = 0;
     private int steals = 0;
+    private int relicsDelivered = 0;
 
     public GameTeam(Team team) {
         this.team = team;
@@ -38,6 +39,14 @@ public class GameTeam {
 
     public void addScore(int amount) {
         score += amount;
+    }
+
+    public int getRelicsDelivered() {
+        return relicsDelivered;
+    }
+
+    public void addRelicDelivered() {
+        relicsDelivered++;
     }
 
     public int getSteals() {

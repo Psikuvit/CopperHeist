@@ -53,7 +53,10 @@ public class GameEventListener implements Listener {
     @EventHandler
     public void onLootStolen(LootStolenEvent event) {
         GamePlayer thief = event.getGame().getGamePlayer(event.getThief().getUniqueId());
-        if (thief != null) thief.addSteal();
+        if (thief != null) {
+            thief.addSteal();
+            thief.addStolenValue(event.getValue());
+        }
         broadcast(event.getGame(), Component.text(event.getThief().getName() + " stole loot from "
                 + event.getVictimTeam().displayName() + "!", NamedTextColor.YELLOW));
     }
@@ -134,16 +137,22 @@ public class GameEventListener implements Listener {
         GamePlayer topThief = null;
         GamePlayer topMechanic = null;
         GamePlayer topKiller = null;
+        GamePlayer mvp = null;
         for (Player player : game.onlinePlayers()) {
             GamePlayer gp = game.getGamePlayer(player.getUniqueId());
             if (gp == null) continue;
             if (gp.getSteals() > 0 && (topThief == null || gp.getSteals() > topThief.getSteals())) topThief = gp;
             if (gp.getScrapes() > 0 && (topMechanic == null || gp.getScrapes() > topMechanic.getScrapes())) topMechanic = gp;
+            if (gp.mvpScore() > 0 && (mvp == null || gp.mvpScore() > mvp.mvpScore())) mvp = gp;
             if (gp.getKills() > 0 && (topKiller == null || gp.getKills() > topKiller.getKills())) topKiller = gp;
+        }
+        if (mvp != null) {
+            broadcast(game, plugin.getMessageService().get("summary.mvp",
+                    "player", nameOf(mvp), "delivered", mvp.getDelivered()));
         }
         if (topThief != null) {
             broadcast(game, plugin.getMessageService().get("summary.top-thief",
-                    "player", nameOf(topThief), "count", topThief.getSteals()));
+                    "player", nameOf(topThief), "count", topThief.getSteals(), "value", topThief.getStolenValue()));
         }
         if (topMechanic != null) {
             broadcast(game, plugin.getMessageService().get("summary.best-mechanic",

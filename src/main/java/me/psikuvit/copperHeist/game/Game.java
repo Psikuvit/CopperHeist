@@ -417,6 +417,8 @@ public class Game {
         Team winner = null;
         if (copper.getScore() != iron.getScore()) {
             winner = copper.getScore() > iron.getScore() ? Team.COPPER : Team.IRON;
+        } else if (copper.getRelicsDelivered() != iron.getRelicsDelivered()) {
+            winner = copper.getRelicsDelivered() > iron.getRelicsDelivered() ? Team.COPPER : Team.IRON;
         } else if (copper.getSteals() != iron.getSteals()) {
             winner = copper.getSteals() > iron.getSteals() ? Team.COPPER : Team.IRON;
         }

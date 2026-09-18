@@ -20,6 +20,9 @@ public class GamePlayer {
     private int steals;
     private int scrapes;
     private int kills;
+    private int delivered;
+    private int stolenValue;
+    private int relicsDelivered;
     private long protectedUntilMillis;
 
     public GamePlayer(UUID uuid, Team team) {
@@ -69,6 +72,30 @@ public class GamePlayer {
 
     public void addKill() {
         kills++;
+    }
+
+    public int getDelivered() {
+        return delivered;
+    }
+
+    public void addDelivered(int value) {
+        delivered += value;
+    }
+
+    public int getStolenValue() {
+        return stolenValue;
+    }
+
+    public void addStolenValue(int value) {
+        stolenValue += value;
+    }
+
+    public void addRelicDelivered() {
+        relicsDelivered++;
+    }
+
+    public double mvpScore() {
+        return delivered + stolenValue * 1.5 + relicsDelivered * 20 + kills * 3 + scrapes * 2;
     }
 
     public boolean isProtected() {

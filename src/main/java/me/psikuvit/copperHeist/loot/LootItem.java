@@ -107,6 +107,20 @@ public final class LootItem {
         }
     }
 
+    public static UUID getLastCarrier(ItemStack item) {
+        String id = Pdc.get(item, PdcKeys.LAST_CARRIER);
+        if (id == null) return null;
+        try {
+            return UUID.fromString(id);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    public static void setLastCarrier(ItemStack item, UUID player) {
+        Pdc.set(item, PdcKeys.LAST_CARRIER, player.toString());
+    }
+
     public static void setLastTeam(ItemStack item, Team team) {
         Pdc.set(item, PdcKeys.LAST_TEAM, team.name());
     }

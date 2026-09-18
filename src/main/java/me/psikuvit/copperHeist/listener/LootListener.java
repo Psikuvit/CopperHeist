@@ -59,6 +59,7 @@ public class LootListener implements Listener {
             Bukkit.getPluginManager().callEvent(new LootStolenEvent(game, player, lastTeam, itemValue));
         }
         LootItem.setLastTeam(item, gp.getTeam());
+        LootItem.setLastCarrier(item, player.getUniqueId());
         game.getRoleService().breakInvisibility(player);
         if (LootItem.isRelic(item)) game.getRelicManager().onPickedUp(player);
     }
