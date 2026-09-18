@@ -36,6 +36,14 @@ public class GolemInteractListener implements Listener {
         Player player = event.getPlayer();
         event.setCancelled(true);
 
+        GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        if (gp != null && gp.getTeam() == golem.getTeam() && golem.isStunned()
+                && game.getRoleService().canClearStun(gp)) {
+            golem.clearStun();
+            player.sendActionBar(plugin.getMessageService().get("actionbar.stun-cleared"));
+            return;
+        }
+
         ItemStack hand = player.getInventory().getItemInMainHand();
         String shopKey = Pdc.get(hand, PdcKeys.SHOP_ITEM);
         if (ShopItem.HONEYCOMB.key.equals(shopKey)) {
@@ -43,7 +51,7 @@ public class GolemInteractListener implements Listener {
             return;
         }
         if (hand.getType().name().endsWith("_AXE")) {
-            handleScrape(player, golem, game);
+            handleScrape(player, golem, game, gp);
             return;
         }
 
@@ -78,7 +86,7 @@ public class GolemInteractListener implements Listener {
         player.sendActionBar(plugin.getMessageService().get("actionbar.golem-waxed"));
     }
 
-    private void handleScrape(Player player, HeistGolem golem, Game game) {
+    private void handleScrape(Player player, HeistGolem golem, Game game, GamePlayer gp) {
         WeatheringCopperState before = golem.getEntity().getWeatheringState();
         if (golem.isWaxed()) {
             player.sendActionBar(plugin.getMessageService().get("actionbar.golem-already-fresh"));
@@ -88,7 +96,8 @@ public class GolemInteractListener implements Listener {
             player.sendActionBar(plugin.getMessageService().get("actionbar.golem-already-fresh"));
             return;
         }
-        boolean scraped = game.getGolemManager().scrape(golem);
+        double multiplier = gp == null ? 1.0 : game.getRoleService().scrapeCooldownMultiplier(gp.getRole());
+        boolean scraped = game.getGolemManager().scrape(golem, multiplier);
         if (scraped) {
             player.sendActionBar(plugin.getMessageService().get("actionbar.golem-scraped",
                     "before", before.name(), "after", golem.getEntity().getWeatheringState().name()));

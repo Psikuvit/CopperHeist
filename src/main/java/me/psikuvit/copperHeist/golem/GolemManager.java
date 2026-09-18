@@ -227,7 +227,8 @@ public class GolemManager {
         updateLabel(golem);
     }
 
-    public boolean scrape(HeistGolem golem) {
+    /** cooldownMultiplier lets a role (Mechanic) discount its own scrape cooldown; callers with no such perk pass 1.0. */
+    public boolean scrape(HeistGolem golem, double cooldownMultiplier) {
         if (golem.isWaxed()) return false;
         WeatheringCopperState current = golem.getEntity().getWeatheringState();
         if (current == WeatheringCopperState.UNAFFECTED) return false;
@@ -239,7 +240,7 @@ public class GolemManager {
         golem.setStageDurationMillis(rollStageDuration());
         updateLabel(golem);
 
-        int cooldown = plugin.getConfig().getInt("golems.scrape-cooldown-seconds", 20);
+        int cooldown = (int) (plugin.getConfig().getInt("golems.scrape-cooldown-seconds", 20) * cooldownMultiplier);
         scrapeCooldowns.set(id, cooldown);
         return true;
     }

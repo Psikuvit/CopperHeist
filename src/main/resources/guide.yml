@@ -54,6 +54,33 @@ pages:
     stage and speed it back
     up.
   - |-
+    <bold>ROLES</bold>
+
+    Runner: half loot-weight
+    slowdown.
+    Thief: F to turn
+    invisible 5s.
+    Mechanic: cheap scrapes,
+    instant golem un-stun.
+    Guard: bonus damage near
+    your spawn.
+    Saboteur: F to reveal
+    enemy golems 10s.
+
+    /ch role <name> to pick
+    one - max 2 per team.
+  - |-
+    <bold>SHOP</bold>
+
+    Buy Honeycomb, potions,
+    a new golem or a Storm
+    Rod with your carried
+    loot value - spending it
+    means you can't deliver
+    it instead.
+
+    /ch shop to open it.
+  - |-
     <bold>WINNING</bold>
 
     Whichever team has the
@@ -66,6 +93,8 @@ pages:
     /ch join <arena>
     /ch leave
     /ch list
+    /ch role <name>
+    /ch shop
 
     Or just use the compass
     in your hotbar!

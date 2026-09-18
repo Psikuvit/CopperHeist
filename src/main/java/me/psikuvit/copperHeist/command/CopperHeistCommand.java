@@ -12,8 +12,10 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.role.Role;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
 import org.bukkit.command.CommandSender;
@@ -54,6 +56,10 @@ public final class CopperHeistCommand {
                     .then(literal("leave").executes(commands::executeLeave))
                     .then(literal("list").executes(commands::executeList))
                     .then(literal("shop").executes(commands::executeShop))
+                    .then(literal("role")
+                            .then(argument("role", StringArgumentType.word())
+                                    .suggests(RoleSuggestions.ROLES)
+                                    .executes(commands::executeRole)))
                     .then(literal("forcestart")
                             .requires(src -> src.getSender().hasPermission(ADMIN_DEBUG))
                             .then(argument("arena", StringArgumentType.word())
@@ -117,6 +123,38 @@ public final class CopperHeistCommand {
             Msg.send(sender, "<gold>" + arena.getName() + "</gold> <gray>[" + (arena.isEnabled() ? "enabled" : "disabled")
                     + "]</gray> " + state + " (" + players + " players)");
         }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeRole(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "Only players can pick a role.");
+            return 0;
+        }
+        Game game = plugin.getGameManager().getGame(player);
+        if (game == null) {
+            Msg.err(player, "Join a match first.");
+            return 0;
+        }
+        GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        if (gp == null) return 0;
+
+        Role role;
+        try {
+            role = Role.valueOf(StringArgumentType.getString(ctx, "role").toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            Msg.err(player, "Unknown role. Choose: runner, thief, mechanic, guard, saboteur.");
+            return 0;
+        }
+
+        if (role != gp.getRole() && game.getRoleService().countOnTeam(gp.getTeam(), role) >= 2) {
+            Msg.err(player, "Your team already has 2 " + role.displayName() + "s.");
+            return 0;
+        }
+
+        gp.setRole(role);
+        Msg.ok(player, "Role set to " + role.displayName() + (game.isActive() ? " - applies next respawn." : "."));
         return Command.SINGLE_SUCCESS;
     }
 

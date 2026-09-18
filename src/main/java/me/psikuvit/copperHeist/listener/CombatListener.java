@@ -45,7 +45,12 @@ public class CombatListener implements Listener {
             GamePlayer attackerGp = game.getGamePlayer(attacker.getUniqueId());
             if (victimGp != null && attackerGp != null && victimGp.getTeam() == attackerGp.getTeam()) {
                 event.setCancelled(true);
+                return;
             }
+            if (attackerGp != null) {
+                event.setDamage(event.getDamage() * game.getRoleService().damageMultiplier(attacker, attackerGp));
+            }
+            game.getRoleService().breakInvisibility(attacker);
         }
     }
 
@@ -62,6 +67,7 @@ public class CombatListener implements Listener {
             return;
         }
         game.getGolemManager().onDamaged(golem, attacker);
+        game.getRoleService().breakInvisibility(attacker);
     }
 
     @EventHandler

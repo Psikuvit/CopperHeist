@@ -16,3 +16,8 @@ actionbar:
   golem-cap-reached: "<red>Your team already has the max number of golems."
   golem-waxed: "<green>Waxed! This golem won't age for a while."
   storm-rod-used: "<gold>Storm Rod triggered - nearby golems reset to Fresh."
+  no-ability: "<gray>Your role has no active ability."
+  ability-cooldown: "<red>Ability on cooldown ({seconds}s)"
+  thief-invisible: "<green>You turned invisible! Breaks on attack or loot pickup."
+  saboteur-reveal: "<green>Enemy golems revealed for 10 seconds."
+  stun-cleared: "<green>Stun cleared - your golem is moving again."

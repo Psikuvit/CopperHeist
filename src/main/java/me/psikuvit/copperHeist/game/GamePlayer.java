@@ -1,5 +1,6 @@
 package me.psikuvit.copperHeist.game;
 
+import me.psikuvit.copperHeist.role.Role;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
@@ -14,6 +15,7 @@ public class GamePlayer {
 
     private final UUID uuid;
     private Team team;
+    private Role role = Role.RUNNER;
     private SavedState savedState;
 
     public GamePlayer(UUID uuid, Team team) {
@@ -31,6 +33,14 @@ public class GamePlayer {
 
     public void setTeam(Team team) {
         this.team = team;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public SavedState getSavedState() {

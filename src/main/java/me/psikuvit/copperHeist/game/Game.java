@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.OxidationTask;
 import me.psikuvit.copperHeist.loot.LootSpawner;
+import me.psikuvit.copperHeist.role.RoleService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -12,11 +13,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
@@ -40,6 +38,7 @@ public class Game {
 
     private final GolemManager golemManager;
     private final LootSpawner lootSpawner;
+    private final RoleService roleService;
 
     private final BukkitTask timerTask;
     private final BukkitTask sidebarTask;
@@ -53,6 +52,7 @@ public class Game {
         teams.put(Team.IRON, new GameTeam(Team.IRON));
         this.golemManager = new GolemManager(plugin, this);
         this.lootSpawner = new LootSpawner(this);
+        this.roleService = new RoleService(plugin, this);
 
         World world = arena.getWorld();
         if (world != null) world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
@@ -95,6 +95,10 @@ public class Game {
         return golemManager;
     }
 
+    public RoleService getRoleService() {
+        return roleService;
+    }
+
     public boolean isActive() {
         return state == GameState.RUNNING;
     }
@@ -123,6 +127,7 @@ public class Game {
                 ? Team.COPPER : Team.IRON;
 
         GamePlayer gamePlayer = new GamePlayer(player.getUniqueId(), team);
+        gamePlayer.setRole(roleService.defaultRole(team));
         gamePlayer.setSavedState(new GamePlayer.SavedState(
                 player.getInventory().getContents().clone(),
                 player.getInventory().getArmorContents().clone(),
@@ -244,7 +249,8 @@ public class Game {
                 Player player = Bukkit.getPlayer(uuid);
                 if (player == null) continue;
                 if (site.spawn != null) player.teleport(site.spawn);
-                giveKit(player, team);
+                GamePlayer gp = players.get(uuid);
+                roleService.giveLoadout(player, gp.getRole(), team);
             }
             golemManager.spawnStarting(team);
         }
@@ -259,30 +265,6 @@ public class Game {
                     Component.text("Fill your vault!", NamedTextColor.GRAY),
                     Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(2), Duration.ofMillis(500))));
         }
-    }
-
-    private void giveKit(Player player, Team team) {
-        player.getInventory().clear();
-
-        ItemStack chest = new ItemStack(Material.LEATHER_CHESTPLATE);
-        ItemStack legs = new ItemStack(Material.LEATHER_LEGGINGS);
-        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
-        org.bukkit.Color color = team == Team.COPPER ? org.bukkit.Color.ORANGE : org.bukkit.Color.SILVER;
-        for (ItemStack piece : List.of(chest, legs, boots)) {
-            if (piece.getItemMeta() instanceof LeatherArmorMeta meta) {
-                meta.setColor(color);
-                piece.setItemMeta(meta);
-            }
-        }
-        player.getInventory().setChestplate(chest);
-        player.getInventory().setLeggings(legs);
-        player.getInventory().setBoots(boots);
-        player.getInventory().addItem(new ItemStack(Material.STONE_SWORD), new ItemStack(Material.STONE_AXE));
-
-        player.setGameMode(GameMode.SURVIVAL);
-        player.setHealth(player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue());
-        player.setFoodLevel(20);
-        player.setFireTicks(0);
     }
 
     private void uiTick() {

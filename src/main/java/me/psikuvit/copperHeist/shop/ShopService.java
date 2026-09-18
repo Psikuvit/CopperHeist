@@ -93,10 +93,10 @@ public class ShopService {
         }
 
         switch (item) {
-            case HONEYCOMB -> giveTaggedItem(player, item, "<gold>Honeycomb");
+            case HONEYCOMB -> player.getInventory().addItem(ShopItem.createHoneycomb());
             case WIND_CHARGES -> player.getInventory().addItem(new ItemStack(Material.WIND_CHARGE, 3));
             case HEALING_POTION -> player.getInventory().addItem(createHealingPotion());
-            case OXIDIZER_SPLASH -> player.getInventory().addItem(createOxidizerSplash());
+            case OXIDIZER_SPLASH -> player.getInventory().addItem(ShopItem.createOxidizerSplash());
             case NEW_GOLEM -> game.getGolemManager().spawnOne(gp.getTeam());
             case STORM_ROD -> giveTaggedItem(player, item, "<gold>Storm Rod");
         }
@@ -150,18 +150,6 @@ public class ShopService {
         ItemStack stack = new ItemStack(Material.POTION);
         if (stack.getItemMeta() instanceof PotionMeta meta) {
             meta.setBasePotionType(PotionType.STRONG_HEALING);
-            stack.setItemMeta(meta);
-        }
-        return stack;
-    }
-
-    private ItemStack createOxidizerSplash() {
-        ItemStack stack = new ItemStack(Material.SPLASH_POTION);
-        Pdc.set(stack, PdcKeys.SHOP_ITEM, ShopItem.OXIDIZER_SPLASH.key);
-        if (stack.getItemMeta() instanceof PotionMeta meta) {
-            meta.setBasePotionType(PotionType.WATER);
-            meta.setColor(org.bukkit.Color.fromRGB(0x8B4513));
-            meta.displayName(miniMessage.deserialize("<gold>Oxidizer Splash").decoration(TextDecoration.ITALIC, false));
             stack.setItemMeta(meta);
         }
         return stack;

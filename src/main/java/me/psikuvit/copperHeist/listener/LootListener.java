@@ -8,6 +8,7 @@ import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -60,6 +61,7 @@ public class LootListener implements Listener {
             for (Player online : game.onlinePlayers()) online.sendMessage(msg);
         }
         LootItem.setLastTeam(item, gp.getTeam());
+        game.getRoleService().breakInvisibility(player);
     }
 
     @EventHandler
@@ -92,5 +94,14 @@ public class LootListener implements Listener {
 
         Arena.TeamSite site = game.getArena().site(gp.getTeam());
         if (site.spawn != null) event.setRespawnLocation(site.spawn);
+
+        // Reapplied a tick late - giving items during the respawn event itself
+        // can get clobbered by the client's own respawn handling. This is also
+        // what makes a role change while dead take effect (doc §8: "applies on respawn").
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline() && plugin.getGameManager().getGame(player) == game) {
+                game.getRoleService().giveLoadout(player, gp.getRole(), gp.getTeam());
+            }
+        });
     }
 }

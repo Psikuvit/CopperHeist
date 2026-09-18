@@ -1,6 +1,8 @@
 package me.psikuvit.copperHeist.loot;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GamePlayer;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -33,9 +35,13 @@ public class LootWeightService {
     }
 
     public double getSpeedPenalty(int carriedValue) {
+        return getSpeedPenalty(carriedValue, 1.0);
+    }
+
+    public double getSpeedPenalty(int carriedValue, double roleMultiplier) {
         double perTen = plugin.getConfig().getDouble("loot.weight-per-10-value", 0.05);
         double cap = plugin.getConfig().getDouble("loot.max-slowdown", 0.35);
-        double penalty = (carriedValue / 10.0) * perTen;
+        double penalty = (carriedValue / 10.0) * perTen * roleMultiplier;
         return Math.min(cap, penalty);
     }
 
@@ -44,7 +50,14 @@ public class LootWeightService {
         if (attribute == null) return;
         attribute.removeModifier(key);
         int carried = getCarriedValue(player);
-        double penalty = getSpeedPenalty(carried);
+
+        double roleMultiplier = 1.0;
+        Game game = plugin.getGameManager().getGame(player);
+        if (game != null) {
+            GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+            if (gp != null) roleMultiplier = game.getRoleService().speedPenaltyMultiplier(gp.getRole());
+        }
+        double penalty = getSpeedPenalty(carried, roleMultiplier);
         if (penalty > 0) {
             AttributeModifier modifier = new AttributeModifier(key, -penalty, AttributeModifier.Operation.MULTIPLY_SCALAR_1);
             attribute.addModifier(modifier);
