@@ -2,12 +2,11 @@ package me.psikuvit.copperHeist.listener;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
+import me.psikuvit.copperHeist.event.LootStolenEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -57,8 +56,7 @@ public class LootListener implements Listener {
         Team lastTeam = LootItem.getLastTeam(item);
         if (lastTeam != null && lastTeam != gp.getTeam()) {
             game.getTeam(gp.getTeam()).addSteal();
-            Component msg = Component.text(player.getName() + " stole loot from " + lastTeam.displayName() + "!", NamedTextColor.YELLOW);
-            for (Player online : game.onlinePlayers()) online.sendMessage(msg);
+            Bukkit.getPluginManager().callEvent(new LootStolenEvent(game, player, lastTeam, itemValue));
         }
         LootItem.setLastTeam(item, gp.getTeam());
         game.getRoleService().breakInvisibility(player);

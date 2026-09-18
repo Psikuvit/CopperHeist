@@ -7,6 +7,7 @@ import me.psikuvit.copperHeist.game.GameManager;
 import me.psikuvit.copperHeist.golem.DeliveryGoal;
 import me.psikuvit.copperHeist.listener.ArenaProtectionListener;
 import me.psikuvit.copperHeist.listener.CombatListener;
+import me.psikuvit.copperHeist.listener.GameEventListener;
 import me.psikuvit.copperHeist.listener.GolemInteractListener;
 import me.psikuvit.copperHeist.listener.LobbyListener;
 import me.psikuvit.copperHeist.listener.LootListener;
@@ -63,6 +64,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
         getServer().getPluginManager().registerEvents(new ShopListener(this), this);
         getServer().getPluginManager().registerEvents(new RoleListener(this), this);
+        getServer().getPluginManager().registerEvents(new GameEventListener(this), this);
 
         CopperHeistCommand.register(this);
 

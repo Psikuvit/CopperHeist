@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.game;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
+import me.psikuvit.copperHeist.event.MatchEndEvent;
 import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.OxidationTask;
 import me.psikuvit.copperHeist.loot.LootSpawner;
@@ -282,14 +283,6 @@ public class Game {
         }
     }
 
-    public void onLootDelivered(Team team, int value) {
-        broadcast(Component.text(team.displayName() + " delivered " + value + " loot! (" + teams.get(team).getScore() + " total)", team.color()));
-    }
-
-    public void onRelicDelivered(Team team) {
-        broadcast(plugin.getMessageService().get("relic.delivered", "team", team.displayName()));
-    }
-
     private void end() {
         if (state == GameState.ENDING || state == GameState.RESETTING) return;
         state = GameState.ENDING;
@@ -308,15 +301,7 @@ public class Game {
             winner = copper.getSteals() > iron.getSteals() ? Team.COPPER : Team.IRON;
         }
 
-        Component summary = winner != null
-                ? Component.text("WINNER: " + winner.displayName().toUpperCase() + " TEAM (" + copper.getScore() + " - " + iron.getScore() + ")", winner.color())
-                : Component.text("DRAW (" + copper.getScore() + " - " + iron.getScore() + ")", NamedTextColor.YELLOW);
-        broadcast(summary);
-        for (Player player : onlinePlayers()) {
-            player.showTitle(Title.title(
-                    winner != null ? Component.text(winner.displayName() + " WINS", winner.color()) : Component.text("DRAW", NamedTextColor.YELLOW),
-                    Component.text(copper.getScore() + " - " + iron.getScore(), NamedTextColor.GRAY)));
-        }
+        Bukkit.getPluginManager().callEvent(new MatchEndEvent(this, winner, copper.getScore(), iron.getScore()));
     }
 
     private void beginReset() {

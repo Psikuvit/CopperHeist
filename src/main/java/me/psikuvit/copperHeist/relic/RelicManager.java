@@ -1,6 +1,9 @@
 package me.psikuvit.copperHeist.relic;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.event.RelicLostEvent;
+import me.psikuvit.copperHeist.event.RelicPickupEvent;
+import me.psikuvit.copperHeist.event.RelicSpawnEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.loot.LootItem;
 import net.kyori.adventure.text.Component;
@@ -113,6 +116,7 @@ public class RelicManager {
         for (Player player : game.onlinePlayers()) {
             player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.6f, 1.4f);
         }
+        Bukkit.getPluginManager().callEvent(new RelicSpawnEvent(game, point));
     }
 
     private void broadcastWarning() {
@@ -130,9 +134,7 @@ public class RelicManager {
         groundEntity = null;
         player.setGlowing(true);
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 0, true, false));
-
-        Component msg = plugin.getMessageService().get("relic.picked-up", "player", player.getName());
-        for (Player online : game.onlinePlayers()) online.sendMessage(msg);
+        Bukkit.getPluginManager().callEvent(new RelicPickupEvent(game, player));
     }
 
     /** Called by LootListener when the holder dies carrying it - skips the normal ground-drop, respawns fast and silently instead. */
@@ -142,6 +144,7 @@ public class RelicManager {
         groundEntity = null;
         warned = true; // no 10s "surfacing" warning for an emergency respawn
         secondsUntilSpawn = plugin.getConfig().getInt("relic.lost-respawn-seconds", 30);
+        Bukkit.getPluginManager().callEvent(new RelicLostEvent(game, player));
     }
 
     private void clearHolderEffects(Player player) {

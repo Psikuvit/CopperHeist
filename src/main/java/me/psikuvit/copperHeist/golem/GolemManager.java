@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.golem;
 import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
+import me.psikuvit.copperHeist.event.LootDeliveredEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
@@ -186,11 +187,7 @@ public class GolemManager {
         int value = LootItem.getValue(carried) * carried.getAmount();
         GameTeam gameTeam = game.getTeam(golem.getTeam());
         gameTeam.addScore(value);
-        if (LootItem.isRelic(carried)) {
-            game.onRelicDelivered(golem.getTeam());
-        } else {
-            game.onLootDelivered(golem.getTeam(), value);
-        }
+        Bukkit.getPluginManager().callEvent(new LootDeliveredEvent(game, golem.getTeam(), carried, value));
 
         golem.setCarried(null);
         updateLabel(golem);
