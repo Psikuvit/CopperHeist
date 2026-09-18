@@ -9,6 +9,7 @@ import me.psikuvit.copperHeist.loot.LootItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.block.Chest;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,10 +17,14 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 public class ArenaProtectionListener implements Listener {
@@ -82,6 +87,36 @@ public class ArenaProtectionListener implements Listener {
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
         if (LootItem.isRelic(event.getItemDrop().getItemStack())) event.setCancelled(true);
+    }
+
+    /** Hoppers, droppers and minecarts can't shuffle items in or out of anything inside an arena. */
+    @EventHandler
+    public void onItemMove(InventoryMoveItemEvent event) {
+        for (var inventory : new Inventory[]{event.getSource(), event.getDestination()}) {
+            var loc = inventory.getLocation();
+            if (loc == null) continue;
+            for (Arena arena : plugin.getArenaManager().all()) {
+                if (arena.isInBounds(loc)) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPearl(ProjectileLaunchEvent event) {
+        if (event.getEntityType() != EntityType.ENDER_PEARL) return;
+        if (event.getEntity().getShooter() instanceof Player player && plugin.getGameManager().getGame(player) != null) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onGlide(EntityToggleGlideEvent event) {
+        if (event.getEntity() instanceof Player player && plugin.getGameManager().getGame(player) != null) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler

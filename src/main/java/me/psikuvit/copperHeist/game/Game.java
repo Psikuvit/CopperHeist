@@ -8,6 +8,7 @@ import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.OxidationTask;
 import me.psikuvit.copperHeist.heist.AlarmManager;
 import me.psikuvit.copperHeist.heist.VaultDrillManager;
+import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootSpawner;
 import me.psikuvit.copperHeist.relic.RelicManager;
 import me.psikuvit.copperHeist.role.RoleService;
@@ -21,6 +22,7 @@ import org.bukkit.GameRules;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
@@ -55,6 +57,7 @@ public class Game {
     private final BukkitTask sidebarTask;
     private BukkitTask oxidationTask;
     private BukkitTask uiTask;
+    private int uiTicks;
 
     public Game(CopperHeist plugin, Arena arena) {
         this.plugin = plugin;
@@ -184,6 +187,7 @@ public class Game {
         teams.get(gamePlayer.getTeam()).getMembers().remove(player.getUniqueId());
 
         plugin.getLootWeightService().clearModifier(player);
+        if (isActive()) dropCarriedLoot(player);
 
         if (online && gamePlayer.getSavedState() != null) {
             GamePlayer.SavedState saved = gamePlayer.getSavedState();
@@ -330,6 +334,7 @@ public class Game {
                 if (site.spawn != null) player.teleport(site.spawn);
                 GamePlayer gp = players.get(uuid);
                 roleService.giveLoadout(player, gp.getRole(), team);
+                gp.protectFor(plugin.getConfig().getInt("spawn-protection.invulnerable-seconds", 3));
             }
             golemManager.spawnStarting(team);
         }
@@ -352,7 +357,37 @@ public class Game {
         }
     }
 
+    /** A player leaving mid-match doesn't take their loot with them - it drops where they stood (the relic respawns instead). */
+    private void dropCarriedLoot(Player player) {
+        boolean lostRelic = false;
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item == null || !LootItem.isLoot(item)) continue;
+            if (LootItem.isRelic(item)) lostRelic = true;
+            else player.getWorld().dropItemNaturally(player.getLocation(), item);
+        }
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            if (LootItem.isLoot(player.getInventory().getItem(i))) player.getInventory().setItem(i, null);
+        }
+        if (lostRelic) relicManager.onLost(player);
+    }
+
+    private void spawnGuardTick() {
+        if (state == GameState.SETUP) return;
+        double radius = plugin.getConfig().getDouble("spawn-protection.radius", 6);
+        double damage = plugin.getConfig().getDouble("spawn-protection.damage-per-second", 2.0);
+        for (Team team : Team.values()) {
+            Location spawn = arena.site(team).spawn;
+            if (spawn == null || spawn.getWorld() == null) continue;
+            for (UUID uuid : teams.get(team.opposite()).getMembers()) {
+                Player enemy = Bukkit.getPlayer(uuid);
+                if (enemy == null || !enemy.getWorld().equals(spawn.getWorld())) continue;
+                if (enemy.getLocation().distanceSquared(spawn) <= radius * radius) enemy.damage(damage);
+            }
+        }
+    }
+
     private void uiTick() {
+        if (++uiTicks % 2 == 0) spawnGuardTick();
         golemManager.syncLabels();
         for (Player player : onlinePlayers()) {
             plugin.getLootWeightService().recalc(player);

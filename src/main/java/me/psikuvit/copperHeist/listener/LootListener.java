@@ -107,6 +107,7 @@ public class LootListener implements Listener {
 
         Arena.TeamSite site = game.getArena().site(gp.getTeam());
         if (site.spawn != null) event.setRespawnLocation(site.spawn);
+        gp.protectFor(plugin.getConfig().getInt("spawn-protection.invulnerable-seconds", 3));
 
         // Reapplied a tick late - giving items during the respawn event itself
         // can get clobbered by the client's own respawn handling. This is also

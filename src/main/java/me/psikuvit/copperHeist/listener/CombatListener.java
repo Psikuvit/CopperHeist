@@ -76,6 +76,16 @@ public class CombatListener implements Listener {
     }
 
     @EventHandler
+    public void onSpawnProtection(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (event.getCause() == EntityDamageEvent.DamageCause.VOID) return;
+        Game game = plugin.getGameManager().getGame(player);
+        if (game == null) return;
+        GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        if (gp != null && gp.isProtected()) event.setCancelled(true);
+    }
+
+    @EventHandler
     public void onVoidDamage(EntityDamageEvent event) {
         if (event.getCause() != EntityDamageEvent.DamageCause.VOID) return;
         if (!(event.getEntity() instanceof Player player)) return;

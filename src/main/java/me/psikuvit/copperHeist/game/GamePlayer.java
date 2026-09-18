@@ -20,6 +20,7 @@ public class GamePlayer {
     private int steals;
     private int scrapes;
     private int kills;
+    private long protectedUntilMillis;
 
     public GamePlayer(UUID uuid, Team team) {
         this.uuid = uuid;
@@ -68,6 +69,14 @@ public class GamePlayer {
 
     public void addKill() {
         kills++;
+    }
+
+    public boolean isProtected() {
+        return System.currentTimeMillis() < protectedUntilMillis;
+    }
+
+    public void protectFor(int seconds) {
+        protectedUntilMillis = System.currentTimeMillis() + seconds * 1000L;
     }
 
     public SavedState getSavedState() {

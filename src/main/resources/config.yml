@@ -15,6 +15,11 @@ match:
     collection-end-seconds: 480
     heist-end-seconds: 780
 
+spawn-protection:
+  radius: 6
+  damage-per-second: 2.0
+  invulnerable-seconds: 3
+
 final-rush:
   loot-multiplier: 2.0
   aging-multiplier: 2.0
