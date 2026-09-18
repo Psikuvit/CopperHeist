@@ -6,6 +6,7 @@ import me.psikuvit.copperHeist.event.AlarmTriggeredEvent;
 import me.psikuvit.copperHeist.event.LootDeliveredEvent;
 import me.psikuvit.copperHeist.event.LootStolenEvent;
 import me.psikuvit.copperHeist.event.MatchEndEvent;
+import me.psikuvit.copperHeist.event.PhaseChangeEvent;
 import me.psikuvit.copperHeist.event.RelicLostEvent;
 import me.psikuvit.copperHeist.event.RelicPickupEvent;
 import me.psikuvit.copperHeist.event.RelicSpawnEvent;
@@ -85,6 +86,17 @@ public class GameEventListener implements Listener {
         for (Player player : event.getGame().onlinePlayers()) {
             player.showTitle(Title.title(title, subtitle));
         }
+    }
+
+    @EventHandler
+    public void onPhaseChange(PhaseChangeEvent event) {
+        String key = "phase." + event.getTo().name().toLowerCase().replace('_', '-');
+        Component title = plugin.getMessageService().get(key + ".title");
+        Component subtitle = plugin.getMessageService().get(key + ".subtitle");
+        for (Player player : event.getGame().onlinePlayers()) {
+            player.showTitle(Title.title(title, subtitle));
+        }
+        broadcast(event.getGame(), plugin.getMessageService().get(key + ".chat"));
     }
 
     @EventHandler

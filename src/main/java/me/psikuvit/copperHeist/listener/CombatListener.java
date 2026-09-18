@@ -4,6 +4,7 @@ import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
+import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.HeistGolem;
 import me.psikuvit.copperHeist.shop.ShopItem;
@@ -41,6 +42,10 @@ public class CombatListener implements Listener {
         if (victim instanceof Player victimPlayer && resolveAttacker(event.getDamager()) instanceof Player attacker) {
             Game game = plugin.getGameManager().getGame(victimPlayer);
             if (game == null) return;
+            if (game.getState() == GameState.SETUP) {
+                event.setCancelled(true);
+                return;
+            }
             GamePlayer victimGp = game.getGamePlayer(victimPlayer.getUniqueId());
             GamePlayer attackerGp = game.getGamePlayer(attacker.getUniqueId());
             if (victimGp != null && attackerGp != null && victimGp.getTeam() == attackerGp.getTeam()) {

@@ -86,6 +86,11 @@ public class ShopService {
             }
         }
 
+        if (item == ShopItem.VAULT_DRILL && !game.isHeistPhaseOrLater()) {
+            player.sendActionBar(plugin.getMessageService().get("actionbar.heist-only"));
+            return;
+        }
+
         int cost = cost(item);
         if (!charge(player, cost)) {
             player.sendActionBar(plugin.getMessageService().get("actionbar.cant-afford", "cost", cost));

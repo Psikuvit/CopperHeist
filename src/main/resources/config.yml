@@ -8,6 +8,17 @@ match:
   duration-seconds: 900
   starting-countdown-seconds: 10
   ending-seconds: 10
+  # Elapsed seconds since match start at which each phase ends. FINAL_RUSH
+  # runs from heist-end-seconds until duration-seconds.
+  phases:
+    setup-seconds: 60
+    collection-end-seconds: 480
+    heist-end-seconds: 780
+
+final-rush:
+  loot-multiplier: 2.0
+  aging-multiplier: 2.0
+  all-players-glow: true
 
 loot:
   respawn-seconds: 35

@@ -10,6 +10,25 @@ relic:
   lost: "<red>The Relic was lost! It will respawn soon."
   delivered: "<light_purple>Relic delivered to {team} Vault (+25)!"
 
+phase:
+  bar: "<gold>{phase} - {time} left"
+  setup:
+    title: "<blue>SETUP"
+    subtitle: "<gray>No loot yet - get ready"
+    chat: "<blue>Setup phase - loot appears when it ends."
+  collection:
+    title: "<green>COLLECTION"
+    subtitle: "<gray>Loot is spawning!"
+    chat: "<green>Collection phase - grab loot and get it to your dock."
+  heist:
+    title: "<yellow>HEIST PHASE"
+    subtitle: "<gray>Vault Drills unlocked"
+    chat: "<yellow>Heist phase - Vault Drills are now available in the shop."
+  final-rush:
+    title: "<red>FINAL RUSH"
+    subtitle: "<gray>Loot value x2, golems age faster"
+    chat: "<red>Final Rush! Delivered loot is worth double and everyone glows."
+
 alarm:
   placed: "<green>Alarm placed ({count}/{cap})."
   cap-reached: "<red>Your team already has the max number of alarms."
@@ -27,6 +46,7 @@ drill:
   progress: "<gold>DRILL on {target} VAULT - {percent}%"
 
 actionbar:
+  heist-only: "<red>Vault Drills unlock in the Heist phase."
   carrying: "<gold>Carrying: {value}/{limit} value  |  Speed -{speed}%"
   carry-limit: "<red>Carrying too much loot! (limit {limit})"
   golem-already-fresh: "<gray>This golem is already fresh."

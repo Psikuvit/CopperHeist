@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.event.LootDeliveredEvent;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
@@ -185,6 +186,9 @@ public class GolemManager {
         }
 
         int value = LootItem.getValue(carried) * carried.getAmount();
+        if (game.getState() == GameState.FINAL_RUSH) {
+            value = (int) Math.round(value * plugin.getConfig().getDouble("final-rush.loot-multiplier", 2.0));
+        }
         GameTeam gameTeam = game.getTeam(golem.getTeam());
         gameTeam.addScore(value);
         Bukkit.getPluginManager().callEvent(new LootDeliveredEvent(game, golem.getTeam(), carried, value));

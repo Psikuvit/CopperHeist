@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.golem;
 
 import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GameState;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
@@ -26,6 +27,8 @@ public class OxidationTask extends BukkitRunnable {
     public void run() {
         if (!game.isActive()) return;
         long now = System.currentTimeMillis();
+        double agingMultiplier = game.getState() == GameState.FINAL_RUSH
+                ? game.getPlugin().getConfig().getDouble("final-rush.aging-multiplier", 2.0) : 1.0;
         List<HeistGolem> golems = game.getGolemManager().all().stream().toList();
         for (HeistGolem golem : golems) {
             if (golem.getEntity().isDead()) continue;
@@ -37,7 +40,7 @@ public class OxidationTask extends BukkitRunnable {
 
             WeatheringCopperState state = golem.getEntity().getWeatheringState();
             if (state == WeatheringCopperState.OXIDIZED) continue;
-            if (now - golem.getStageChangedAtMillis() < golem.getStageDurationMillis()) continue;
+            if ((now - golem.getStageChangedAtMillis()) * agingMultiplier < golem.getStageDurationMillis()) continue;
 
             WeatheringCopperState next = GolemManager.nextStage(state);
             golem.getEntity().setWeatheringState(next);
