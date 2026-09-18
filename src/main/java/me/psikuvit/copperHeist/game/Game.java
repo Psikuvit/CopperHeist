@@ -10,8 +10,10 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -51,6 +53,10 @@ public class Game {
         teams.put(Team.IRON, new GameTeam(Team.IRON));
         this.golemManager = new GolemManager(plugin, this);
         this.lootSpawner = new LootSpawner(this);
+
+        World world = arena.getWorld();
+        if (world != null) world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+
         this.timerTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
         // Runs for the whole life of the Game (not just RUNNING) so WAITING/STARTING
         // players see a lobby board and ENDING/RESETTING still shows the result.

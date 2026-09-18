@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.listener;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
@@ -12,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Iterator;
@@ -77,5 +79,18 @@ public class LootListener implements Listener {
                 it.remove();
             }
         }
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        Game game = plugin.getGameManager().getGame(player);
+        if (game == null) return;
+
+        GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        if (gp == null) return;
+
+        Arena.TeamSite site = game.getArena().site(gp.getTeam());
+        if (site.spawn != null) event.setRespawnLocation(site.spawn);
     }
 }
