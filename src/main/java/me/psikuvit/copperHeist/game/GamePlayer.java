@@ -24,6 +24,8 @@ public class GamePlayer {
     private int stolenValue;
     private int relicsDelivered;
     private long protectedUntilMillis;
+    private final java.util.Map<String, Integer> purchases = new java.util.HashMap<>();
+    private final java.util.Map<String, Long> purchaseCooldowns = new java.util.HashMap<>();
     private UUID lastAttacker;
     private long lastAttackMillis;
 
@@ -108,6 +110,20 @@ public class GamePlayer {
     /** Whoever last hit this player within the window, or null - used to credit void/environment deaths. */
     public UUID recentAttacker(int seconds) {
         return System.currentTimeMillis() - lastAttackMillis <= seconds * 1000L ? lastAttacker : null;
+    }
+
+    public int purchaseCount(String entryId) {
+        return purchases.getOrDefault(entryId, 0);
+    }
+
+    public long purchaseCooldownRemaining(String entryId) {
+        Long until = purchaseCooldowns.get(entryId);
+        return until == null ? 0 : Math.max(0, (until - System.currentTimeMillis() + 999) / 1000);
+    }
+
+    public void recordPurchase(String entryId, int cooldownSeconds) {
+        purchases.merge(entryId, 1, Integer::sum);
+        if (cooldownSeconds > 0) purchaseCooldowns.put(entryId, System.currentTimeMillis() + cooldownSeconds * 1000L);
     }
 
     public boolean isProtected() {

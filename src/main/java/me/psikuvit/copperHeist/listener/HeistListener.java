@@ -8,7 +8,7 @@ import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.heist.Alarm;
 import me.psikuvit.copperHeist.heist.VaultDrill;
 import me.psikuvit.copperHeist.loot.LootBag;
-import me.psikuvit.copperHeist.shop.ShopItem;
+import me.psikuvit.copperHeist.shop.ItemUse;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.Location;
@@ -49,10 +49,10 @@ public class HeistListener implements Listener {
         GamePlayer gp = game.getGamePlayer(player.getUniqueId());
         if (gp == null) return;
 
-        if (ShopItem.ALARM.key.equals(shopKey)) {
+        if (ItemUse.ALARM.equals(shopKey)) {
             event.setCancelled(true);
             placeAlarm(player, game, gp, event.getClickedBlock().getLocation(), item);
-        } else if (ShopItem.VAULT_DRILL.key.equals(shopKey)) {
+        } else if (ItemUse.VAULT_DRILL.equals(shopKey)) {
             event.setCancelled(true);
             placeDrill(player, game, gp, event.getClickedBlock().getLocation(), item);
         }

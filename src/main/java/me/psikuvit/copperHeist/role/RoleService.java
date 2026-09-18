@@ -6,7 +6,6 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.role.ability.AbilityContext;
 import me.psikuvit.copperHeist.role.ability.RoleAbility;
-import me.psikuvit.copperHeist.shop.ShopItem;
 import me.psikuvit.copperHeist.util.Cooldowns;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -173,11 +172,7 @@ public class RoleService {
     }
 
     private ItemStack createShopItem(String id) {
-        return switch (id) {
-            case "honeycomb" -> ShopItem.createHoneycomb();
-            case "oxidizer_splash" -> ShopItem.createOxidizerSplash();
-            default -> null;
-        };
+        return plugin.getShopService().createItem(id);
     }
 
     // ---- passives ----

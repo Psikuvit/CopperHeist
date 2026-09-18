@@ -25,6 +25,7 @@ import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootTierRegistry;
 import me.psikuvit.copperHeist.loot.LootWeightService;
 import me.psikuvit.copperHeist.shop.ShopService;
+import me.psikuvit.copperHeist.shop.action.ShopActionRegistry;
 import me.psikuvit.copperHeist.ui.LobbyKitService;
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.SidebarService;
@@ -45,6 +46,7 @@ public final class CopperHeist extends JavaPlugin {
     private RoleRegistry roleRegistry;
     private LootTierRegistry lootTiers;
     private AbilityRegistry abilityRegistry;
+    private ShopActionRegistry shopActions;
 
     @Override
     public void onEnable() {
@@ -67,6 +69,7 @@ public final class CopperHeist extends JavaPlugin {
         lootWeightService = new LootWeightService(this);
         lobbyKitService = new LobbyKitService(this);
         lobbyKitService.load();
+        shopActions = new ShopActionRegistry();
         shopService = new ShopService(this);
         shopService.load();
         lootTiers = new LootTierRegistry(this);
@@ -145,6 +148,10 @@ public final class CopperHeist extends JavaPlugin {
 
     public LobbyKitService getLobbyKitService() {
         return lobbyKitService;
+    }
+
+    public ShopActionRegistry getShopActions() {
+        return shopActions;
     }
 
     public ShopService getShopService() {

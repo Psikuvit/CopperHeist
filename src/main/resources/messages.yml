@@ -62,6 +62,9 @@ drill:
   progress: "<gold>DRILL on {target} VAULT - {percent}%"
 
 actionbar:
+  shop-locked: "<red>That unlocks in the {phase} phase."
+  shop-limit: "<red>You can only buy that {limit} time(s) per match."
+  shop-cooldown: "<red>Available again in {seconds}s."
   ability-dash: "<green>Dash!"
   ability-heal: "<green>Healing pulse!"
   respawning: "<red>Respawning in {seconds}..."

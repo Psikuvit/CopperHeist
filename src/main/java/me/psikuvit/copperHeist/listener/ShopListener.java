@@ -6,7 +6,7 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.role.RoleDefinition;
 import me.psikuvit.copperHeist.role.RoleHolder;
 import me.psikuvit.copperHeist.shop.ShopHolder;
-import me.psikuvit.copperHeist.shop.ShopItem;
+import me.psikuvit.copperHeist.shop.ShopEntry;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.entity.Player;
@@ -57,7 +57,7 @@ public class ShopListener implements Listener {
 
         ItemStack clicked = event.getCurrentItem();
         String key = Pdc.get(clicked, PdcKeys.SHOP_ITEM);
-        ShopItem item = key == null ? null : ShopItem.fromKey(key);
+        ShopEntry item = plugin.getShopService().entry(key);
         if (item == null) return;
 
         Game game = plugin.getGameManager().getGame(player);

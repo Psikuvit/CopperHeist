@@ -6,7 +6,7 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.golem.HeistGolem;
 import me.psikuvit.copperHeist.loot.LootItem;
-import me.psikuvit.copperHeist.shop.ShopItem;
+import me.psikuvit.copperHeist.shop.ItemUse;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.entity.EntityType;
@@ -46,7 +46,7 @@ public class GolemInteractListener implements Listener {
 
         ItemStack hand = player.getInventory().getItemInMainHand();
         String shopKey = Pdc.get(hand, PdcKeys.SHOP_ITEM);
-        if (ShopItem.HONEYCOMB.key.equals(shopKey)) {
+        if (ItemUse.HONEYCOMB.equals(shopKey)) {
             handleWax(player, golem, game, hand);
             return;
         }
@@ -66,7 +66,7 @@ public class GolemInteractListener implements Listener {
         if (event.getHand() != EquipmentSlot.HAND || !event.getAction().isRightClick()) return;
 
         ItemStack item = event.getItem();
-        if (!ShopItem.STORM_ROD.key.equals(Pdc.get(item, PdcKeys.SHOP_ITEM))) return;
+        if (!ItemUse.STORM_ROD.equals(Pdc.get(item, PdcKeys.SHOP_ITEM))) return;
 
         Player player = event.getPlayer();
         Game game = plugin.getGameManager().getGame(player);

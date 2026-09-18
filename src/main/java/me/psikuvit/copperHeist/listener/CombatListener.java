@@ -7,7 +7,7 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.HeistGolem;
-import me.psikuvit.copperHeist.shop.ShopItem;
+import me.psikuvit.copperHeist.shop.ItemUse;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.entity.Entity;
@@ -107,7 +107,7 @@ public class CombatListener implements Listener {
 
     @EventHandler
     public void onPotionSplash(PotionSplashEvent event) {
-        if (!ShopItem.OXIDIZER_SPLASH.key.equals(Pdc.get(event.getPotion().getItem(), PdcKeys.SHOP_ITEM))) return;
+        if (!ItemUse.OXIDIZER_SPLASH.equals(Pdc.get(event.getPotion().getItem(), PdcKeys.SHOP_ITEM))) return;
         if (!(event.getPotion().getShooter() instanceof Player thrower)) return;
 
         Game game = plugin.getGameManager().getGame(thrower);

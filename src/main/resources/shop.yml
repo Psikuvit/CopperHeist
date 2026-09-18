@@ -1,10 +1,30 @@
-# Shop item costs, names and lore. Cost is in loot value (the same unit
-# LootItem tags everything with - a copper ingot is worth 1) - paying removes
-# that much value in tagged loot from your inventory, so buying something is
-# a real trade-off against just delivering that loot instead.
+# The shop. Cost is in loot value (the same unit LootItem tags everything with -
+# a copper ingot is worth 1); paying removes that much carried loot, smallest
+# pieces first, so buying is a real trade-off against delivering it.
+#
+# menu:
+#   title, rows (0 = size to fit, max 6), filler (a material, or empty for none),
+#   cost-format (appended to every entry name in the menu; {cost})
+#
+# items.<id>:
+#   action          give-item (default), spawn-golem or command (plugins can add more)
+#   material, amount, name, lore, cost
+#   min-phase       setup | collection | heist | final_rush - locked until then
+#   max-per-player  0 = unlimited;  cooldown-seconds  0 = none;  slot  fixed menu slot
+#   give-item:      potion (e.g. strong_healing), color (#RRGGBB), item-name, tag: true
+#                   (tag marks special-use items: honeycomb, storm_rod, oxidizer_splash, alarm, vault_drill)
+#   command:        commands: ["give {player} diamond 1"]   ({player} and {team} are replaced)
+
+menu:
+  title: "<gold><bold>Copper Heist Shop"
+  rows: 0
+  filler: ""
+  cost-format: " - {cost} value"
 
 items:
   honeycomb:
+    material: HONEYCOMB
+    tag: true
     cost: 3
     name: "<gold>Honeycomb"
     lore:
@@ -12,28 +32,40 @@ items:
       - "<gray>it - freezes its oxidation"
       - "<gray>stage for a while."
   wind_charges:
+    material: WIND_CHARGE
+    amount: 3
     cost: 4
     name: "<gold>Wind Charge x3"
     lore:
       - "<gray>Knockback projectiles."
   healing_potion:
+    material: POTION
+    potion: strong_healing
     cost: 4
     name: "<gold>Healing Potion"
     lore:
       - "<gray>Instant Health II."
   oxidizer_splash:
+    material: SPLASH_POTION
+    potion: water
+    color: "#8B4513"
+    tag: true
     cost: 6
     name: "<gold>Oxidizer Splash"
     lore:
       - "<gray>Ages enemy golems caught"
       - "<gray>in the splash by one stage."
   new_golem:
+    action: spawn-golem
+    material: COPPER_INGOT
     cost: 10
     name: "<gold>New Golem"
     lore:
       - "<gray>Builds a golem at your dock,"
       - "<gray>up to your team's cap."
   storm_rod:
+    material: BLAZE_ROD
+    tag: true
     cost: 15
     name: "<gold>Storm Rod"
     lore:
@@ -41,6 +73,8 @@ items:
       - "<gray>dock to Fresh. Zaps anyone"
       - "<gray>nearby, allies included."
   alarm:
+    material: TRIPWIRE_HOOK
+    tag: true
     cost: 5
     name: "<gold>Alarm"
     lore:
@@ -48,9 +82,13 @@ items:
       - "<gray>spawn to place it. Alerts your"
       - "<gray>team when an enemy walks by."
   vault_drill:
+    material: IRON_PICKAXE
+    tag: true
+    min-phase: heist
     cost: 20
     name: "<gold>Vault Drill"
     lore:
       - "<gray>Right-click the enemy vault"
       - "<gray>door to start a breach."
       - "<gray>Defenders can break it."
+      - "<dark_gray>Unlocks in the Heist phase."
