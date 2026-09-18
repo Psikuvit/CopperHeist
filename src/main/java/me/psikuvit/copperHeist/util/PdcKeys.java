@@ -11,6 +11,7 @@ public final class PdcKeys {
     public static PdcKey<String, String> MATCH_ID;
     public static PdcKey<String, String> LAST_TEAM;
     public static PdcKey<String, String> GOLEM_TEAM;
+    public static PdcKey<String, String> LOBBY_ITEM;
 
     private PdcKeys() {
     }
@@ -21,5 +22,6 @@ public final class PdcKeys {
         MATCH_ID = PdcKey.of(plugin, "match_id", PersistentDataType.STRING);
         LAST_TEAM = PdcKey.of(plugin, "last_team", PersistentDataType.STRING);
         GOLEM_TEAM = PdcKey.of(plugin, "golem_team", PersistentDataType.STRING);
+        LOBBY_ITEM = PdcKey.of(plugin, "lobby_item", PersistentDataType.STRING);
     }
 }

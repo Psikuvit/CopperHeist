@@ -17,6 +17,7 @@ public class PlayerConnectionListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         plugin.getSidebarService().showHub(event.getPlayer());
+        plugin.getLobbyKitService().giveHubKit(event.getPlayer());
     }
 
     @EventHandler

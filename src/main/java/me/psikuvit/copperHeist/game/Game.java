@@ -131,6 +131,7 @@ public class Game {
         player.getInventory().clear();
         player.setGameMode(GameMode.SURVIVAL);
         if (arena.getLobby() != null) player.teleport(arena.getLobby());
+        plugin.getLobbyKitService().giveLeaveItem(player);
         player.sendMessage(plugin.getMessageService().getWithPrefix("join", "arena", arena.getName(), "team", team.displayName()));
         return true;
     }

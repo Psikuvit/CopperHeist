@@ -192,7 +192,7 @@ public class SidebarService {
     // ---- rendering ----
 
     private void render(Player player, ScoreboardContext context) {
-        Scoreboard board = boards.computeIfAbsent(player.getUniqueId(), id -> {
+        Scoreboard board = boards.computeIfAbsent(player.getUniqueId(), _ -> {
             Scoreboard sb = Bukkit.getScoreboardManager().getNewScoreboard();
             player.setScoreboard(sb);
             return sb;

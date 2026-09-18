@@ -1,0 +1,71 @@
+# The guide book handed to every player when they join the server (hub kit,
+# slot 1). One list entry per page; MiniMessage tags work, use \n for line
+# breaks within a page. Keep pages short - books have limited visible space.
+
+book-title: "Copper Heist Guide"
+book-author: "Copper Heist"
+
+pages:
+  - |-
+    <bold>COPPER HEIST</bold>
+
+    Two teams race to fill
+    their own vault with
+    loot.
+
+    You can't deposit loot
+    yourself - only your
+    team's golems can carry
+    it in.
+  - |-
+    <bold>LOOT</bold>
+
+    Loot spawns around the
+    map. Pick it up and
+    carry it to your team's
+    Dock chest.
+
+    Carrying loot slows you
+    down - the more value
+    you carry, the slower
+    you move.
+  - |-
+    <bold>GOLEMS</bold>
+
+    Golems take loot from
+    your Dock and walk it
+    down the corridor to
+    your Vault.
+
+    Hit an enemy golem to
+    make it drop what it's
+    carrying - now it's
+    yours!
+  - |-
+    <bold>OXIDATION</bold>
+
+    Golems slowly oxidize
+    and get slower over
+    time. A fully oxidized
+    golem stops completely.
+
+    Right-click one with an
+    axe to scrape off a
+    stage and speed it back
+    up.
+  - |-
+    <bold>WINNING</bold>
+
+    Whichever team has the
+    most value sitting in
+    their vault when time
+    runs out wins the match.
+  - |-
+    <bold>COMMANDS</bold>
+
+    /ch join <arena>
+    /ch leave
+    /ch list
+
+    Or just use the compass
+    in your hotbar!
