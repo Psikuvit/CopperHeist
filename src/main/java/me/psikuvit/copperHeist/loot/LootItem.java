@@ -71,6 +71,20 @@ public final class LootItem {
         return Tier.COPPER;
     }
 
+    /** Weighted roll restricted to the given tiers - used so rare spots roll diamonds and caches only roll cheap loot. */
+    public static Tier randomTier(RandomGenerator random, Tier... allowed) {
+        int totalWeight = 0;
+        for (Tier tier : allowed) totalWeight += tier.weight;
+        if (totalWeight <= 0) return allowed[0];
+        int roll = random.nextInt(totalWeight);
+        int cumulative = 0;
+        for (Tier tier : allowed) {
+            cumulative += tier.weight;
+            if (roll < cumulative) return tier;
+        }
+        return allowed[0];
+    }
+
     public static boolean isLoot(ItemStack item) {
         return Pdc.has(item, PdcKeys.LOOT_VALUE);
     }

@@ -40,6 +40,10 @@ public class RelicManager {
     private Player holder;
     private int secondsUntilSpawn;
     private boolean warned;
+    private List<Integer> schedule = List.of(180);
+    private int scheduleIndex;
+    private boolean replayingLost;
+    private int resumeSeconds;
 
     public RelicManager(CopperHeist plugin, Game game) {
         this.plugin = plugin;
@@ -47,7 +51,11 @@ public class RelicManager {
     }
 
     public void start() {
-        secondsUntilSpawn = plugin.getConfig().getInt("relic.spawn-interval-seconds", 180);
+        schedule = plugin.getConfig().getIntegerList("relic.spawn-times");
+        if (schedule.isEmpty()) schedule = List.of(180);
+        scheduleIndex = 0;
+        replayingLost = false;
+        secondsUntilSpawn = schedule.get(0);
         warned = false;
         task = new RelicSpawnTask(this).runTaskTimer(plugin, 20L, 20L);
     }
@@ -83,6 +91,8 @@ public class RelicManager {
             // falls through to resume the countdown for the next one
         }
 
+        if (secondsUntilSpawn < 0) return; // every scheduled relic has already spawned
+
         secondsUntilSpawn--;
         if (!warned && secondsUntilSpawn <= 10) {
             warned = true;
@@ -91,8 +101,19 @@ public class RelicManager {
         if (secondsUntilSpawn <= 0) {
             spawnRelic();
             warned = false;
-            secondsUntilSpawn = plugin.getConfig().getInt("relic.spawn-interval-seconds", 180);
+            secondsUntilSpawn = nextCountdown();
         }
+    }
+
+    /** After a relic spawns: resume an interrupted countdown if that was a lost-relic respawn, else wait for the next scheduled time. */
+    private int nextCountdown() {
+        if (replayingLost) {
+            replayingLost = false;
+            return resumeSeconds;
+        }
+        scheduleIndex++;
+        if (scheduleIndex >= schedule.size()) return -1;
+        return schedule.get(scheduleIndex) - schedule.get(scheduleIndex - 1);
     }
 
     private boolean isCarryingRelic(Player player) {
@@ -144,6 +165,10 @@ public class RelicManager {
         holder = null;
         groundEntity = null;
         warned = true; // no 10s "surfacing" warning for an emergency respawn
+        if (!replayingLost) {
+            resumeSeconds = secondsUntilSpawn;
+            replayingLost = true;
+        }
         secondsUntilSpawn = plugin.getConfig().getInt("relic.lost-respawn-seconds", 30);
         Bukkit.getPluginManager().callEvent(new RelicLostEvent(game, player));
     }

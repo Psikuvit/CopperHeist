@@ -12,6 +12,11 @@ import java.util.Map;
 
 public class Arena {
 
+    /** Where a loot point sits: common central loot, contested rare spots (diamonds), or slower side caches. */
+    public enum LootZone {
+        COMMON, RARE, CACHE
+    }
+
     public static class TeamSite {
         public Location spawn;
         public final List<Location> dockChests = new ArrayList<>();
@@ -28,11 +33,12 @@ public class Arena {
     private Location bound1;
     private Location bound2;
     private final Map<Team, TeamSite> sites = new EnumMap<>(Team.class);
-    private final List<Location> lootPoints = new ArrayList<>();
+    private final Map<LootZone, List<Location>> lootZones = new EnumMap<>(LootZone.class);
     private final List<Location> relicPoints = new ArrayList<>();
 
     public Arena(String name) {
         this.name = name;
+        for (LootZone zone : LootZone.values()) lootZones.put(zone, new ArrayList<>());
         sites.put(Team.COPPER, new TeamSite());
         sites.put(Team.IRON, new TeamSite());
     }
@@ -89,8 +95,19 @@ public class Arena {
         return sites.get(team);
     }
 
+    /** Common central-zone points - where most loot spawns. */
     public List<Location> getLootPoints() {
-        return lootPoints;
+        return lootZones.get(LootZone.COMMON);
+    }
+
+    public List<Location> getLootPoints(LootZone zone) {
+        return lootZones.get(zone);
+    }
+
+    public List<Location> allLootPoints() {
+        List<Location> all = new ArrayList<>();
+        for (List<Location> points : lootZones.values()) all.addAll(points);
+        return all;
     }
 
     public List<Location> getRelicPoints() {
@@ -115,7 +132,8 @@ public class Arena {
         List<String> issues = new ArrayList<>();
         if (lobby == null) issues.add("No lobby set");
         if (bound1 == null || bound2 == null) issues.add("Arena bounds not set (setbounds1/setbounds2)");
-        if (lootPoints.size() < 3) issues.add("Only " + lootPoints.size() + " loot points (recommend 3+)");
+        int lootTotal = allLootPoints().size();
+        if (lootTotal < 3) issues.add("Only " + lootTotal + " loot points (recommend 3+)");
         for (Team team : Team.values()) {
             TeamSite site = sites.get(team);
             String label = team.displayName();

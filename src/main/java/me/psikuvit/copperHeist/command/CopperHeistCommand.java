@@ -266,10 +266,7 @@ public final class CopperHeistCommand {
                     Msg.ok(player, "Added " + team.displayName() + " waypoint #" + arena.site(team).waypoints.size()
                             + " (dock->vault order matters - last one should be at the vault).");
                 }))
-                .then(arenaOnly("addloot", (player, arena) -> {
-                    arena.getLootPoints().add(player.getLocation());
-                    Msg.ok(player, "Added loot point (" + arena.getLootPoints().size() + " total).");
-                }))
+                .then(addLootCommand())
                 .then(arenaOnly("addrelic", (player, arena) -> {
                     arena.getRelicPoints().add(player.getLocation());
                     Msg.ok(player, "Added relic point (" + arena.getRelicPoints().size() + " total).");
@@ -305,6 +302,41 @@ public final class CopperHeistCommand {
                     plugin.getArenaManager().save(arena);
                     Msg.ok(player, arena.getName() + " is now enabled and joinable.");
                 }));
+    }
+
+    private static final SuggestionProvider<CommandSourceStack> LOOT_TIERS = (ctx, builder) -> {
+        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
+        for (Arena.LootZone zone : Arena.LootZone.values()) {
+            String name = zone.name().toLowerCase(Locale.ROOT);
+            if (name.startsWith(remaining)) builder.suggest(name);
+        }
+        return builder.buildFuture();
+    };
+
+    /** /ch arena addloot <arena> [common|rare|cache] - tier defaults to common. */
+    private LiteralArgumentBuilder<CommandSourceStack> addLootCommand() {
+        return literal("addloot")
+                .then(argument("name", StringArgumentType.word())
+                        .suggests(arenaSuggestions)
+                        .executes(ctx -> runArenaOnly(ctx, (player, arena) -> addLootPoint(player, arena, Arena.LootZone.COMMON)))
+                        .then(argument("tier", StringArgumentType.word())
+                                .suggests(LOOT_TIERS)
+                                .executes(ctx -> {
+                                    Arena.LootZone zone;
+                                    try {
+                                        zone = Arena.LootZone.valueOf(StringArgumentType.getString(ctx, "tier").toUpperCase(Locale.ROOT));
+                                    } catch (IllegalArgumentException ex) {
+                                        Msg.err(ctx.getSource().getSender(), "Unknown tier. Use common, rare or cache.");
+                                        return 0;
+                                    }
+                                    return runArenaOnly(ctx, (player, arena) -> addLootPoint(player, arena, zone));
+                                })));
+    }
+
+    private void addLootPoint(Player player, Arena arena, Arena.LootZone zone) {
+        arena.getLootPoints(zone).add(player.getLocation());
+        Msg.ok(player, "Added " + zone.name().toLowerCase(Locale.ROOT) + " loot point ("
+                + arena.getLootPoints(zone).size() + " total).");
     }
 
     private int executeCreate(CommandContext<CommandSourceStack> ctx) {

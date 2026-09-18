@@ -136,7 +136,7 @@ public class LootBagManager {
 
     /** Expired loot goes back to a random loot point rather than vanishing. */
     private void scatter(LootBag bag) {
-        List<Location> points = game.getArena().getLootPoints();
+        List<Location> points = game.getArena().allLootPoints();
         for (ItemStack item : bag.getItems()) {
             Location where = points.isEmpty() ? bag.getHitbox().getLocation()
                     : points.get(ThreadLocalRandom.current().nextInt(points.size())).clone().add(0.5, 0.5, 0.5);

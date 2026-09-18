@@ -1,6 +1,8 @@
 package me.psikuvit.copperHeist.loot;
 
+import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.task.LootRefillTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -45,23 +47,37 @@ public class LootSpawner {
 
     public void tick() {
         long now = System.currentTimeMillis();
-        long respawnMillis = game.getPlugin().getConfig().getLong("loot.respawn-seconds", 35) * 1000L;
-        for (Location point : game.getArena().getLootPoints()) {
-            Item existing = active.get(point);
-            if (existing != null && !existing.isDead()) continue;
-            active.remove(point);
+        for (Arena.LootZone zone : Arena.LootZone.values()) {
+            long respawnMillis = respawnMillis(zone);
+            for (Location point : game.getArena().getLootPoints(zone)) {
+                Item existing = active.get(point);
+                if (existing != null && !existing.isDead()) continue;
+                active.remove(point);
 
-            Long eligible = nextSpawnAt.get(point);
-            if (eligible == null) {
-                nextSpawnAt.put(point, now + respawnMillis);
-                continue;
-            }
-            if (now >= eligible) {
-                spawnAt(point);
-                nextSpawnAt.remove(point);
+                Long eligible = nextSpawnAt.get(point);
+                if (eligible == null) {
+                    nextSpawnAt.put(point, now + respawnMillis);
+                    continue;
+                }
+                if (now >= eligible) {
+                    spawnAt(point, zone);
+                    nextSpawnAt.remove(point);
+                }
             }
         }
         applyUnclaimedBonus();
+    }
+
+    /** Caches refill slower than the central zone, and everything refills faster during Final Rush. */
+    private long respawnMillis(Arena.LootZone zone) {
+        var config = game.getPlugin().getConfig();
+        double seconds = zone == Arena.LootZone.CACHE
+                ? config.getDouble("loot.cache-respawn-seconds", 60)
+                : config.getDouble("loot.respawn-seconds", 35);
+        if (game.getState() == GameState.FINAL_RUSH) {
+            seconds *= config.getDouble("final-rush.loot-respawn-multiplier", 0.5);
+        }
+        return (long) (seconds * 1000L);
     }
 
     /** Loot left lying around for a while gains value over time, to pull turtling teams out. */
@@ -87,9 +103,16 @@ public class LootSpawner {
         }
     }
 
-    private void spawnAt(Location point) {
+    private void spawnAt(Location point, Arena.LootZone zone) {
         if (point.getWorld() == null) return;
-        LootItem.Tier tier = LootItem.randomTier(ThreadLocalRandom.current());
+        LootItem.Tier tier = switch (zone) {
+            case COMMON -> LootItem.randomTier(ThreadLocalRandom.current(),
+                    LootItem.Tier.COPPER, LootItem.Tier.GOLD, LootItem.Tier.EMERALD);
+            case RARE -> LootItem.randomTier(ThreadLocalRandom.current(),
+                    LootItem.Tier.EMERALD, LootItem.Tier.DIAMOND);
+            case CACHE -> LootItem.randomTier(ThreadLocalRandom.current(),
+                    LootItem.Tier.COPPER, LootItem.Tier.GOLD);
+        };
         ItemStack stack = LootItem.create(tier, game.getMatchId());
         Item item = point.getWorld().dropItem(point.clone().add(0.5, 0.5, 0.5), stack);
         item.setUnlimitedLifetime(true);

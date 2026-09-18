@@ -24,11 +24,13 @@ spawn-protection:
 
 final-rush:
   loot-multiplier: 2.0
+  loot-respawn-multiplier: 0.5
   aging-multiplier: 2.0
   all-players-glow: true
 
 loot:
   respawn-seconds: 35
+  cache-respawn-seconds: 60
   carry-limit: 80
   weight-per-10-value: 0.05
   max-slowdown: 0.35
@@ -39,7 +41,8 @@ loot:
     max-bonus: 5
 
 relic:
-  spawn-interval-seconds: 180
+  # Elapsed seconds since match start. Add 840 for an extra Final Rush relic.
+  spawn-times: [180, 360, 540, 720]
   lost-respawn-seconds: 30
   holder-extra-carry: 20
 

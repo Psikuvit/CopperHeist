@@ -64,6 +64,8 @@ public class ArenaManager {
         if (arena.getBound1() != null) yaml.set("bound1", LocationUtil.serialize(arena.getBound1()));
         if (arena.getBound2() != null) yaml.set("bound2", LocationUtil.serialize(arena.getBound2()));
         yaml.set("loot-points", LocationUtil.serializeList(arena.getLootPoints()));
+        yaml.set("rare-points", LocationUtil.serializeList(arena.getLootPoints(Arena.LootZone.RARE)));
+        yaml.set("cache-points", LocationUtil.serializeList(arena.getLootPoints(Arena.LootZone.CACHE)));
         yaml.set("relic-points", LocationUtil.serializeList(arena.getRelicPoints()));
         for (Team team : Team.values()) {
             Arena.TeamSite site = arena.site(team);
@@ -93,6 +95,8 @@ public class ArenaManager {
         if (yaml.contains("bound1")) arena.setBound1(LocationUtil.deserialize(world, yaml.getList("bound1")));
         if (yaml.contains("bound2")) arena.setBound2(LocationUtil.deserialize(world, yaml.getList("bound2")));
         arena.getLootPoints().addAll(LocationUtil.deserializeList(world, yaml.getList("loot-points")));
+        arena.getLootPoints(Arena.LootZone.RARE).addAll(LocationUtil.deserializeList(world, yaml.getList("rare-points")));
+        arena.getLootPoints(Arena.LootZone.CACHE).addAll(LocationUtil.deserializeList(world, yaml.getList("cache-points")));
         arena.getRelicPoints().addAll(LocationUtil.deserializeList(world, yaml.getList("relic-points")));
         for (Team team : Team.values()) {
             Arena.TeamSite site = arena.site(team);
