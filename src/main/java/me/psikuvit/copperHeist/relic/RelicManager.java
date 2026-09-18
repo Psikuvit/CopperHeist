@@ -6,6 +6,7 @@ import me.psikuvit.copperHeist.event.RelicPickupEvent;
 import me.psikuvit.copperHeist.event.RelicSpawnEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.loot.LootTierDefinition;
 import me.psikuvit.copperHeist.task.RelicSpawnTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -136,7 +137,9 @@ public class RelicManager {
         Location point = points.get(ThreadLocalRandom.current().nextInt(points.size()));
         if (point.getWorld() == null) return;
 
-        ItemStack stack = LootItem.create(LootItem.Tier.RELIC, game.getMatchId());
+        LootTierDefinition relicTier = LootItem.tiers().relicTier();
+        if (relicTier == null) return;
+        ItemStack stack = LootItem.create(relicTier, game.getMatchId());
         Item entity = point.getWorld().dropItem(point.clone().add(0.5, 0.5, 0.5), stack);
         entity.setUnlimitedLifetime(true);
         entity.setGlowing(true);

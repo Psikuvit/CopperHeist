@@ -92,27 +92,21 @@ public class LootSpawner {
         for (Item entity : world.getEntitiesByClass(Item.class)) {
             ItemStack stack = entity.getItemStack();
             if (!LootItem.isLoot(stack) || !game.getMatchId().equals(LootItem.getMatchId(stack))) continue;
-            LootItem.Tier tier = LootItem.getTier(stack);
-            if (tier == null || tier == LootItem.Tier.RELIC) continue;
+            LootTierDefinition tier = LootItem.getTier(stack);
+            if (tier == null || tier.relic()) continue;
 
             int ageSeconds = entity.getTicksLived() / 20;
             int bonus = ageSeconds < after ? 0 : Math.min(max, (ageSeconds - after) / every + 1);
-            if (LootItem.getValue(stack) == tier.value + bonus) continue;
-            LootItem.setValue(stack, tier.value + bonus);
+            if (LootItem.getValue(stack) == tier.value() + bonus) continue;
+            LootItem.setValue(stack, tier.value() + bonus);
             entity.setItemStack(stack);
         }
     }
 
     private void spawnAt(Location point, Arena.LootZone zone) {
         if (point.getWorld() == null) return;
-        LootItem.Tier tier = switch (zone) {
-            case COMMON -> LootItem.randomTier(ThreadLocalRandom.current(),
-                    LootItem.Tier.COPPER, LootItem.Tier.GOLD, LootItem.Tier.EMERALD);
-            case RARE -> LootItem.randomTier(ThreadLocalRandom.current(),
-                    LootItem.Tier.EMERALD, LootItem.Tier.DIAMOND);
-            case CACHE -> LootItem.randomTier(ThreadLocalRandom.current(),
-                    LootItem.Tier.COPPER, LootItem.Tier.GOLD);
-        };
+        LootTierDefinition tier = LootItem.tiers().roll(ThreadLocalRandom.current(), zone);
+        if (tier == null) return;
         ItemStack stack = LootItem.create(tier, game.getMatchId());
         Item item = point.getWorld().dropItem(point.clone().add(0.5, 0.5, 0.5), stack);
         item.setUnlimitedLifetime(true);

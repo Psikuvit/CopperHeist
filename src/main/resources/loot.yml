@@ -1,0 +1,44 @@
+# Loot tiers. Each tier is one kind of loot item that can spawn at loot points.
+#
+#   material          the item that appears on the ground / in inventories
+#   value             what it is worth when a golem delivers it to a vault
+#   weight            share of random rolls (0 = never rolled randomly)
+#   zones             which arena loot points may roll it: common, rare, cache
+#                     (arena addloot <arena> [common|rare|cache] marks a point's zone)
+#   name              MiniMessage display name; {value} is replaced with the current value
+#   relic             true marks the timed "relic" tier (spawns on the relic schedule, ignores weight)
+#   custom-model-data optional resource-pack model number
+#   glint             true adds the enchantment shimmer
+
+tiers:
+  copper:
+    material: COPPER_INGOT
+    value: 1
+    weight: 50
+    zones: [common, cache]
+    name: "<yellow>Copper ({value})"
+  gold:
+    material: GOLD_INGOT
+    value: 3
+    weight: 25
+    zones: [common, cache]
+    name: "<yellow>Gold ({value})"
+  emerald:
+    material: EMERALD
+    value: 5
+    weight: 15
+    zones: [common, rare]
+    name: "<yellow>Emerald ({value})"
+  diamond:
+    material: DIAMOND
+    value: 10
+    weight: 8
+    zones: [rare]
+    name: "<yellow>Diamond ({value})"
+  relic:
+    material: NETHER_STAR
+    value: 25
+    weight: 0
+    relic: true
+    glint: true
+    name: "<light_purple><bold>Ancient Idol"

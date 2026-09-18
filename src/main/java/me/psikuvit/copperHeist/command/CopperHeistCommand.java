@@ -17,6 +17,7 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.loot.LootTierDefinition;
 import me.psikuvit.copperHeist.role.RoleDefinition;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
@@ -80,7 +81,7 @@ public final class CopperHeistCommand {
                             .then(argument("amount", IntegerArgumentType.integer(1))
                                     .executes(commands::executeGiveLoot))
                             .then(argument("tier", StringArgumentType.word())
-                                    .suggests(TIER_SUGGESTIONS)
+                                    .suggests(commands.tierSuggestions)
                                     .executes(commands::executeGiveLoot)
                                     .then(argument("amount", IntegerArgumentType.integer(1))
                                             .executes(commands::executeGiveLoot))))
@@ -220,11 +221,10 @@ public final class CopperHeistCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static final SuggestionProvider<CommandSourceStack> TIER_SUGGESTIONS = (ctx, builder) -> {
+    private final SuggestionProvider<CommandSourceStack> tierSuggestions = (ctx, builder) -> {
         String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-        for (LootItem.Tier tier : LootItem.Tier.values()) {
-            String name = tier.name().toLowerCase(Locale.ROOT);
-            if (name.startsWith(remaining)) builder.suggest(name);
+        for (LootTierDefinition tier : LootItem.tiers().all()) {
+            if (tier.id().startsWith(remaining)) builder.suggest(tier.id());
         }
         return builder.buildFuture();
     };
@@ -247,6 +247,7 @@ public final class CopperHeistCommand {
         plugin.getLobbyKitService().load();
         Team.configure(plugin.getConfig().getConfigurationSection("teams"));
         plugin.getRoleRegistry().load();
+        plugin.getLootTiers().load();
         Msg.ok(sender, "Reloaded config, messages, scoreboard, shop, roles and lobby kit (arenas and running matches are untouched).");
         return Command.SINGLE_SUCCESS;
     }
@@ -333,19 +334,20 @@ public final class CopperHeistCommand {
             amount = IntegerArgumentType.getInteger(ctx, "amount");
         } catch (IllegalArgumentException ignored) {
         }
-        LootItem.Tier fixedTier = null;
+        LootTierDefinition fixedTier = null;
         String tierName = optionalString(ctx, "tier");
         if (tierName != null) {
-            try {
-                fixedTier = LootItem.Tier.valueOf(tierName.toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException ex) {
-                Msg.err(player, "Unknown tier. Use copper, gold, emerald, diamond or relic.");
+            fixedTier = LootItem.tiers().get(tierName);
+            if (fixedTier == null) {
+                StringBuilder ids = new StringBuilder();
+                for (LootTierDefinition def : LootItem.tiers().all()) ids.append(ids.isEmpty() ? "" : ", ").append(def.id());
+                Msg.err(player, "Unknown tier. Use one of: " + ids + ".");
                 return 0;
             }
         }
         for (int i = 0; i < amount; i++) {
-            LootItem.Tier tier = fixedTier != null ? fixedTier : LootItem.randomTier(ThreadLocalRandom.current());
-            player.getInventory().addItem(LootItem.create(tier, game.getMatchId()));
+            LootTierDefinition tier = fixedTier != null ? fixedTier : LootItem.tiers().rollAny(ThreadLocalRandom.current());
+            if (tier != null) player.getInventory().addItem(LootItem.create(tier, game.getMatchId()));
         }
         Msg.ok(player, "Gave you " + amount + " loot item(s).");
         return Command.SINGLE_SUCCESS;
