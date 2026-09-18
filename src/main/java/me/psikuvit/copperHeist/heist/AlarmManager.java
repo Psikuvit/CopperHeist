@@ -71,10 +71,7 @@ public class AlarmManager {
     }
 
     public boolean isWithinPlacementRange(Team team, Location loc) {
-        Arena.TeamSite site = game.getArena().site(team);
-        if (site.spawn == null || !loc.getWorld().equals(site.spawn.getWorld())) return false;
-        double radius = plugin.settings().getDouble("alarms.placement-radius", 20);
-        return loc.distanceSquared(site.spawn) <= radius * radius;
+        return game.isInBase(team, loc, plugin.settings().getDouble("alarms.placement-radius", 20));
     }
 
     public Alarm place(Team team, Location loc) {

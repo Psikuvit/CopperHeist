@@ -13,6 +13,8 @@ match:
   ending-seconds: 10
   respawn-delay-seconds: 6
   forfeit-seconds: 30
+  # With a base region set (arena setbase1/2 <arena> <team>), keep players inside it during SETUP.
+  setup-confine-to-base: false
   hidden-enemy-score: false
   rejoin-grace-seconds: 60
   allowed-commands: [ch, copperheist, msg, tell, w, r, reply]
@@ -118,7 +120,14 @@ respawn:
 
 # How an arena is cleaned after a match. entities: clear items/golems/displays/chests.
 reset:
-  method: entities
+  method: entities        # entities | snapshot (also restores blocks from "arena snapshot")
+  snapshot:
+    blocks-per-tick: 20000
+
+# Optional: sealed vault rooms. With vault.block-entry on, players can't walk into a vault region
+# (arena setvaultregion1/2 <arena> <team>) except attackers during a vault drill's breach window.
+vault:
+  block-entry: false
 
 # Language files live in plugins/CopperHeist/lang/. per-player shows each player their own client language
 # when a file for it exists; anything a translation lacks falls back to English.

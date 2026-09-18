@@ -43,6 +43,11 @@ public class ArenaManager {
         }
     }
 
+    /** Where "arena snapshot" stores the arena's saved block layout for the snapshot reset method. */
+    public File snapshotFile(Arena arena) {
+        return new File(arenasFolder, arena.getName().toLowerCase() + ".snapshot");
+    }
+
     public Arena create(String name) {
         Arena arena = new Arena(name);
         arenas.put(name.toLowerCase(), arena);
@@ -87,6 +92,10 @@ public class ArenaManager {
             if (site.golemIdle != null) yaml.set(base + ".golem-idle", LocationUtil.serialize(site.golemIdle));
             if (site.vaultDoor != null) yaml.set(base + ".vault-door", LocationUtil.serialize(site.vaultDoor));
             if (site.shop != null) yaml.set(base + ".shop", LocationUtil.serialize(site.shop));
+            if (site.baseCorner1 != null) yaml.set(base + ".base-corner-1", LocationUtil.serialize(site.baseCorner1));
+            if (site.baseCorner2 != null) yaml.set(base + ".base-corner-2", LocationUtil.serialize(site.baseCorner2));
+            if (site.vaultCorner1 != null) yaml.set(base + ".vault-corner-1", LocationUtil.serialize(site.vaultCorner1));
+            if (site.vaultCorner2 != null) yaml.set(base + ".vault-corner-2", LocationUtil.serialize(site.vaultCorner2));
             yaml.set(base + ".dock-chests", LocationUtil.serializeList(site.dockChests));
             yaml.set(base + ".vault-chests", LocationUtil.serializeList(site.vaultChests));
             yaml.set(base + ".waypoints", LocationUtil.serializeList(site.waypoints));
@@ -124,6 +133,10 @@ public class ArenaManager {
             if (yaml.contains(base + ".spawn")) site.spawn = LocationUtil.deserialize(world, yaml.getList(base + ".spawn"));
             if (yaml.contains(base + ".golem-idle")) site.golemIdle = LocationUtil.deserialize(world, yaml.getList(base + ".golem-idle"));
             if (yaml.contains(base + ".shop")) site.shop = LocationUtil.deserialize(world, yaml.getList(base + ".shop"));
+            if (yaml.contains(base + ".base-corner-1")) site.baseCorner1 = LocationUtil.deserialize(world, yaml.getList(base + ".base-corner-1"));
+            if (yaml.contains(base + ".base-corner-2")) site.baseCorner2 = LocationUtil.deserialize(world, yaml.getList(base + ".base-corner-2"));
+            if (yaml.contains(base + ".vault-corner-1")) site.vaultCorner1 = LocationUtil.deserialize(world, yaml.getList(base + ".vault-corner-1"));
+            if (yaml.contains(base + ".vault-corner-2")) site.vaultCorner2 = LocationUtil.deserialize(world, yaml.getList(base + ".vault-corner-2"));
             if (yaml.contains(base + ".vault-door")) site.vaultDoor = LocationUtil.deserialize(world, yaml.getList(base + ".vault-door"));
             site.dockChests.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".dock-chests")));
             site.vaultChests.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".vault-chests")));

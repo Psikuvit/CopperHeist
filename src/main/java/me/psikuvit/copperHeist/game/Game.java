@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.game;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
+import me.psikuvit.copperHeist.arena.Region;
 import me.psikuvit.copperHeist.event.MatchEndEvent;
 import me.psikuvit.copperHeist.event.PhaseChangeEvent;
 import me.psikuvit.copperHeist.golem.GolemManager;
@@ -311,12 +312,37 @@ public class Game {
         return shopNpcs.get(entityId);
     }
 
-    /** "/ch shop" only works from your own base during a match - approximated as a radius around your team's spawn. */
+    /**
+     * Whether {@code loc} counts as inside the team's base: its base region when the arena defines one,
+     * otherwise a circle of {@code fallbackRadius} blocks around the team spawn.
+     */
+    public boolean isInBase(Team team, Location loc, double fallbackRadius) {
+        Arena.TeamSite site = arena.site(team);
+        Region base = site.base();
+        if (base != null) return base.contains(loc);
+        Location spawn = site.spawn;
+        if (spawn == null || loc.getWorld() == null || !loc.getWorld().equals(spawn.getWorld())) return false;
+        return loc.distanceSquared(spawn) <= fallbackRadius * fallbackRadius;
+    }
+
+    /** "/ch shop" only works from your own base during a match. */
     public boolean isNearOwnSpawn(Player player, GamePlayer gp) {
-        Location spawn = arena.site(gp.getTeam()).spawn;
-        if (spawn == null || !player.getWorld().equals(spawn.getWorld())) return true;
-        double radius = plugin.settings().getDouble("shop.command-radius", 15);
-        return player.getLocation().distanceSquared(spawn) <= radius * radius;
+        Arena.TeamSite site = arena.site(gp.getTeam());
+        if (site.base() == null && site.spawn == null) return true;
+        return isInBase(gp.getTeam(), player.getLocation(), plugin.settings().getDouble("shop.command-radius", 15));
+    }
+
+    /** Optional (match.setup-confine-to-base): during SETUP, anyone who wanders out of their base region is sent back to spawn. */
+    private void confineToBase() {
+        if (state != GameState.SETUP || !plugin.settings().getBoolean("match.setup-confine-to-base", false)) return;
+        for (Player player : onlinePlayers()) {
+            GamePlayer gp = players.get(player.getUniqueId());
+            if (gp == null) continue;
+            Arena.TeamSite site = arena.site(gp.getTeam());
+            if (site.base() == null || site.spawn == null || site.base().contains(player.getLocation())) continue;
+            player.teleport(site.spawn);
+            player.sendActionBar(plugin.getMessageService().get(player, "game.confined"));
+        }
     }
 
     // ---- loot integrity ----
@@ -655,7 +681,10 @@ public class Game {
     }
 
     public void uiTick() {
-        if (++uiTicks % 2 == 0) spawnGuardTick();
+        if (++uiTicks % 2 == 0) {
+            spawnGuardTick();
+            confineToBase();
+        }
         golemManager.syncLabels();
         for (Player player : onlinePlayers()) {
             purgeStaleLoot(player);

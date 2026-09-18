@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.provider;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.ArenaResetStrategy;
+import me.psikuvit.copperHeist.arena.SnapshotResetStrategy;
 import me.psikuvit.copperHeist.loot.visual.BlockDisplayVisual;
 import me.psikuvit.copperHeist.loot.visual.ItemDisplayVisual;
 import me.psikuvit.copperHeist.loot.visual.LabelOnlyVisual;
@@ -58,6 +59,7 @@ public final class Providers {
 
         reset = new ProviderRegistry<>("reset.method", "entities", log);
         reset.register("entities", plugin::getArenaResetter);
+        reset.register("snapshot", () -> new SnapshotResetStrategy(plugin, plugin.getArenaResetter()));
     }
 
     public ProviderRegistry<NpcProvider> npc() {

@@ -213,14 +213,12 @@ public class RoleService {
         return total;
     }
 
-    /** Bonus damage near the team spawn (no base-region concept in this build, so a radius stands in for it). */
+    /** Bonus damage inside your own base - the arena's base region, or a radius around your spawn if none is set. */
     public double damageMultiplier(Player attacker, GamePlayer gp) {
         double bonus = gp.getRole().passive(PASSIVE_DAMAGE_BONUS, 0);
         if (bonus <= 0) return 1.0;
-        var site = game.getArena().site(gp.getTeam());
-        if (site.spawn == null || !attacker.getWorld().equals(site.spawn.getWorld())) return 1.0;
         double radius = gp.getRole().passive(PASSIVE_DAMAGE_RADIUS, 15.0);
-        return attacker.getLocation().distanceSquared(site.spawn) <= radius * radius ? 1.0 + bonus : 1.0;
+        return game.isInBase(gp.getTeam(), attacker.getLocation(), radius) ? 1.0 + bonus : 1.0;
     }
 
     public boolean canClearStun(GamePlayer gp) {

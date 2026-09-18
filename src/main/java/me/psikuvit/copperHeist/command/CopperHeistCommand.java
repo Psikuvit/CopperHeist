@@ -13,6 +13,7 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.arena.ArenaCheck;
+import me.psikuvit.copperHeist.arena.ArenaSnapshot;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameState;
@@ -27,6 +28,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
@@ -461,6 +463,36 @@ public final class CopperHeistCommand {
                 .then(arenaTeam("setshop", (player, arena, team) -> {
                     arena.site(team).shop = player.getLocation();
                     Msg.ok(player, "setup.shop-set", "team", team.displayName(), "arena", arena.getName());
+                }))
+                .then(arenaTeam("setbase1", (player, arena, team) -> {
+                    arena.site(team).baseCorner1 = player.getLocation();
+                    Msg.ok(player, "setup.region-corner-set", "region", "base", "n", 1, "team", team.displayName(), "arena", arena.getName());
+                }))
+                .then(arenaTeam("setbase2", (player, arena, team) -> {
+                    arena.site(team).baseCorner2 = player.getLocation();
+                    Msg.ok(player, "setup.region-corner-set", "region", "base", "n", 2, "team", team.displayName(), "arena", arena.getName());
+                }))
+                .then(arenaTeam("setvaultregion1", (player, arena, team) -> {
+                    arena.site(team).vaultCorner1 = player.getLocation();
+                    Msg.ok(player, "setup.region-corner-set", "region", "vault", "n", 1, "team", team.displayName(), "arena", arena.getName());
+                }))
+                .then(arenaTeam("setvaultregion2", (player, arena, team) -> {
+                    arena.site(team).vaultCorner2 = player.getLocation();
+                    Msg.ok(player, "setup.region-corner-set", "region", "vault", "n", 2, "team", team.displayName(), "arena", arena.getName());
+                }))
+                .then(arenaOnly("snapshot", (player, arena) -> {
+                    ArenaSnapshot snapshot = ArenaSnapshot.capture(arena);
+                    if (snapshot == null) {
+                        Msg.err(player, "setup.snapshot-no-bounds");
+                        return;
+                    }
+                    try {
+                        snapshot.write(plugin.getArenaManager().snapshotFile(arena));
+                    } catch (IOException ex) {
+                        Msg.err(player, "setup.snapshot-failed", "reason", ex.getMessage());
+                        return;
+                    }
+                    Msg.ok(player, "setup.snapshot-saved", "arena", arena.getName(), "blocks", snapshot.blockCount());
                 }))
                 .then(addPadCommand())
                 .then(arenaOnly("save", (player, arena) -> {

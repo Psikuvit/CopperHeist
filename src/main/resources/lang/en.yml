@@ -98,6 +98,7 @@ game:
   starting-soon: "<green>Enough players - starting in {seconds}s"
   countdown-cancelled: "<red>Not enough players - countdown cancelled"
   countdown: "<yellow>Starting in {seconds}..."
+  confined: "<red>Stay in your base during setup."
   forfeit-warning: "<yellow>Other team left - {team} wins by forfeit in {seconds}s."
   title: "<gold>COPPER HEIST"
   subtitle: "<gray>Fill your vault!"
@@ -108,6 +109,7 @@ golem:
 
 vault:
   locked: "<red>Only golems can deliver loot into the vault."
+  no-entry: "<red>The vault is sealed."
 
 loot-bag:
   label: "<yellow>Loot Bag [{value}] {seconds}s"
@@ -215,6 +217,10 @@ setup:
   arena-exists: "Arena '{arena}' already exists."
   arena-created: "Created arena '{arena}' in world {world}."
   unknown-team: "Unknown team '{team}'. Use copper or iron."
+  region-corner-set: "Set corner {n} of the {team} {region} region for {arena}."
+  snapshot-no-bounds: "Set the arena bounds first (setbounds1 / setbounds2)."
+  snapshot-failed: "Could not save the snapshot: {reason}"
+  snapshot-saved: "Saved a snapshot of {arena} ({blocks} blocks) - use reset.method: snapshot to restore it after matches."
 
 arena:
   check:
@@ -241,3 +247,5 @@ arena:
     waypoints-ok: "{team} waypoints: {count}"
     waypoints-fail: "{team} team has no waypoints"
     shop-warn: "{team} has no shop NPC point (use /ch shop instead)"
+    base-warn: "{team} has no base region - alarms, the Guard bonus and /ch shop use a radius around the spawn"
+    vault-region-warn: "{team} has no vault region - the sealed-vault option can't be used"

@@ -26,6 +26,20 @@ public class Arena {
         public final List<Location> waypoints = new ArrayList<>();
         public Location vaultDoor;
         public Location shop;
+        public Location baseCorner1;
+        public Location baseCorner2;
+        public Location vaultCorner1;
+        public Location vaultCorner2;
+
+        /** The team's base area, or null if both corners haven't been set (callers then fall back to a radius around the spawn). */
+        public Region base() {
+            return baseCorner1 == null || baseCorner2 == null ? null : Region.of(baseCorner1, baseCorner2);
+        }
+
+        /** The sealed vault room, or null if not set. */
+        public Region vaultRegion() {
+            return vaultCorner1 == null || vaultCorner2 == null ? null : Region.of(vaultCorner1, vaultCorner2);
+        }
     }
 
     /** A block that launches whoever steps on it; power scales both the lift and the forward push. */
@@ -188,6 +202,10 @@ public class Arena {
             check(checks, !site.waypoints.isEmpty(), Text.of("arena.check.waypoints-ok", "team", name, "count", site.waypoints.size()),
                     Text.of("arena.check.waypoints-fail", "team", name));
             if (site.shop == null) checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.shop-warn", "team", name)));
+            if (site.base() == null) checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.base-warn", "team", name)));
+            if (site.vaultRegion() == null) {
+                checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.vault-region-warn", "team", name)));
+            }
         }
         return checks;
     }
