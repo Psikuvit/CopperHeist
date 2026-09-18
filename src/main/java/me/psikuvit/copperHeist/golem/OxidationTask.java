@@ -29,6 +29,12 @@ public class OxidationTask extends BukkitRunnable {
         List<HeistGolem> golems = game.getGolemManager().all().stream().toList();
         for (HeistGolem golem : golems) {
             if (golem.getEntity().isDead()) continue;
+
+            if (golem.isWaxed()) {
+                if (now >= golem.getWaxedUntilMillis()) game.getGolemManager().unwax(golem);
+                continue;
+            }
+
             WeatheringCopperState state = golem.getEntity().getWeatheringState();
             if (state == WeatheringCopperState.OXIDIZED) continue;
             if (now - golem.getStageChangedAtMillis() < golem.getStageDurationMillis()) continue;

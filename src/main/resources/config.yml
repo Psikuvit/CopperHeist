@@ -17,6 +17,7 @@ loot:
 
 golems:
   starting: 2
+  cap: 4
   health: 30.0
   base-speed: 0.3
   speed-multipliers:
@@ -27,6 +28,7 @@ golems:
   aging-seconds: 210
   aging-jitter-seconds: 20
   scrape-cooldown-seconds: 20
+  wax-duration-seconds: 180
   stun-seconds: 3
   stun-immunity-seconds: 5
   auto-respawn-seconds: 60

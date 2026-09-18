@@ -11,3 +11,8 @@ actionbar:
   scrape-cooldown: "<red>Scrape on cooldown ({seconds}s)"
   golem-carry-limit: "<red>Carrying too much to take this stack."
   golem-stack-taken: "<gold>Took the oxidized golem's stack."
+  cant-afford: "<red>Not enough loot value - costs {cost}."
+  purchased: "<green>Bought {item}."
+  golem-cap-reached: "<red>Your team already has the max number of golems."
+  golem-waxed: "<green>Waxed! This golem won't age for a while."
+  storm-rod-used: "<gold>Storm Rod triggered - nearby golems reset to Fresh."

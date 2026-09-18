@@ -3,13 +3,19 @@ package me.psikuvit.copperHeist.listener;
 import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.golem.HeistGolem;
 import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.shop.ShopItem;
+import me.psikuvit.copperHeist.util.Pdc;
+import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class GolemInteractListener implements Listener {
@@ -31,6 +37,11 @@ public class GolemInteractListener implements Listener {
         event.setCancelled(true);
 
         ItemStack hand = player.getInventory().getItemInMainHand();
+        String shopKey = Pdc.get(hand, PdcKeys.SHOP_ITEM);
+        if (ShopItem.HONEYCOMB.key.equals(shopKey)) {
+            handleWax(player, golem, game, hand);
+            return;
+        }
         if (hand.getType().name().endsWith("_AXE")) {
             handleScrape(player, golem, game);
             return;
@@ -41,8 +52,38 @@ public class GolemInteractListener implements Listener {
         }
     }
 
+    /** Storm Rod isn't golem-targeted - right-click anywhere while holding it. */
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND || !event.getAction().isRightClick()) return;
+
+        ItemStack item = event.getItem();
+        if (!ShopItem.STORM_ROD.key.equals(Pdc.get(item, PdcKeys.SHOP_ITEM))) return;
+
+        Player player = event.getPlayer();
+        Game game = plugin.getGameManager().getGame(player);
+        if (game == null) return;
+        GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        if (gp == null) return;
+
+        event.setCancelled(true);
+        game.getGolemManager().stormReset(gp.getTeam());
+        player.sendActionBar(plugin.getMessageService().get("actionbar.storm-rod-used"));
+        item.setAmount(item.getAmount() - 1);
+    }
+
+    private void handleWax(Player player, HeistGolem golem, Game game, ItemStack honeycomb) {
+        game.getGolemManager().wax(golem);
+        honeycomb.setAmount(honeycomb.getAmount() - 1);
+        player.sendActionBar(plugin.getMessageService().get("actionbar.golem-waxed"));
+    }
+
     private void handleScrape(Player player, HeistGolem golem, Game game) {
         WeatheringCopperState before = golem.getEntity().getWeatheringState();
+        if (golem.isWaxed()) {
+            player.sendActionBar(plugin.getMessageService().get("actionbar.golem-already-fresh"));
+            return;
+        }
         if (before == WeatheringCopperState.UNAFFECTED) {
             player.sendActionBar(plugin.getMessageService().get("actionbar.golem-already-fresh"));
             return;

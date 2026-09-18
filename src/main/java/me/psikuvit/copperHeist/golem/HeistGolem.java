@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.golem;
 import me.psikuvit.copperHeist.game.Team;
 import org.bukkit.Location;
 import org.bukkit.entity.CopperGolem;
+import org.bukkit.entity.CopperGolem.Oxidizing;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
 
@@ -38,6 +39,7 @@ public class HeistGolem {
 
     private long stageChangedAtMillis = System.currentTimeMillis();
     private long stageDurationMillis;
+    private long waxedUntilMillis = 0;
 
     public HeistGolem(CopperGolem entity, Team team, Location dockIdle, List<Location> waypointsToVault, GolemManager manager) {
         this.entity = entity;
@@ -123,5 +125,17 @@ public class HeistGolem {
 
     public void setStageDurationMillis(long stageDurationMillis) {
         this.stageDurationMillis = stageDurationMillis;
+    }
+
+    public boolean isWaxed() {
+        return entity.getOxidizing() instanceof Oxidizing.Waxed;
+    }
+
+    public long getWaxedUntilMillis() {
+        return waxedUntilMillis;
+    }
+
+    public void setWaxedUntilMillis(long waxedUntilMillis) {
+        this.waxedUntilMillis = waxedUntilMillis;
     }
 }

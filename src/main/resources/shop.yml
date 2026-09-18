@@ -1,0 +1,42 @@
+# Shop item costs, names and lore. Cost is in loot value (the same unit
+# LootItem tags everything with - a copper ingot is worth 1) - paying removes
+# that much value in tagged loot from your inventory, so buying something is
+# a real trade-off against just delivering that loot instead (doc §9).
+
+items:
+  honeycomb:
+    cost: 3
+    name: "<gold>Honeycomb"
+    lore:
+      - "<gray>Right-click a golem to wax"
+      - "<gray>it - freezes its oxidation"
+      - "<gray>stage for a while."
+  wind_charges:
+    cost: 4
+    name: "<gold>Wind Charge x3"
+    lore:
+      - "<gray>Knockback projectiles."
+  healing_potion:
+    cost: 4
+    name: "<gold>Healing Potion"
+    lore:
+      - "<gray>Instant Health II."
+  oxidizer_splash:
+    cost: 6
+    name: "<gold>Oxidizer Splash"
+    lore:
+      - "<gray>Ages enemy golems caught"
+      - "<gray>in the splash by one stage."
+  new_golem:
+    cost: 10
+    name: "<gold>New Golem"
+    lore:
+      - "<gray>Builds a golem at your dock,"
+      - "<gray>up to your team's cap."
+  storm_rod:
+    cost: 15
+    name: "<gold>Storm Rod"
+    lore:
+      - "<gray>Resets your golems near the"
+      - "<gray>dock to Fresh. Zaps anyone"
+      - "<gray>nearby, allies included."

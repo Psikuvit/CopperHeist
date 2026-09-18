@@ -53,6 +53,7 @@ public final class CopperHeistCommand {
                                     .executes(commands::executeJoin)))
                     .then(literal("leave").executes(commands::executeLeave))
                     .then(literal("list").executes(commands::executeList))
+                    .then(literal("shop").executes(commands::executeShop))
                     .then(literal("forcestart")
                             .requires(src -> src.getSender().hasPermission(ADMIN_DEBUG))
                             .then(argument("arena", StringArgumentType.word())
@@ -116,6 +117,20 @@ public final class CopperHeistCommand {
             Msg.send(sender, "<gold>" + arena.getName() + "</gold> <gray>[" + (arena.isEnabled() ? "enabled" : "disabled")
                     + "]</gray> " + state + " (" + players + " players)");
         }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeShop(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "Only players can open the shop.");
+            return 0;
+        }
+        if (plugin.getGameManager().getGame(player) == null) {
+            Msg.err(player, "Join a match first.");
+            return 0;
+        }
+        player.openInventory(plugin.getShopService().buildMenu());
         return Command.SINGLE_SUCCESS;
     }
 

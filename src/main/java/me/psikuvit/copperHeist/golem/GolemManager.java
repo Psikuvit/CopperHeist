@@ -228,6 +228,7 @@ public class GolemManager {
     }
 
     public boolean scrape(HeistGolem golem) {
+        if (golem.isWaxed()) return false;
         WeatheringCopperState current = golem.getEntity().getWeatheringState();
         if (current == WeatheringCopperState.UNAFFECTED) return false;
         UUID id = golem.getEntity().getUniqueId();
@@ -245,6 +246,44 @@ public class GolemManager {
 
     public long scrapeCooldownRemaining(UUID golemId) {
         return scrapeCooldowns.remainingSeconds(golemId);
+    }
+
+    /** Freezes a golem's current oxidation stage - no aging, and it can't be scraped - for golems.wax-duration-seconds. */
+    public void wax(HeistGolem golem) {
+        golem.getEntity().setOxidizing(CopperGolem.Oxidizing.waxed());
+        int duration = plugin.getConfig().getInt("golems.wax-duration-seconds", 180);
+        golem.setWaxedUntilMillis(System.currentTimeMillis() + duration * 1000L);
+        updateLabel(golem);
+    }
+
+    /** Un-waxes a golem and resets its aging clock, whether the wax expired naturally or was cleared early (Storm Rod). */
+    public void unwax(HeistGolem golem) {
+        golem.getEntity().setOxidizing(CopperGolem.Oxidizing.unset());
+        golem.setWaxedUntilMillis(0);
+        golem.setStageChangedAtMillis(System.currentTimeMillis());
+        updateLabel(golem);
+    }
+
+    /** Storm Rod: resets every own golem within 8 blocks of the team's dock to Fresh, and zaps every nearby player (doc §5.4). */
+    public void stormReset(Team team) {
+        Arena.TeamSite site = game.getArena().site(team);
+        if (site.golemIdle == null || site.golemIdle.getWorld() == null) return;
+        Location center = site.golemIdle;
+        double radiusSquared = 8.0 * 8.0;
+
+        center.getWorld().strikeLightningEffect(center);
+
+        for (HeistGolem golem : new ArrayList<>(game.getTeam(team).getGolems())) {
+            if (golem.getEntity().getLocation().distanceSquared(center) <= radiusSquared) {
+                golem.getEntity().setWeatheringState(WeatheringCopperState.UNAFFECTED);
+                unwax(golem);
+            }
+        }
+        for (Player player : center.getWorld().getPlayers()) {
+            if (player.getLocation().distanceSquared(center) <= radiusSquared) {
+                player.damage(6.0);
+            }
+        }
     }
 
     public static WeatheringCopperState previousStage(WeatheringCopperState state) {

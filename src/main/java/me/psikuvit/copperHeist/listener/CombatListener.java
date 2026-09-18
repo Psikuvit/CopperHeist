@@ -1,11 +1,17 @@
 package me.psikuvit.copperHeist.listener;
 
+import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
+import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.HeistGolem;
+import me.psikuvit.copperHeist.shop.ShopItem;
+import me.psikuvit.copperHeist.util.Pdc;
+import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -13,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 
 public class CombatListener implements Listener {
 
@@ -74,6 +81,28 @@ public class CombatListener implements Listener {
         event.getDrops().clear();
         Game game = plugin.getGameManager().getGameForGolem(event.getEntity().getUniqueId());
         if (game != null) game.getGolemManager().onDeath(golem);
+    }
+
+    @EventHandler
+    public void onPotionSplash(PotionSplashEvent event) {
+        if (!ShopItem.OXIDIZER_SPLASH.key.equals(Pdc.get(event.getPotion().getItem(), PdcKeys.SHOP_ITEM))) return;
+        if (!(event.getPotion().getShooter() instanceof Player thrower)) return;
+
+        Game game = plugin.getGameManager().getGame(thrower);
+        if (game == null) return;
+        GamePlayer gp = game.getGamePlayer(thrower.getUniqueId());
+        if (gp == null) return;
+
+        for (LivingEntity affected : event.getAffectedEntities()) {
+            if (affected.getType() != EntityType.COPPER_GOLEM) continue;
+            HeistGolem golem = plugin.getGameManager().getGolem(affected.getUniqueId());
+            if (golem == null || golem.getTeam() == gp.getTeam() || golem.isWaxed()) continue;
+
+            WeatheringCopperState next = GolemManager.nextStage(golem.getEntity().getWeatheringState());
+            golem.getEntity().setWeatheringState(next);
+            golem.setStageChangedAtMillis(System.currentTimeMillis());
+            game.getGolemManager().updateLabel(golem);
+        }
     }
 
     private Player resolveAttacker(Entity damager) {

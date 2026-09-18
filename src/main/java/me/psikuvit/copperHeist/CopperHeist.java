@@ -11,7 +11,9 @@ import me.psikuvit.copperHeist.listener.GolemInteractListener;
 import me.psikuvit.copperHeist.listener.LobbyListener;
 import me.psikuvit.copperHeist.listener.LootListener;
 import me.psikuvit.copperHeist.listener.PlayerConnectionListener;
+import me.psikuvit.copperHeist.listener.ShopListener;
 import me.psikuvit.copperHeist.loot.LootWeightService;
+import me.psikuvit.copperHeist.shop.ShopService;
 import me.psikuvit.copperHeist.ui.LobbyKitService;
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.SidebarService;
@@ -27,6 +29,7 @@ public final class CopperHeist extends JavaPlugin {
     private SidebarService sidebarService;
     private LootWeightService lootWeightService;
     private LobbyKitService lobbyKitService;
+    private ShopService shopService;
 
     @Override
     public void onEnable() {
@@ -46,6 +49,8 @@ public final class CopperHeist extends JavaPlugin {
         lootWeightService = new LootWeightService(this);
         lobbyKitService = new LobbyKitService(this);
         lobbyKitService.load();
+        shopService = new ShopService(this);
+        shopService.load();
 
         arenaManager.loadAll();
 
@@ -55,6 +60,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GolemInteractListener(this), this);
         getServer().getPluginManager().registerEvents(new ArenaProtectionListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
+        getServer().getPluginManager().registerEvents(new ShopListener(this), this);
 
         CopperHeistCommand.register(this);
 
@@ -95,5 +101,9 @@ public final class CopperHeist extends JavaPlugin {
 
     public LobbyKitService getLobbyKitService() {
         return lobbyKitService;
+    }
+
+    public ShopService getShopService() {
+        return shopService;
     }
 }
