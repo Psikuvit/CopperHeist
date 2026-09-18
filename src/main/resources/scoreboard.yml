@@ -5,6 +5,7 @@
 #   {arena} {phase} {time} {players} {min_players} {max_players}
 #   {copper_score} {iron_score} {copper_steals} {iron_steals}
 #   {copper_golem_count} {iron_golem_count}
+#   {relic_holder} (player name, or "-") {relic_countdown}
 #
 # Two special lines expand into one line per golem on that team (formatted
 # with golem-line below, which supports {stage} and {carrying}):
@@ -42,8 +43,8 @@ states:
     - "<gray>Starting in <white>{time}"
     - "<white>{players} players"
   running:
-    - "<gray>Phase: <white>{phase}"
     - "<gray>Time: <white>{time}"
+    - "<light_purple>Relic: <white>{relic_holder} <gray>({relic_countdown})"
     - ""
     - "<gold>COPPER VAULT  <white>{copper_score}"
     - "<gray>IRON VAULT  <white>{iron_score}"

@@ -186,7 +186,11 @@ public class GolemManager {
         int value = LootItem.getValue(carried) * carried.getAmount();
         GameTeam gameTeam = game.getTeam(golem.getTeam());
         gameTeam.addScore(value);
-        game.onLootDelivered(golem.getTeam(), value);
+        if (LootItem.isRelic(carried)) {
+            game.onRelicDelivered(golem.getTeam());
+        } else {
+            game.onLootDelivered(golem.getTeam(), value);
+        }
 
         golem.setCarried(null);
         updateLabel(golem);
@@ -265,7 +269,7 @@ public class GolemManager {
         updateLabel(golem);
     }
 
-    /** Storm Rod: resets every own golem within 8 blocks of the team's dock to Fresh, and zaps every nearby player (doc §5.4). */
+    /** Storm Rod: resets every own golem within 8 blocks of the team's dock to Fresh, and zaps every nearby player. */
     public void stormReset(Team team) {
         Arena.TeamSite site = game.getArena().site(team);
         if (site.golemIdle == null || site.golemIdle.getWorld() == null) return;

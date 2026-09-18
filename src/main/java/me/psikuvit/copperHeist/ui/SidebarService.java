@@ -157,13 +157,16 @@ public class SidebarService {
     }
 
     private String substitute(String template, Game game) {
+        var holder = game.getRelicManager().getHolder();
         String result = template
                 .replace("{arena}", game.getArena().getName())
                 .replace("{phase}", game.getState().name())
                 .replace("{time}", formatTime(game.getSecondsRemaining()))
                 .replace("{players}", String.valueOf(game.totalPlayers()))
                 .replace("{min_players}", String.valueOf(plugin.getConfig().getInt("match.min-players", 6)))
-                .replace("{max_players}", String.valueOf(plugin.getConfig().getInt("match.max-players", 16)));
+                .replace("{max_players}", String.valueOf(plugin.getConfig().getInt("match.max-players", 16)))
+                .replace("{relic_holder}", holder != null ? holder.getName() : "-")
+                .replace("{relic_countdown}", formatTime(game.getRelicManager().getSecondsUntilSpawn()));
         for (Team team : Team.values()) {
             GameTeam gameTeam = game.getTeam(team);
             String prefix = team.name().toLowerCase(Locale.ROOT);

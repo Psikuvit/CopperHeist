@@ -27,7 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * The doc §9 shop: browsing (a small GUI) and buying (spending carried loot
+ * The shop: browsing (a small GUI) and buying (spending carried loot
  * value - the same unit LootItem already tags everything with, so there's no
  * separate currency to track). Applying each item's actual effect lives here
  * too, except the two that need to be triggered later by using a held item

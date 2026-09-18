@@ -12,7 +12,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-/** Handles the hub's join compass and the arena waiting room's leave item (doc §12). */
+/** Handles the hub's join compass and the arena waiting room's leave item. */
 public class LobbyListener implements Listener {
 
     private final CopperHeist plugin;

@@ -15,6 +15,10 @@ loot:
   weight-per-10-value: 0.05
   max-slowdown: 0.35
 
+relic:
+  spawn-interval-seconds: 180
+  lost-respawn-seconds: 30
+
 golems:
   starting: 2
   cap: 4

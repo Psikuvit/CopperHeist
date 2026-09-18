@@ -3,6 +3,13 @@ prefix: "<gray>[<gold>Copper Heist</gold>]</gray> "
 
 join: "<green>Joined arena {arena} on the {team} team!"
 
+relic:
+  incoming: "<light_purple>A Relic is surfacing..."
+  spawned: "<light_purple>The Relic has appeared!"
+  picked-up: "<light_purple>{player} picked up the Relic!"
+  lost: "<red>The Relic was lost! It will respawn soon."
+  delivered: "<light_purple>Relic delivered to {team} Vault (+25)!"
+
 actionbar:
   carrying: "<gold>Carrying: {value}/{limit} value  |  Speed -{speed}%"
   carry-limit: "<red>Carrying too much loot! (limit {limit})"

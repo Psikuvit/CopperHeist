@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Carried-loot-value -> movement speed penalty (doc §4.4): every 10 value
+ * Carried-loot-value -> movement speed penalty: every 10 value
  * carried costs 5% speed, capped at -35%.
  */
 public class LootWeightService {

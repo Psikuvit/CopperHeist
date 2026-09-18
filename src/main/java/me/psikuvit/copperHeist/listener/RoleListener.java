@@ -8,7 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
-/** doc §8: "Abilities are triggered with the swap-hand key (F)." */
+/** Abilities are triggered with the swap-hand key (F). */
 public class RoleListener implements Listener {
 
     private final CopperHeist plugin;

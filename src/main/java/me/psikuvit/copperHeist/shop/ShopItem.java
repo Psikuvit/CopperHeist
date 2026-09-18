@@ -13,7 +13,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionType;
 
 /**
- * doc §9's shop table. key matches shop.yml's items.<key> section. Honeycomb
+ * The shop table. key matches shop.yml's items.<key> section. Honeycomb
  * and Oxidizer Splash also get handed out directly by role loadouts
  * (Mechanic, Saboteur), so their item construction lives here as the one
  * shared place rather than being duplicated in both ShopService and

@@ -261,6 +261,10 @@ public final class CopperHeistCommand {
                     arena.getLootPoints().add(player.getLocation());
                     Msg.ok(player, "Added loot point (" + arena.getLootPoints().size() + " total).");
                 }))
+                .then(arenaOnly("addrelic", (player, arena) -> {
+                    arena.getRelicPoints().add(player.getLocation());
+                    Msg.ok(player, "Added relic point (" + arena.getRelicPoints().size() + " total).");
+                }))
                 .then(arenaOnly("setbounds1", (player, arena) -> {
                     arena.setBound1(player.getLocation());
                     Msg.ok(player, "Set corner 1 of arena bounds.");

@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Builds and hands out the items players see outside of a match: the hub's
  * join compass and guide book, and the "leave arena" item shown while
- * waiting in an arena for a match to start (doc §12).
+ * waiting in an arena for a match to start.
  */
 public class LobbyKitService {
 

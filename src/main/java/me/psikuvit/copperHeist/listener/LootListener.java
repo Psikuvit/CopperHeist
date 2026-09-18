@@ -62,6 +62,7 @@ public class LootListener implements Listener {
         }
         LootItem.setLastTeam(item, gp.getTeam());
         game.getRoleService().breakInvisibility(player);
+        if (LootItem.isRelic(item)) game.getRelicManager().onPickedUp(player);
     }
 
     @EventHandler
@@ -73,14 +74,22 @@ public class LootListener implements Listener {
         event.setKeepInventory(true);
         event.getDrops().clear();
 
+        boolean lostRelic = false;
         Iterator<ItemStack> it = player.getInventory().iterator();
         while (it.hasNext()) {
             ItemStack item = it.next();
-            if (item != null && LootItem.isLoot(item)) {
+            if (item == null || !LootItem.isLoot(item)) continue;
+            if (LootItem.isRelic(item)) {
+                // Skipped rather than dropped - a lost relic should respawn
+                // fresh, not sit as a ground item that could fall into the
+                // exact void/lava that "lost" it in the first place.
+                lostRelic = true;
+            } else {
                 event.getDrops().add(item);
-                it.remove();
             }
+            it.remove();
         }
+        if (lostRelic) game.getRelicManager().onLost(player);
     }
 
     @EventHandler
@@ -97,7 +106,7 @@ public class LootListener implements Listener {
 
         // Reapplied a tick late - giving items during the respawn event itself
         // can get clobbered by the client's own respawn handling. This is also
-        // what makes a role change while dead take effect (doc §8: "applies on respawn").
+        // what makes a role change while dead take effect ("applies on respawn").
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (player.isOnline() && plugin.getGameManager().getGame(player) == game) {
                 game.getRoleService().giveLoadout(player, gp.getRole(), gp.getTeam());

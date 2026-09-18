@@ -10,7 +10,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.List;
 
 /**
- * Advances each golem's WeatheringCopperState over time (doc §5.3). Speed
+ * Advances each golem's WeatheringCopperState over time. Speed
  * itself is read live off the entity state by GolemManager#currentSpeed;
  * this task only owns the aging clock and the stage transition.
  */

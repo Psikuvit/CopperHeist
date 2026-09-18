@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Refills the arena's loot points (doc §4.2). Each empty point gets a
+ * Refills the arena's loot points. Each empty point gets a
  * respawn-seconds timer the moment it's noticed empty, rather than a fixed
  * schedule, so picking loot up resets that point's own clock.
  */

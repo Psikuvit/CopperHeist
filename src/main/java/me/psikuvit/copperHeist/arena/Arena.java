@@ -28,6 +28,7 @@ public class Arena {
     private Location bound2;
     private final Map<Team, TeamSite> sites = new EnumMap<>(Team.class);
     private final List<Location> lootPoints = new ArrayList<>();
+    private final List<Location> relicPoints = new ArrayList<>();
 
     public Arena(String name) {
         this.name = name;
@@ -89,6 +90,10 @@ public class Arena {
 
     public List<Location> getLootPoints() {
         return lootPoints;
+    }
+
+    public List<Location> getRelicPoints() {
+        return relicPoints;
     }
 
     public boolean isInBounds(Location loc) {

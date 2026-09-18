@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.OxidationTask;
 import me.psikuvit.copperHeist.loot.LootSpawner;
+import me.psikuvit.copperHeist.relic.RelicManager;
 import me.psikuvit.copperHeist.role.RoleService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -39,6 +40,7 @@ public class Game {
     private final GolemManager golemManager;
     private final LootSpawner lootSpawner;
     private final RoleService roleService;
+    private final RelicManager relicManager;
 
     private final BukkitTask timerTask;
     private final BukkitTask sidebarTask;
@@ -53,6 +55,7 @@ public class Game {
         this.golemManager = new GolemManager(plugin, this);
         this.lootSpawner = new LootSpawner(this);
         this.roleService = new RoleService(plugin, this);
+        this.relicManager = new RelicManager(plugin, this);
 
         World world = arena.getWorld();
         if (world != null) world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
@@ -97,6 +100,10 @@ public class Game {
 
     public RoleService getRoleService() {
         return roleService;
+    }
+
+    public RelicManager getRelicManager() {
+        return relicManager;
     }
 
     public boolean isActive() {
@@ -256,6 +263,7 @@ public class Game {
         }
 
         lootSpawner.start();
+        relicManager.start();
         oxidationTask = new OxidationTask(this).runTaskTimer(plugin, 20L, 20L);
         uiTask = Bukkit.getScheduler().runTaskTimer(plugin, this::uiTick, 10L, 10L);
 
@@ -278,11 +286,16 @@ public class Game {
         broadcast(Component.text(team.displayName() + " delivered " + value + " loot! (" + teams.get(team).getScore() + " total)", team.color()));
     }
 
+    public void onRelicDelivered(Team team) {
+        broadcast(plugin.getMessageService().get("relic.delivered", "team", team.displayName()));
+    }
+
     private void end() {
         if (state == GameState.ENDING || state == GameState.RESETTING) return;
         state = GameState.ENDING;
         secondsRemaining = plugin.getConfig().getInt("match.ending-seconds", 10);
         lootSpawner.stop();
+        relicManager.stop();
         if (oxidationTask != null) oxidationTask.cancel();
         if (uiTask != null) uiTask.cancel();
 

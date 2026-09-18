@@ -111,7 +111,7 @@ public class HeistGolem {
         stunImmuneUntilMillis = stunUntilMillis + immunitySeconds * 1000;
     }
 
-    /** Mechanic's instant recover (doc §8) - clears the stun without granting the usual post-stun immunity window. */
+    /** Mechanic's instant recover - clears the stun without granting the usual post-stun immunity window. */
     public void clearStun() {
         stunUntilMillis = 0;
     }

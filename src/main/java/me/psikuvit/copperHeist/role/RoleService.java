@@ -23,10 +23,10 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Loadouts, passives and active abilities for doc §8's five roles. A few of
- * the doc's perks depend on systems this build doesn't have (base regions,
- * alarms, dock lock-picking) and are adapted or dropped - see the per-role
- * methods below for exactly what changed and why.
+ * Loadouts, passives and active abilities for the five roles. A few of
+ * the original perks depend on systems this build doesn't have (base
+ * regions, alarms, dock lock-picking) and are adapted or dropped - see the
+ * per-role methods below for exactly what changed and why.
  */
 public class RoleService {
 
@@ -69,14 +69,14 @@ public class RoleService {
 
         switch (role) {
             case RUNNER -> {
-                dyeArmor(player, teamColor, Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE,
-                        Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS);
+                dyeArmor(player, teamColor
+                );
                 player.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
                 player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 0, true, false));
             }
             case THIEF -> {
-                dyeArmor(player, teamColor, Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE,
-                        Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS);
+                dyeArmor(player, teamColor
+                );
                 player.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
             }
             case MECHANIC -> {
@@ -94,8 +94,8 @@ public class RoleService {
                 player.getInventory().addItem(new ItemStack(Material.ARROW, 8));
             }
             case SABOTEUR -> {
-                dyeArmor(player, teamColor, Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE,
-                        Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS);
+                dyeArmor(player, teamColor
+                );
                 player.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
                 player.getInventory().addItem(ShopItem.createOxidizerSplash(), ShopItem.createOxidizerSplash());
             }
@@ -108,8 +108,13 @@ public class RoleService {
         player.setFireTicks(0);
     }
 
-    private void dyeArmor(Player player, Color color, Material helmet, Material chest, Material legs, Material boots) {
-        ItemStack[] pieces = {new ItemStack(helmet), new ItemStack(chest), new ItemStack(legs), new ItemStack(boots)};
+    private void dyeArmor(Player player, Color color) {
+        ItemStack[] pieces = {
+                new ItemStack(Material.LEATHER_HELMET),
+                new ItemStack(Material.LEATHER_CHESTPLATE),
+                new ItemStack(Material.LEATHER_LEGGINGS),
+                new ItemStack(Material.LEATHER_BOOTS)
+        };
         for (ItemStack piece : pieces) {
             if (piece.getItemMeta() instanceof LeatherArmorMeta meta) {
                 meta.setColor(color);
@@ -132,7 +137,7 @@ public class RoleService {
         return role == Role.MECHANIC ? 0.5 : 1.0;
     }
 
-    /** Guard's "+20% damage inside own base region" (doc §8) adapted to a radius around the team spawn, since this build has no base-region concept. */
+    /** Guard's "+20% damage inside own base region" adapted to a radius around the team spawn, since this build has no base-region concept. */
     public double damageMultiplier(Player attacker, GamePlayer gp) {
         if (gp.getRole() != Role.GUARD) return 1.0;
         var site = game.getArena().site(gp.getTeam());
@@ -162,7 +167,7 @@ public class RoleService {
         player.sendActionBar(plugin.getMessageService().get("actionbar.thief-invisible"));
     }
 
-    /** Breaks the Thief's invisibility early on attack or loot pickup, per doc §8. */
+    /** Breaks the Thief's invisibility early on attack or loot pickup. */
     public void breakInvisibility(Player player) {
         if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
             player.removePotionEffect(PotionEffectType.INVISIBILITY);

@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -14,7 +15,7 @@ import java.util.random.RandomGenerator;
 /**
  * PDC-tagged loot items, read/written through {@link Pdc}. Tags: loot_value
  * (anti-dupe), loot_id, match_id (prevents loot leaking between matches),
- * last_team (steal tracking).
+ * last_team (steal tracking), loot_tier (which Tier this is).
  */
 public final class LootItem {
 
@@ -22,7 +23,9 @@ public final class LootItem {
         COPPER(Material.COPPER_INGOT, 1, 50),
         GOLD(Material.GOLD_INGOT, 3, 25),
         EMERALD(Material.EMERALD, 5, 15),
-        DIAMOND(Material.DIAMOND, 10, 8);
+        DIAMOND(Material.DIAMOND, 10, 8),
+        /** Timed spawn only - weight 0 keeps it out of randomTier()'s normal loot roll. */
+        RELIC(Material.NETHER_STAR, 25, 0);
 
         public final Material material;
         public final int value;
@@ -43,9 +46,15 @@ public final class LootItem {
         Pdc.set(item, PdcKeys.LOOT_VALUE, tier.value);
         Pdc.set(item, PdcKeys.LOOT_ID, UUID.randomUUID().toString());
         Pdc.set(item, PdcKeys.MATCH_ID, matchId);
+        Pdc.set(item, PdcKeys.LOOT_TIER, tier.name());
 
         var meta = item.getItemMeta();
-        meta.displayName(Component.text(tier.name() + " (" + tier.value + ")", NamedTextColor.YELLOW));
+        if (tier == Tier.RELIC) {
+            meta.displayName(Component.text("Ancient Idol", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD)
+                    .decoration(TextDecoration.ITALIC, false));
+        } else {
+            meta.displayName(Component.text(tier.name() + " (" + tier.value + ")", NamedTextColor.YELLOW));
+        }
         item.setItemMeta(meta);
         return item;
     }
@@ -68,6 +77,20 @@ public final class LootItem {
 
     public static int getValue(ItemStack item) {
         return Pdc.get(item, PdcKeys.LOOT_VALUE, 0);
+    }
+
+    public static Tier getTier(ItemStack item) {
+        String name = Pdc.get(item, PdcKeys.LOOT_TIER);
+        if (name == null) return null;
+        try {
+            return Tier.valueOf(name);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    public static boolean isRelic(ItemStack item) {
+        return getTier(item) == Tier.RELIC;
     }
 
     public static String getMatchId(ItemStack item) {

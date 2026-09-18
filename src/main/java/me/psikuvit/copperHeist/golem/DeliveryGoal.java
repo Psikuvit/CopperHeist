@@ -14,8 +14,8 @@ import java.util.EnumSet;
  * Thin Paper Mob Goal adapter - registered with Bukkit's MobGoals API so the
  * server actually ticks it, but every real decision is delegated to the
  * golem's {@link GolemBrain}. Vanilla goals are removed from match golems
- * (doc §5.2) since the built-in item-sorting AI isn't predictable enough for
- * a competitive corridor.
+ * since the built-in item-sorting AI isn't predictable enough for a
+ * competitive corridor.
  */
 public class DeliveryGoal implements Goal<Mob> {
 

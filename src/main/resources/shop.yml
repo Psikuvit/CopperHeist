@@ -1,7 +1,7 @@
 # Shop item costs, names and lore. Cost is in loot value (the same unit
 # LootItem tags everything with - a copper ingot is worth 1) - paying removes
 # that much value in tagged loot from your inventory, so buying something is
-# a real trade-off against just delivering that loot instead (doc §9).
+# a real trade-off against just delivering that loot instead.
 
 items:
   honeycomb:
