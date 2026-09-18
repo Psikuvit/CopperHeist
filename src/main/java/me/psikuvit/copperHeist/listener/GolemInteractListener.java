@@ -99,6 +99,7 @@ public class GolemInteractListener implements Listener {
         double multiplier = gp == null ? 1.0 : game.getRoleService().scrapeCooldownMultiplier(gp.getRole());
         boolean scraped = game.getGolemManager().scrape(golem, multiplier);
         if (scraped) {
+            if (gp != null) gp.addScrape();
             player.sendActionBar(plugin.getMessageService().get("actionbar.golem-scraped",
                     "before", before.name(), "after", golem.getEntity().getWeatheringState().name()));
         } else {

@@ -10,6 +10,11 @@ relic:
   lost: "<red>The Relic was lost! It will respawn soon."
   delivered: "<light_purple>Relic delivered to {team} Vault (+25)!"
 
+summary:
+  top-thief: "<yellow>Top Thief: <white>{player} <gray>({count} steals)"
+  best-mechanic: "<yellow>Best Mechanic: <white>{player} <gray>({count} scrapes)"
+  most-kills: "<yellow>Most Kills: <white>{player} <gray>({count})"
+
 phase:
   bar: "<gold>{phase} - {time} left"
   setup:

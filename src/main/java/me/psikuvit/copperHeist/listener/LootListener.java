@@ -69,6 +69,12 @@ public class LootListener implements Listener {
         Game game = plugin.getGameManager().getGame(player);
         if (game == null) return;
 
+        Player killer = player.getKiller();
+        if (killer != null) {
+            GamePlayer killerGp = game.getGamePlayer(killer.getUniqueId());
+            if (killerGp != null && game.isActive()) killerGp.addKill();
+        }
+
         event.setKeepInventory(true);
         event.getDrops().clear();
 

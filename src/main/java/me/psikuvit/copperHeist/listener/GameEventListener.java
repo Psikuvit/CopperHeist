@@ -19,6 +19,7 @@ import me.psikuvit.copperHeist.game.Team;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -51,6 +52,8 @@ public class GameEventListener implements Listener {
 
     @EventHandler
     public void onLootStolen(LootStolenEvent event) {
+        GamePlayer thief = event.getGame().getGamePlayer(event.getThief().getUniqueId());
+        if (thief != null) thief.addSteal();
         broadcast(event.getGame(), Component.text(event.getThief().getName() + " stole loot from "
                 + event.getVictimTeam().displayName() + "!", NamedTextColor.YELLOW));
     }
@@ -78,6 +81,7 @@ public class GameEventListener implements Listener {
                         + event.getCopperScore() + " - " + event.getIronScore() + ")", winner.color())
                 : Component.text("DRAW (" + event.getCopperScore() + " - " + event.getIronScore() + ")", NamedTextColor.YELLOW);
         broadcast(event.getGame(), summary);
+        broadcastHighlights(event.getGame());
 
         Component title = winner != null
                 ? Component.text(winner.displayName() + " WINS", winner.color())
@@ -124,6 +128,36 @@ public class GameEventListener implements Listener {
     @EventHandler
     public void onVaultDrillDestroyed(VaultDrillDestroyedEvent event) {
         broadcast(event.getGame(), plugin.getMessageService().get("drill.destroyed", "player", event.getDestroyer().getName()));
+    }
+
+    private void broadcastHighlights(Game game) {
+        GamePlayer topThief = null;
+        GamePlayer topMechanic = null;
+        GamePlayer topKiller = null;
+        for (Player player : game.onlinePlayers()) {
+            GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+            if (gp == null) continue;
+            if (gp.getSteals() > 0 && (topThief == null || gp.getSteals() > topThief.getSteals())) topThief = gp;
+            if (gp.getScrapes() > 0 && (topMechanic == null || gp.getScrapes() > topMechanic.getScrapes())) topMechanic = gp;
+            if (gp.getKills() > 0 && (topKiller == null || gp.getKills() > topKiller.getKills())) topKiller = gp;
+        }
+        if (topThief != null) {
+            broadcast(game, plugin.getMessageService().get("summary.top-thief",
+                    "player", nameOf(topThief), "count", topThief.getSteals()));
+        }
+        if (topMechanic != null) {
+            broadcast(game, plugin.getMessageService().get("summary.best-mechanic",
+                    "player", nameOf(topMechanic), "count", topMechanic.getScrapes()));
+        }
+        if (topKiller != null) {
+            broadcast(game, plugin.getMessageService().get("summary.most-kills",
+                    "player", nameOf(topKiller), "count", topKiller.getKills()));
+        }
+    }
+
+    private String nameOf(GamePlayer gp) {
+        Player player = Bukkit.getPlayer(gp.getUuid());
+        return player != null ? player.getName() : "?";
     }
 
     private void broadcast(Game game, Component message) {

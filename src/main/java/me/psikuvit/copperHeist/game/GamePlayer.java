@@ -17,6 +17,9 @@ public class GamePlayer {
     private Team team;
     private Role role = Role.RUNNER;
     private SavedState savedState;
+    private int steals;
+    private int scrapes;
+    private int kills;
 
     public GamePlayer(UUID uuid, Team team) {
         this.uuid = uuid;
@@ -41,6 +44,30 @@ public class GamePlayer {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public int getSteals() {
+        return steals;
+    }
+
+    public void addSteal() {
+        steals++;
+    }
+
+    public int getScrapes() {
+        return scrapes;
+    }
+
+    public void addScrape() {
+        scrapes++;
+    }
+
+    public int getKills() {
+        return kills;
+    }
+
+    public void addKill() {
+        kills++;
     }
 
     public SavedState getSavedState() {
