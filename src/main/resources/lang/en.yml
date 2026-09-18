@@ -249,3 +249,27 @@ arena:
     shop-warn: "{team} has no shop NPC point (use /ch shop instead)"
     base-warn: "{team} has no base region - alarms, the Guard bonus and /ch shop use a radius around the spawn"
     vault-region-warn: "{team} has no vault region - the sealed-vault option can't be used"
+
+# Display names of the tracked stats (one per stat id).
+stat:
+  games_played: "Games played"
+  wins: "Wins"
+  losses: "Losses"
+  loot_delivered: "Loot delivered"
+  loot_stolen: "Loot stolen"
+  steals: "Steals"
+  relics_delivered: "Relics delivered"
+  kills: "Kills"
+  deaths: "Deaths"
+  golems_scraped: "Golems scraped"
+  drills_completed: "Drills completed"
+  drills_destroyed: "Drills destroyed"
+  mvps: "MVPs"
+
+stats:
+  disabled: "Stats are turned off on this server."
+  loading: "Your stats are still loading - try again in a moment."
+  unknown-player: "No stats found for {player}."
+  header: "<gold>Stats for <white>{player}"
+  line: "<gray>{stat}: <white>{value}"
+  console-needs-player: "Name a player: /ch stats <player>"

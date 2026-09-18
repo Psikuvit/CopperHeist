@@ -22,6 +22,9 @@ public class GamePlayer {
     private int steals;
     private int scrapes;
     private int kills;
+    private int deaths;
+    private int drillsCompleted;
+    private int drillsDestroyed;
     private int delivered;
     private int stolenValue;
     private int relicsDelivered;
@@ -71,6 +74,34 @@ public class GamePlayer {
 
     public void addScrape() {
         scrapes++;
+    }
+
+    public int getDeaths() {
+        return deaths;
+    }
+
+    public void addDeath() {
+        deaths++;
+    }
+
+    public int getDrillsCompleted() {
+        return drillsCompleted;
+    }
+
+    public void addDrillCompleted() {
+        drillsCompleted++;
+    }
+
+    public int getDrillsDestroyed() {
+        return drillsDestroyed;
+    }
+
+    public void addDrillDestroyed() {
+        drillsDestroyed++;
+    }
+
+    public int getRelicsDelivered() {
+        return relicsDelivered;
     }
 
     public int getKills() {

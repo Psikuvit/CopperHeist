@@ -129,6 +129,24 @@ reset:
 vault:
   block-entry: false
 
+# Where player stats are stored. type: sqlite (a local file, no setup) | mysql (shared between servers) | none.
+# A database that cannot be reached only turns stats off; matches keep working.
+database:
+  type: sqlite
+  sqlite:
+    file: data.db                   # inside the plugin folder
+  mysql:
+    host: localhost
+    port: 3306
+    database: copperheist
+    user: root
+    password: ""
+    use-ssl: false
+
+stats:
+  enabled: true
+  flush-seconds: 30                 # how often pending numbers are written to the database
+
 # Language files live in plugins/CopperHeist/lang/. per-player shows each player their own client language
 # when a file for it exists; anything a translation lacks falls back to English.
 language:

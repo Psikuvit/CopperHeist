@@ -79,7 +79,7 @@ public class VaultDrillManager {
         return until != null && System.currentTimeMillis() < until;
     }
 
-    public VaultDrill place(Team attackerTeam) {
+    public VaultDrill place(Team attackerTeam, UUID placer) {
         Team defenderTeam = attackerTeam.opposite();
         if (isActive(defenderTeam) || cooldownRemainingSeconds(attackerTeam) > 0) return null;
 
@@ -104,7 +104,7 @@ public class VaultDrillManager {
         plugin.getGameManager().registerHeistEntity(game, hitbox.getUniqueId());
 
         double maxHealth = plugin.settings().getDouble("drill.health", 40.0);
-        VaultDrill drill = new VaultDrill(attackerTeam, defenderTeam, display, label, hitbox, maxHealth);
+        VaultDrill drill = new VaultDrill(attackerTeam, defenderTeam, display, label, hitbox, maxHealth, placer);
         activeDrills.put(defenderTeam, drill);
         updateVisuals(drill);
 
@@ -171,6 +171,9 @@ public class VaultDrillManager {
         int cooldownSeconds = plugin.settings().getInt("drill.cooldown-seconds", 90);
         cooldownExpiryMillis.put(drill.getAttacker(), System.currentTimeMillis() + cooldownSeconds * 1000L);
 
+        GamePlayer placerGp = game.getGamePlayer(drill.getPlacer());
+        if (placerGp != null) placerGp.addDrillCompleted();
+
         Bukkit.getPluginManager().callEvent(new VaultDrillCompletedEvent(game, drill, breachSeconds));
     }
 
@@ -178,6 +181,8 @@ public class VaultDrillManager {
         activeDrills.remove(drill.getDefender());
         removeVisuals(drill);
         hideBossBar(drill.getDefender());
+        GamePlayer destroyerGp = game.getGamePlayer(destroyer.getUniqueId());
+        if (destroyerGp != null) destroyerGp.addDrillDestroyed();
         Bukkit.getPluginManager().callEvent(new VaultDrillDestroyedEvent(game, drill, destroyer));
     }
 

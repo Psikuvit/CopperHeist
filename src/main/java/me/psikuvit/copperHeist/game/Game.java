@@ -43,6 +43,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -206,6 +207,15 @@ public class Game {
 
     public int totalPlayers() {
         return players.size();
+    }
+
+    /** Everyone in the match, including players who are offline right now - used to settle stats at match end. */
+    public Collection<GamePlayer> gamePlayers() {
+        return new ArrayList<>(players.values());
+    }
+
+    public int elapsedSeconds() {
+        return Math.max(0, matchDurationSeconds - secondsRemaining);
     }
 
     // ---- join/leave ----

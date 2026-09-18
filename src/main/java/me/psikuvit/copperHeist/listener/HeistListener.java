@@ -118,7 +118,7 @@ public class HeistListener implements Listener {
             return;
         }
 
-        VaultDrill drill = game.getVaultDrillManager().place(attackerTeam);
+        VaultDrill drill = game.getVaultDrillManager().place(attackerTeam, player.getUniqueId());
         if (drill == null) return;
         item.setAmount(item.getAmount() - 1);
     }

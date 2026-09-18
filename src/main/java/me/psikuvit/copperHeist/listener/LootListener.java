@@ -80,6 +80,7 @@ public class LootListener implements Listener {
 
         Player killer = player.getKiller();
         GamePlayer victimGp = game.getGamePlayer(player.getUniqueId());
+        if (victimGp != null && game.isActive()) victimGp.addDeath();
         if (killer == null && victimGp != null) {
             UUID recent = victimGp.recentAttacker(10);
             if (recent != null) killer = Bukkit.getPlayer(recent);

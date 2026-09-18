@@ -5,6 +5,8 @@ import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.TextDisplay;
 
+import java.util.UUID;
+
 /**
  * One active vault breach attempt: {@code attacker} placed it on
  * {@code defender}'s vault door. Progress only advances while an attacker is
@@ -19,12 +21,14 @@ public class VaultDrill {
     private final TextDisplay progressLabel;
     private final Interaction hitbox;
     private final double maxHealth;
+    private final UUID placer;
 
     private double health;
     private double progressSeconds;
 
     public VaultDrill(Team attacker, Team defender, BlockDisplay display, TextDisplay progressLabel,
-                       Interaction hitbox, double maxHealth) {
+                       Interaction hitbox, double maxHealth, UUID placer) {
+        this.placer = placer;
         this.attacker = attacker;
         this.defender = defender;
         this.display = display;
@@ -32,6 +36,11 @@ public class VaultDrill {
         this.hitbox = hitbox;
         this.maxHealth = maxHealth;
         this.health = maxHealth;
+    }
+
+    /** The player who set the drill up - credited when it finishes. */
+    public UUID getPlacer() {
+        return placer;
     }
 
     public Team getAttacker() {

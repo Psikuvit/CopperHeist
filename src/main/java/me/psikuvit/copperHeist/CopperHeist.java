@@ -6,7 +6,11 @@ import me.psikuvit.copperHeist.command.CopperHeistCommand;
 import me.psikuvit.copperHeist.command.Msg;
 import me.psikuvit.copperHeist.config.ConfigMigrator;
 import me.psikuvit.copperHeist.config.Settings;
+import me.psikuvit.copperHeist.database.Database;
+import me.psikuvit.copperHeist.database.MysqlDatabase;
+import me.psikuvit.copperHeist.database.SqliteDatabase;
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.listener.StatsListener;
 import me.psikuvit.copperHeist.role.RoleRegistry;
 import me.psikuvit.copperHeist.role.ability.AbilityRegistry;
 import me.psikuvit.copperHeist.game.GameManager;
@@ -28,12 +32,18 @@ import me.psikuvit.copperHeist.provider.Providers;
 import me.psikuvit.copperHeist.loot.LootTierRegistry;
 import me.psikuvit.copperHeist.loot.LootWeightService;
 import me.psikuvit.copperHeist.shop.ShopService;
+import me.psikuvit.copperHeist.stats.StatsRepository;
+import me.psikuvit.copperHeist.stats.StatsService;
 import me.psikuvit.copperHeist.shop.action.ShopActionRegistry;
 import me.psikuvit.copperHeist.ui.LobbyKitService;
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.SidebarService;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.sql.SQLException;
+import java.util.logging.Level;
 
 public final class CopperHeist extends JavaPlugin {
 
@@ -51,6 +61,7 @@ public final class CopperHeist extends JavaPlugin {
     private AbilityRegistry abilityRegistry;
     private ShopActionRegistry shopActions;
     private Providers providers;
+    private StatsService statsService;
 
     @Override
     public void onEnable() {
@@ -84,6 +95,7 @@ public final class CopperHeist extends JavaPlugin {
         abilityRegistry = new AbilityRegistry();
         roleRegistry = new RoleRegistry(this);
         roleRegistry.load();
+        startStats();
 
         arenaManager.loadAll();
         arenaManager.all().forEach(arena -> providers.reset().resolve(settings.getString("reset.method", "entities")).reset(arena));
@@ -100,6 +112,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new HeistListener(this), this);
         getServer().getPluginManager().registerEvents(new GustPadListener(this), this);
         getServer().getPluginManager().registerEvents(new VaultRegionListener(this), this);
+        getServer().getPluginManager().registerEvents(new StatsListener(this), this);
 
         CopperHeistCommand.register(this);
 
@@ -108,8 +121,50 @@ public final class CopperHeist extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (gameManager == null) return;
-        gameManager.shutdownAll();
+        if (gameManager != null) gameManager.shutdownAll();
+        if (statsService != null) statsService.shutdown();
+    }
+
+    /** Opens the player-data database and starts the stats service; a failure only disables stats, never the plugin. */
+    private void startStats() {
+        String type = settings.getString("database.type", "sqlite");
+        if (!settings.getBoolean("stats.enabled", true) || "none".equalsIgnoreCase(type)) {
+            getLogger().info("Stats are disabled (stats.enabled / database.type).");
+            return;
+        }
+        Database database = openDatabase(type);
+        if (database == null) {
+            getLogger().warning("Unknown database.type '" + type + "' (use sqlite, mysql or none) - stats are off.");
+            return;
+        }
+        try {
+            database.createTables();
+        } catch (SQLException ex) {
+            getLogger().log(Level.SEVERE, "Could not open the " + type + " database - stats and leaderboards are off. "
+                    + "Check the database section of config.yml.", ex);
+            return;
+        }
+        statsService = new StatsService(this, new StatsRepository(database));
+        statsService.start();
+        getLogger().info("Player stats connected (" + type.toLowerCase() + ").");
+    }
+
+    private Database openDatabase(String type) {
+        if ("sqlite".equalsIgnoreCase(type)) {
+            return new SqliteDatabase(new File(getDataFolder(), settings.getString("database.sqlite.file", "data.db")));
+        }
+        if ("mysql".equalsIgnoreCase(type)) {
+            return new MysqlDatabase(settings.getString("database.mysql.host", "localhost"),
+                    settings.getInt("database.mysql.port", 3306), settings.getString("database.mysql.database", "copperheist"),
+                    settings.getString("database.mysql.user", "root"), settings.getString("database.mysql.password", ""),
+                    settings.getBoolean("database.mysql.use-ssl", false));
+        }
+        return null;
+    }
+
+    /** The stats service, or null if stats are disabled or the database couldn't be opened. */
+    public StatsService getStats() {
+        return statsService;
     }
 
     /** Live, layered view of config.yml - prefer this over getConfig() so overrides and presets apply. */

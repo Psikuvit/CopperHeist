@@ -21,6 +21,9 @@ import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootTierDefinition;
 import me.psikuvit.copperHeist.role.RoleDefinition;
+import me.psikuvit.copperHeist.stats.PlayerStats;
+import me.psikuvit.copperHeist.stats.Stat;
+import me.psikuvit.copperHeist.stats.StatsService;
 import me.psikuvit.copperHeist.ui.Text;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
@@ -39,7 +42,8 @@ import static io.papermc.paper.command.brigadier.Commands.literal;
 /** The /ch command tree. Every message it sends is a lang key resolved in the sender's language. */
 public final class CopperHeistCommand {
 
-    private static final String ADMIN_ARENA = "copperheist.admin.arena";
+    private static final String STATS = "copperheist.stats";
+    private static final String ADMIN_ARENA ="copperheist.admin.arena";
     private static final String ADMIN_DEBUG = "copperheist.admin.debug";
     private static final String ADMIN_RELOAD = "copperheist.admin.reload";
 
@@ -89,6 +93,11 @@ public final class CopperHeistCommand {
                     .then(literal("leave").executes(commands::executeLeave))
                     .then(literal("list").executes(commands::executeList))
                     .then(literal("shop").executes(commands::executeShop))
+                    .then(literal("stats")
+                            .requires(src -> src.getSender().hasPermission(STATS))
+                            .executes(commands::executeStats)
+                            .then(argument("player", StringArgumentType.word())
+                                    .executes(commands::executeStats)))
                     .then(literal("role")
                             .executes(commands::executeRoleMenu)
                             .then(argument("role", StringArgumentType.word())
@@ -183,6 +192,46 @@ public final class CopperHeistCommand {
                     "state", state, "players", players);
         }
         return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeStats(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        StatsService stats = plugin.getStats();
+        if (stats == null) {
+            Msg.err(sender, "stats.disabled");
+            return 0;
+        }
+        String requested = optionalString(ctx, "player");
+        if (requested == null) {
+            if (!(sender instanceof Player self)) {
+                Msg.err(sender, "stats.console-needs-player");
+                return 0;
+            }
+            if (!stats.isLoaded(self.getUniqueId())) {
+                Msg.err(sender, "stats.loading");
+                return 0;
+            }
+            sendStats(sender, stats.snapshot(self.getUniqueId(), self.getName()));
+            return Command.SINGLE_SUCCESS;
+        }
+
+        Player online = plugin.getServer().getPlayerExact(requested);
+        if (online != null && stats.isLoaded(online.getUniqueId())) {
+            sendStats(sender, stats.snapshot(online.getUniqueId(), online.getName()));
+            return Command.SINGLE_SUCCESS;
+        }
+        stats.repository().findByName(requested).whenComplete((found, error) -> {
+            if (error != null || found == null) Msg.err(sender, "stats.unknown-player", "player", requested);
+            else sendStats(sender, found);
+        });
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private void sendStats(CommandSender sender, PlayerStats stats) {
+        Msg.info(sender, "stats.header", "player", stats.name());
+        for (Stat stat : Stat.values()) {
+            Msg.info(sender, "stats.line", "stat", Msg.word(sender, stat.langKey()), "value", stats.get(stat));
+        }
     }
 
     private int executeRole(CommandContext<CommandSourceStack> ctx) {
