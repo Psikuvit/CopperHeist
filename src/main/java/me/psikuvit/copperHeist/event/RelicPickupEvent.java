@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.event;
 import me.psikuvit.copperHeist.game.Game;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.jspecify.annotations.NonNull;
 
 /** Fired when a player picks up the Relic off the ground. */
 public class RelicPickupEvent extends GameEvent {
@@ -21,7 +22,7 @@ public class RelicPickupEvent extends GameEvent {
     }
 
     @Override
-    public HandlerList getHandlers() {
+    public @NonNull HandlerList getHandlers() {
         return HANDLERS;
     }
 

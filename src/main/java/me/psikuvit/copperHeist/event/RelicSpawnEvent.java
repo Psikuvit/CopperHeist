@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.event;
 import me.psikuvit.copperHeist.game.Game;
 import org.bukkit.Location;
 import org.bukkit.event.HandlerList;
+import org.jspecify.annotations.NonNull;
 
 /** Fired when the Relic appears on the ground at one of the arena's relic points. */
 public class RelicSpawnEvent extends GameEvent {
@@ -21,7 +22,7 @@ public class RelicSpawnEvent extends GameEvent {
     }
 
     @Override
-    public HandlerList getHandlers() {
+    public @NonNull HandlerList getHandlers() {
         return HANDLERS;
     }
 

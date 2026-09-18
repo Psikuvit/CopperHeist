@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.event;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.Team;
 import org.bukkit.event.HandlerList;
+import org.jspecify.annotations.NonNull;
 
 /** Fired once, when a match's timer runs out or it's force-stopped. winner is null on a tie. */
 public class MatchEndEvent extends GameEvent {
@@ -33,7 +34,7 @@ public class MatchEndEvent extends GameEvent {
     }
 
     @Override
-    public HandlerList getHandlers() {
+    public @NonNull HandlerList getHandlers() {
         return HANDLERS;
     }
 

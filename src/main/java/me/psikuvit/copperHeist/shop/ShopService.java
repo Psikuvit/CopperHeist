@@ -99,6 +99,8 @@ public class ShopService {
             case OXIDIZER_SPLASH -> player.getInventory().addItem(ShopItem.createOxidizerSplash());
             case NEW_GOLEM -> game.getGolemManager().spawnOne(gp.getTeam());
             case STORM_ROD -> giveTaggedItem(player, item, "<gold>Storm Rod");
+            case ALARM -> giveTaggedItem(player, item, "<gold>Alarm");
+            case VAULT_DRILL -> giveTaggedItem(player, item, "<gold>Vault Drill");
         }
         player.sendActionBar(plugin.getMessageService().get("actionbar.purchased", "item", config.getString("items." + item.key + ".name", item.key)));
     }

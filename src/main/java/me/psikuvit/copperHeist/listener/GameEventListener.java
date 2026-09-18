@@ -1,13 +1,19 @@
 package me.psikuvit.copperHeist.listener;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.event.AlarmDestroyedEvent;
+import me.psikuvit.copperHeist.event.AlarmTriggeredEvent;
 import me.psikuvit.copperHeist.event.LootDeliveredEvent;
 import me.psikuvit.copperHeist.event.LootStolenEvent;
 import me.psikuvit.copperHeist.event.MatchEndEvent;
 import me.psikuvit.copperHeist.event.RelicLostEvent;
 import me.psikuvit.copperHeist.event.RelicPickupEvent;
 import me.psikuvit.copperHeist.event.RelicSpawnEvent;
+import me.psikuvit.copperHeist.event.VaultDrillCompletedEvent;
+import me.psikuvit.copperHeist.event.VaultDrillDestroyedEvent;
+import me.psikuvit.copperHeist.event.VaultDrillPlacedEvent;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -81,7 +87,41 @@ public class GameEventListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onAlarmTriggered(AlarmTriggeredEvent event) {
+        broadcastTeam(event.getGame(), event.getAlarm().getTeam(), plugin.getMessageService().get("alarm.triggered"));
+    }
+
+    @EventHandler
+    public void onAlarmDestroyed(AlarmDestroyedEvent event) {
+        broadcast(event.getGame(), plugin.getMessageService().get("alarm.destroyed", "player", event.getDestroyer().getName()));
+    }
+
+    @EventHandler
+    public void onVaultDrillPlaced(VaultDrillPlacedEvent event) {
+        broadcast(event.getGame(), plugin.getMessageService().get("drill.placed",
+                "team", event.getDrill().getAttacker().displayName(), "target", event.getDrill().getDefender().displayName()));
+    }
+
+    @EventHandler
+    public void onVaultDrillCompleted(VaultDrillCompletedEvent event) {
+        broadcast(event.getGame(), plugin.getMessageService().get("drill.completed",
+                "target", event.getDrill().getDefender().displayName(), "seconds", event.getBreachSeconds()));
+    }
+
+    @EventHandler
+    public void onVaultDrillDestroyed(VaultDrillDestroyedEvent event) {
+        broadcast(event.getGame(), plugin.getMessageService().get("drill.destroyed", "player", event.getDestroyer().getName()));
+    }
+
     private void broadcast(Game game, Component message) {
         for (Player player : game.onlinePlayers()) player.sendMessage(message);
+    }
+
+    private void broadcastTeam(Game game, Team team, Component message) {
+        for (Player player : game.onlinePlayers()) {
+            GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+            if (gp != null && gp.getTeam() == team) player.sendMessage(message);
+        }
     }
 }

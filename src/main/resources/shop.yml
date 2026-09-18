@@ -40,3 +40,17 @@ items:
       - "<gray>Resets your golems near the"
       - "<gray>dock to Fresh. Zaps anyone"
       - "<gray>nearby, allies included."
+  alarm:
+    cost: 5
+    name: "<gold>Alarm"
+    lore:
+      - "<gray>Right-click a block near your"
+      - "<gray>spawn to place it. Alerts your"
+      - "<gray>team when an enemy walks by."
+  vault_drill:
+    cost: 20
+    name: "<gold>Vault Drill"
+    lore:
+      - "<gray>Right-click the enemy vault"
+      - "<gray>door to start a breach."
+      - "<gray>Defenders can break it."

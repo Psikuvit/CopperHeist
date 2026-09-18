@@ -1,24 +1,24 @@
 package me.psikuvit.copperHeist.event;
 
 import me.psikuvit.copperHeist.game.Game;
-import org.bukkit.entity.Player;
+import me.psikuvit.copperHeist.heist.VaultDrill;
 import org.bukkit.event.HandlerList;
 import org.jspecify.annotations.NonNull;
 
-/** Fired when the Relic's holder dies carrying it - it skips the usual ground-drop and respawns fresh instead. */
-public class RelicLostEvent extends GameEvent {
+/** Fired when a Vault Drill is placed on an enemy vault door. */
+public class VaultDrillPlacedEvent extends GameEvent {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final Player holder;
+    private final VaultDrill drill;
 
-    public RelicLostEvent(Game game, Player holder) {
+    public VaultDrillPlacedEvent(Game game, VaultDrill drill) {
         super(game);
-        this.holder = holder;
+        this.drill = drill;
     }
 
-    public Player getHolder() {
-        return holder;
+    public VaultDrill getDrill() {
+        return drill;
     }
 
     @Override

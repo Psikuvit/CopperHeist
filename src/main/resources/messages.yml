@@ -10,6 +10,22 @@ relic:
   lost: "<red>The Relic was lost! It will respawn soon."
   delivered: "<light_purple>Relic delivered to {team} Vault (+25)!"
 
+alarm:
+  placed: "<green>Alarm placed ({count}/{cap})."
+  cap-reached: "<red>Your team already has the max number of alarms."
+  too-far: "<red>Alarms must be placed near your own spawn."
+  triggered: "<red>ALARM! An intruder was detected!"
+  destroyed: "<yellow>{player} destroyed an enemy alarm!"
+
+drill:
+  no-door: "<red>This arena has no vault door set for that team."
+  already-active: "<red>A drill is already breaching that vault."
+  on-cooldown: "<red>Vault Drill on cooldown ({seconds}s)."
+  placed: "<gold>{team} placed a Vault Drill on the {target} Vault!"
+  completed: "<gold>The {target} Vault has been breached! Attackers have {seconds}s to loot it."
+  destroyed: "<green>{player} destroyed the Vault Drill!"
+  progress: "<gold>DRILL on {target} VAULT - {percent}%"
+
 actionbar:
   carrying: "<gold>Carrying: {value}/{limit} value  |  Speed -{speed}%"
   carry-limit: "<red>Carrying too much loot! (limit {limit})"

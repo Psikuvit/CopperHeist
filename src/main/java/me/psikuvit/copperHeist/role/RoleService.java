@@ -25,8 +25,10 @@ import java.util.UUID;
 /**
  * Loadouts, passives and active abilities for the five roles. A few of
  * the original perks depend on systems this build doesn't have (base
- * regions, alarms, dock lock-picking) and are adapted or dropped - see the
- * per-role methods below for exactly what changed and why.
+ * regions, dock lock-picking) and are adapted or dropped - see the
+ * per-role methods below for exactly what changed and why. Guard's "+1
+ * alarm" is real (see {@link me.psikuvit.copperHeist.heist.AlarmManager#capFor}),
+ * counted directly off this team's Guards rather than tracked here.
  */
 public class RoleService {
 

@@ -17,6 +17,7 @@ public class GameManager {
     private final Map<UUID, String> playerArena = new HashMap<>();
     private final Map<UUID, HeistGolem> golemRegistry = new HashMap<>();
     private final Map<UUID, Game> golemOwner = new HashMap<>();
+    private final Map<UUID, Game> heistEntityOwner = new HashMap<>();
 
     public GameManager(CopperHeist plugin) {
         this.plugin = plugin;
@@ -97,5 +98,18 @@ public class GameManager {
 
     public Game getGameForGolem(UUID entityId) {
         return golemOwner.get(entityId);
+    }
+
+    /** Shared registry for alarm/drill Interaction hitboxes - looked up by entity id, resolved further by the owning game's manager. */
+    public void registerHeistEntity(Game owner, UUID entityId) {
+        heistEntityOwner.put(entityId, owner);
+    }
+
+    public void unregisterHeistEntity(UUID entityId) {
+        heistEntityOwner.remove(entityId);
+    }
+
+    public Game getGameForHeistEntity(UUID entityId) {
+        return heistEntityOwner.get(entityId);
     }
 }

@@ -18,6 +18,7 @@ public class Arena {
         public final List<Location> vaultChests = new ArrayList<>();
         public Location golemIdle;
         public final List<Location> waypoints = new ArrayList<>();
+        public Location vaultDoor;
     }
 
     private final String name;
@@ -123,6 +124,7 @@ public class Arena {
             if (site.vaultChests.isEmpty()) issues.add(label + " team has no vault chests");
             if (site.golemIdle == null) issues.add(label + " team has no golem idle point");
             if (site.waypoints.isEmpty()) issues.add(label + " team has no waypoints");
+            if (site.vaultDoor == null) issues.add(label + " team has no vault door (Vault Drill breaches won't work)");
         }
         return issues;
     }

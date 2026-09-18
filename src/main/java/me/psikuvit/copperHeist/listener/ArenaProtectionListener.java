@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.listener;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import net.kyori.adventure.text.Component;
@@ -55,9 +56,13 @@ public class ArenaProtectionListener implements Listener {
         if (game == null) return;
         Arena arena = game.getArena();
         var loc = chest.getLocation();
-        boolean isVault = arena.site(Team.COPPER).vaultChests.contains(loc)
-                || arena.site(Team.IRON).vaultChests.contains(loc);
-        if (isVault) {
+        Team vaultTeam = arena.site(Team.COPPER).vaultChests.contains(loc) ? Team.COPPER
+                : arena.site(Team.IRON).vaultChests.contains(loc) ? Team.IRON : null;
+        if (vaultTeam == null) return;
+
+        GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+        boolean breachingAttacker = gp != null && gp.getTeam() != vaultTeam && game.getVaultDrillManager().isBreached(vaultTeam);
+        if (!breachingAttacker) {
             event.setCancelled(true);
             player.sendMessage(Component.text("Only golems can deliver loot into the vault.", NamedTextColor.RED));
         }

@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 /** Fired when a golem deposits a stack into its team's vault. */
 public class LootDeliveredEvent extends GameEvent {
@@ -39,7 +40,7 @@ public class LootDeliveredEvent extends GameEvent {
     }
 
     @Override
-    public HandlerList getHandlers() {
+    public @NonNull HandlerList getHandlers() {
         return HANDLERS;
     }
 

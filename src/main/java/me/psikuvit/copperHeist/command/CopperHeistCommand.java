@@ -248,6 +248,15 @@ public final class CopperHeistCommand {
                     arena.site(team).vaultChests.add(loc);
                     Msg.ok(player, "Added " + team.displayName() + " vault chest (" + arena.site(team).vaultChests.size() + " total).");
                 }))
+                .then(arenaTeam("setvaultdoor", (player, arena, team) -> {
+                    Location loc = targetedBlock(player);
+                    if (loc == null) {
+                        Msg.err(player, "Look directly at the vault door block to mark it.");
+                        return;
+                    }
+                    arena.site(team).vaultDoor = loc;
+                    Msg.ok(player, "Set " + team.displayName() + " vault door for " + arena.getName() + ".");
+                }))
                 .then(arenaTeam("setgolemidle", (player, arena, team) -> {
                     arena.site(team).golemIdle = player.getLocation();
                     Msg.ok(player, "Set " + team.displayName() + " golem idle point.");
@@ -384,6 +393,12 @@ public final class CopperHeistCommand {
         RayTraceResult result = player.rayTraceBlocks(6);
         if (result == null || result.getHitBlock() == null) return null;
         if (!(result.getHitBlock().getState() instanceof Chest)) return null;
+        return result.getHitBlock().getLocation();
+    }
+
+    private Location targetedBlock(Player player) {
+        RayTraceResult result = player.rayTraceBlocks(6);
+        if (result == null || result.getHitBlock() == null) return null;
         return result.getHitBlock().getLocation();
     }
 

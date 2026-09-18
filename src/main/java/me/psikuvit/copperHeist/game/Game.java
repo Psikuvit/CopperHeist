@@ -5,6 +5,8 @@ import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.event.MatchEndEvent;
 import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.OxidationTask;
+import me.psikuvit.copperHeist.heist.AlarmManager;
+import me.psikuvit.copperHeist.heist.VaultDrillManager;
 import me.psikuvit.copperHeist.loot.LootSpawner;
 import me.psikuvit.copperHeist.relic.RelicManager;
 import me.psikuvit.copperHeist.role.RoleService;
@@ -42,6 +44,8 @@ public class Game {
     private final LootSpawner lootSpawner;
     private final RoleService roleService;
     private final RelicManager relicManager;
+    private final AlarmManager alarmManager;
+    private final VaultDrillManager vaultDrillManager;
 
     private final BukkitTask timerTask;
     private final BukkitTask sidebarTask;
@@ -57,6 +61,8 @@ public class Game {
         this.lootSpawner = new LootSpawner(this);
         this.roleService = new RoleService(plugin, this);
         this.relicManager = new RelicManager(plugin, this);
+        this.alarmManager = new AlarmManager(plugin, this);
+        this.vaultDrillManager = new VaultDrillManager(plugin, this);
 
         World world = arena.getWorld();
         if (world != null) world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
@@ -105,6 +111,14 @@ public class Game {
 
     public RelicManager getRelicManager() {
         return relicManager;
+    }
+
+    public AlarmManager getAlarmManager() {
+        return alarmManager;
+    }
+
+    public VaultDrillManager getVaultDrillManager() {
+        return vaultDrillManager;
     }
 
     public boolean isActive() {
@@ -265,6 +279,8 @@ public class Game {
 
         lootSpawner.start();
         relicManager.start();
+        alarmManager.start();
+        vaultDrillManager.start();
         oxidationTask = new OxidationTask(this).runTaskTimer(plugin, 20L, 20L);
         uiTask = Bukkit.getScheduler().runTaskTimer(plugin, this::uiTick, 10L, 10L);
 
@@ -289,6 +305,8 @@ public class Game {
         secondsRemaining = plugin.getConfig().getInt("match.ending-seconds", 10);
         lootSpawner.stop();
         relicManager.stop();
+        alarmManager.stop();
+        vaultDrillManager.stop();
         if (oxidationTask != null) oxidationTask.cancel();
         if (uiTask != null) uiTask.cancel();
 

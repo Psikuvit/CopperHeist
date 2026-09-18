@@ -70,6 +70,7 @@ public class ArenaManager {
             String base = "teams." + team.name().toLowerCase();
             if (site.spawn != null) yaml.set(base + ".spawn", LocationUtil.serialize(site.spawn));
             if (site.golemIdle != null) yaml.set(base + ".golem-idle", LocationUtil.serialize(site.golemIdle));
+            if (site.vaultDoor != null) yaml.set(base + ".vault-door", LocationUtil.serialize(site.vaultDoor));
             yaml.set(base + ".dock-chests", LocationUtil.serializeList(site.dockChests));
             yaml.set(base + ".vault-chests", LocationUtil.serializeList(site.vaultChests));
             yaml.set(base + ".waypoints", LocationUtil.serializeList(site.waypoints));
@@ -98,6 +99,7 @@ public class ArenaManager {
             String base = "teams." + team.name().toLowerCase();
             if (yaml.contains(base + ".spawn")) site.spawn = LocationUtil.deserialize(world, yaml.getList(base + ".spawn"));
             if (yaml.contains(base + ".golem-idle")) site.golemIdle = LocationUtil.deserialize(world, yaml.getList(base + ".golem-idle"));
+            if (yaml.contains(base + ".vault-door")) site.vaultDoor = LocationUtil.deserialize(world, yaml.getList(base + ".vault-door"));
             site.dockChests.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".dock-chests")));
             site.vaultChests.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".vault-chests")));
             site.waypoints.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".waypoints")));

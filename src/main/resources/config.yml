@@ -36,3 +36,18 @@ golems:
   stun-seconds: 3
   stun-immunity-seconds: 5
   auto-respawn-seconds: 60
+
+alarms:
+  base-per-team: 4
+  placement-radius: 20
+  trigger-radius: 4
+  cooldown-seconds: 8
+  intruder-glow-seconds: 3
+
+drill:
+  health: 40.0
+  hit-damage: 5.0
+  duration-seconds: 30
+  attacker-radius: 6
+  breach-open-seconds: 20
+  cooldown-seconds: 90

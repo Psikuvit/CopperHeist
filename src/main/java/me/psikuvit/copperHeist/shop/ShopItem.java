@@ -26,7 +26,9 @@ public enum ShopItem {
     HEALING_POTION("healing_potion", Material.POTION),
     OXIDIZER_SPLASH("oxidizer_splash", Material.SPLASH_POTION),
     NEW_GOLEM("new_golem", Material.COPPER_INGOT),
-    STORM_ROD("storm_rod", Material.BLAZE_ROD);
+    STORM_ROD("storm_rod", Material.BLAZE_ROD),
+    ALARM("alarm", Material.TRIPWIRE_HOOK),
+    VAULT_DRILL("vault_drill", Material.IRON_PICKAXE);
 
     public final String key;
     public final Material material;
