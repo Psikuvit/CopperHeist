@@ -1,8 +1,10 @@
-package me.psikuvit.copperHeist.golem;
+package me.psikuvit.copperHeist.task;
 
 import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GameState;
+import me.psikuvit.copperHeist.golem.GolemManager;
+import me.psikuvit.copperHeist.golem.HeistGolem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;

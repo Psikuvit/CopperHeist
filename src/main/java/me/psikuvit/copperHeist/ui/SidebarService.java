@@ -7,6 +7,7 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.golem.HeistGolem;
+import me.psikuvit.copperHeist.task.HubSidebarTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -57,7 +58,7 @@ public class SidebarService {
     /** Refreshes the hub board for every online player not currently in a match. */
     public void startHub() {
         if (hubTask != null) hubTask.cancel();
-        hubTask = Bukkit.getScheduler().runTaskTimer(plugin, this::updateHub, 20L, 20L);
+        hubTask = new HubSidebarTask(this).runTaskTimer(plugin, 20L, 20L);
     }
 
     public void stopHub() {
@@ -70,7 +71,7 @@ public class SidebarService {
         render(player, buildHubContext());
     }
 
-    private void updateHub() {
+    public void updateHub() {
         ScoreboardContext context = buildHubContext();
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (plugin.getGameManager().getGame(player) != null) continue;

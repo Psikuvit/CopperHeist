@@ -6,6 +6,7 @@ import me.psikuvit.copperHeist.event.RelicPickupEvent;
 import me.psikuvit.copperHeist.event.RelicSpawnEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.task.RelicSpawnTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
@@ -48,7 +49,7 @@ public class RelicManager {
     public void start() {
         secondsUntilSpawn = plugin.getConfig().getInt("relic.spawn-interval-seconds", 180);
         warned = false;
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+        task = new RelicSpawnTask(this).runTaskTimer(plugin, 20L, 20L);
     }
 
     public void stop() {
@@ -67,7 +68,7 @@ public class RelicManager {
         return secondsUntilSpawn;
     }
 
-    private void tick() {
+    public void tick() {
         if (!game.isActive()) return;
 
         if (groundEntity != null) {

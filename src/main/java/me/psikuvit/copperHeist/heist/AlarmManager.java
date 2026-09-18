@@ -8,6 +8,7 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.role.Role;
+import me.psikuvit.copperHeist.task.AlarmScanTask;
 import me.psikuvit.copperHeist.util.Cooldowns;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -47,7 +48,7 @@ public class AlarmManager {
     }
 
     public void start() {
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 10L, 10L);
+        task = new AlarmScanTask(this).runTaskTimer(plugin, 10L, 10L);
     }
 
     public void stop() {
@@ -108,7 +109,7 @@ public class AlarmManager {
         Bukkit.getPluginManager().callEvent(new AlarmDestroyedEvent(game, alarm, destroyer));
     }
 
-    private void tick() {
+    public void tick() {
         if (!game.isActive()) return;
         double radius = plugin.getConfig().getDouble("alarms.trigger-radius", 4);
 

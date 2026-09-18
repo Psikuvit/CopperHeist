@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.event.LootStolenEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.task.LootBagTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -44,7 +45,7 @@ public class LootBagManager {
     }
 
     public void start() {
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+        task = new LootBagTask(this).runTaskTimer(plugin, 20L, 20L);
     }
 
     public void stop() {
@@ -121,7 +122,7 @@ public class LootBagManager {
         else updateLabel(bag);
     }
 
-    private void tick() {
+    public void tick() {
         long now = System.currentTimeMillis();
         for (LootBag bag : new ArrayList<>(bags)) {
             if (now >= bag.getExpiresAtMillis()) {

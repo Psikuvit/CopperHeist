@@ -7,6 +7,7 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.task.PostRespawnTask;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -121,11 +122,6 @@ public class LootListener implements Listener {
         // Reapplied a tick late - giving items during the respawn event itself
         // can get clobbered by the client's own respawn handling. This is also
         // what makes a role change while dead take effect ("applies on respawn").
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (player.isOnline() && plugin.getGameManager().getGame(player) == game) {
-                if (game.isActive()) game.beginRespawnWait(player, gp);
-                else game.getRoleService().giveLoadout(player, gp.getRole(), gp.getTeam());
-            }
-        });
+        new PostRespawnTask(plugin, game, player, gp).runTask(plugin);
     }
 }

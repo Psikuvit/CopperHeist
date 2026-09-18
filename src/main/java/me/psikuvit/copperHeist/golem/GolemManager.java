@@ -10,6 +10,7 @@ import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.task.GolemRespawnTask;
 import me.psikuvit.copperHeist.util.Cooldowns;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
@@ -221,15 +222,14 @@ public class GolemManager {
         game.getTeam(golem.getTeam()).getGolems().remove(golem);
         if (golem.getLabel() != null) golem.getLabel().remove();
 
-        int starting = plugin.getConfig().getInt("golems.starting", 2);
         int respawnSeconds = plugin.getConfig().getInt("golems.auto-respawn-seconds", 60);
-        Team team = golem.getTeam();
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!game.isActive()) return;
-            if (game.getTeam(team).getGolems().size() < starting) {
-                spawnOne(team);
-            }
-        }, respawnSeconds * 20L);
+        new GolemRespawnTask(this, golem.getTeam()).runTaskLater(plugin, respawnSeconds * 20L);
+    }
+
+    public void respawnIfShort(Team team) {
+        if (!game.isActive()) return;
+        int starting = plugin.getConfig().getInt("golems.starting", 2);
+        if (game.getTeam(team).getGolems().size() < starting) spawnOne(team);
     }
 
     private void dropCarried(HeistGolem golem, Location location) {

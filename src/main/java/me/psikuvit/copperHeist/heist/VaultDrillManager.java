@@ -8,6 +8,7 @@ import me.psikuvit.copperHeist.event.VaultDrillPlacedEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.task.VaultDrillTask;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -50,7 +51,7 @@ public class VaultDrillManager {
     }
 
     public void start() {
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+        task = new VaultDrillTask(this).runTaskTimer(plugin, 20L, 20L);
     }
 
     public void stop() {
@@ -135,7 +136,7 @@ public class VaultDrillManager {
         }
     }
 
-    private void tick() {
+    public void tick() {
         if (!game.isActive()) return;
         double radiusSquared = Math.pow(plugin.getConfig().getDouble("drill.attacker-radius", 6), 2);
         double duration = plugin.getConfig().getInt("drill.duration-seconds", 30);

@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.loot;
 
 import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.task.LootRefillTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -30,7 +31,7 @@ public class LootSpawner {
     }
 
     public void start() {
-        task = Bukkit.getScheduler().runTaskTimer(game.getPlugin(), this::tick, 20L, 20L);
+        task = new LootRefillTask(this).runTaskTimer(game.getPlugin(), 20L, 20L);
     }
 
     public void stop() {
@@ -42,7 +43,7 @@ public class LootSpawner {
         nextSpawnAt.clear();
     }
 
-    private void tick() {
+    public void tick() {
         long now = System.currentTimeMillis();
         long respawnMillis = game.getPlugin().getConfig().getLong("loot.respawn-seconds", 35) * 1000L;
         for (Location point : game.getArena().getLootPoints()) {

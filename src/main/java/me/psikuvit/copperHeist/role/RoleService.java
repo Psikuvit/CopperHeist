@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.shop.ShopItem;
+import me.psikuvit.copperHeist.task.RevealEndTask;
 import me.psikuvit.copperHeist.util.Cooldowns;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -197,11 +198,7 @@ public class RoleService {
         abilityCooldowns.set(id, SABOTEUR_COOLDOWN_SECONDS);
         player.sendActionBar(plugin.getMessageService().get("actionbar.saboteur-reveal"));
 
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            for (CopperGolem entity : revealed) {
-                if (!entity.isDead()) entity.setGlowing(false);
-            }
-        }, SABOTEUR_REVEAL_SECONDS * 20L);
+        new RevealEndTask(revealed).runTaskLater(plugin, SABOTEUR_REVEAL_SECONDS * 20L);
     }
 
     public boolean canClearStun(GamePlayer gp) {

@@ -5,7 +5,7 @@ import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.event.MatchEndEvent;
 import me.psikuvit.copperHeist.event.PhaseChangeEvent;
 import me.psikuvit.copperHeist.golem.GolemManager;
-import me.psikuvit.copperHeist.golem.OxidationTask;
+import me.psikuvit.copperHeist.task.OxidationTask;
 import me.psikuvit.copperHeist.heist.AlarmManager;
 import me.psikuvit.copperHeist.heist.VaultDrillManager;
 import me.psikuvit.copperHeist.loot.LootBagManager;
@@ -13,6 +13,10 @@ import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootSpawner;
 import me.psikuvit.copperHeist.relic.RelicManager;
 import me.psikuvit.copperHeist.role.RoleService;
+import me.psikuvit.copperHeist.task.GameSidebarTask;
+import me.psikuvit.copperHeist.task.GameTimerTask;
+import me.psikuvit.copperHeist.task.GameUiTask;
+import me.psikuvit.copperHeist.task.RespawnTask;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -79,10 +83,10 @@ public class Game {
         World world = arena.getWorld();
         if (world != null) world.setGameRule(GameRules.IMMEDIATE_RESPAWN, true);
 
-        this.timerTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+        this.timerTask = new GameTimerTask(this).runTaskTimer(plugin, 20L, 20L);
         // Runs for the whole life of the Game (not just while a match is active) so WAITING/STARTING
         // players see a lobby board and ENDING/RESETTING still shows the result.
-        this.sidebarTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> plugin.getSidebarService().update(this), 20L, 20L);
+        this.sidebarTask = new GameSidebarTask(plugin.getSidebarService(), this).runTaskTimer(plugin, 20L, 20L);
     }
 
     public CopperHeist getPlugin() {
@@ -131,6 +135,10 @@ public class Game {
 
     public VaultDrillManager getVaultDrillManager() {
         return vaultDrillManager;
+    }
+
+    public boolean isPlaying(GamePlayer gp) {
+        return players.get(gp.getUuid()) == gp;
     }
 
     public LootBagManager getLootBagManager() {
@@ -216,7 +224,7 @@ public class Game {
 
     // ---- state machine ----
 
-    private void tick() {
+    public void tick() {
         switch (state) {
             case WAITING -> tickWaiting();
             case STARTING -> tickStarting();
@@ -303,23 +311,10 @@ public class Game {
             return;
         }
         player.setGameMode(GameMode.SPECTATOR);
-        int[] left = {delay};
-        Bukkit.getScheduler().runTaskTimer(plugin, task -> {
-            if (!player.isOnline() || players.get(player.getUniqueId()) != gp || !isActive()) {
-                task.cancel();
-                return;
-            }
-            if (left[0] <= 0) {
-                task.cancel();
-                finishRespawn(player, gp);
-                return;
-            }
-            player.sendActionBar(plugin.getMessageService().get("actionbar.respawning", "seconds", left[0]));
-            left[0]--;
-        }, 0L, 20L);
+        new RespawnTask(plugin, this, player, gp, delay).runTaskTimer(plugin, 0L, 20L);
     }
 
-    private void finishRespawn(Player player, GamePlayer gp) {
+    public void finishRespawn(Player player, GamePlayer gp) {
         Location spawn = arena.site(gp.getTeam()).spawn;
         if (spawn != null) player.teleport(spawn);
         roleService.giveLoadout(player, gp.getRole(), gp.getTeam());
@@ -403,7 +398,7 @@ public class Game {
         vaultDrillManager.start();
         lootBagManager.start();
         oxidationTask = new OxidationTask(this).runTaskTimer(plugin, 20L, 20L);
-        uiTask = Bukkit.getScheduler().runTaskTimer(plugin, this::uiTick, 10L, 10L);
+        uiTask = new GameUiTask(this).runTaskTimer(plugin, 10L, 10L);
 
         phaseBar = BossBar.bossBar(Component.empty(), 1f, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
         updatePhaseBar();
@@ -448,7 +443,7 @@ public class Game {
         }
     }
 
-    private void uiTick() {
+    public void uiTick() {
         if (++uiTicks % 2 == 0) spawnGuardTick();
         golemManager.syncLabels();
         for (Player player : onlinePlayers()) {
