@@ -22,6 +22,7 @@ import me.psikuvit.copperHeist.listener.PlayerConnectionListener;
 import me.psikuvit.copperHeist.listener.RoleListener;
 import me.psikuvit.copperHeist.listener.ShopListener;
 import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.provider.Providers;
 import me.psikuvit.copperHeist.loot.LootTierRegistry;
 import me.psikuvit.copperHeist.loot.LootWeightService;
 import me.psikuvit.copperHeist.shop.ShopService;
@@ -47,6 +48,7 @@ public final class CopperHeist extends JavaPlugin {
     private LootTierRegistry lootTiers;
     private AbilityRegistry abilityRegistry;
     private ShopActionRegistry shopActions;
+    private Providers providers;
 
     @Override
     public void onEnable() {
@@ -60,6 +62,7 @@ public final class CopperHeist extends JavaPlugin {
 
         arenaManager = new ArenaManager(this);
         arenaResetter = new ArenaResetter();
+        providers = new Providers(this);
         gameManager = new GameManager(this);
         messageService = new MessageService(this);
         messageService.load();
@@ -80,7 +83,7 @@ public final class CopperHeist extends JavaPlugin {
         roleRegistry.load();
 
         arenaManager.loadAll();
-        arenaManager.all().forEach(arenaResetter::reset);
+        arenaManager.all().forEach(arena -> providers.reset().resolve(settings.getString("reset.method", "entities")).reset(arena));
 
         getServer().getPluginManager().registerEvents(new PlayerConnectionListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this), this);
@@ -148,6 +151,10 @@ public final class CopperHeist extends JavaPlugin {
 
     public LobbyKitService getLobbyKitService() {
         return lobbyKitService;
+    }
+
+    public Providers providers() {
+        return providers;
     }
 
     public ShopActionRegistry getShopActions() {

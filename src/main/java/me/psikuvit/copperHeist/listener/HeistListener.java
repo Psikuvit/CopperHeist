@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -122,26 +123,38 @@ public class HeistListener implements Listener {
         item.setAmount(item.getAmount() - 1);
     }
 
-    /** Right-click a team's shop NPC to open the shop; sneak-click for the role picker. */
+    /** Right-click a team's shop NPC to open the shop; sneak-click for the role picker. Works for every NPC provider. */
     @EventHandler
     public void onShopNpc(PlayerInteractEntityEvent event) {
-        if (event.getRightClicked().getType() != EntityType.VILLAGER) return;
-        Game game = plugin.getGameManager().getGameForHeistEntity(event.getRightClicked().getUniqueId());
+        handleNpcClick(event, event.getRightClicked(), event.getHand());
+    }
+
+    /** Armor stands report clicks as the "at entity" variant, which doesn't reach the handler above. */
+    @EventHandler
+    public void onShopNpcAt(PlayerInteractAtEntityEvent event) {
+        handleNpcClick(event, event.getRightClicked(), event.getHand());
+    }
+
+    private void handleNpcClick(PlayerInteractEntityEvent event, Entity clicked, EquipmentSlot hand) {
+        Game game = plugin.getGameManager().getGameForHeistEntity(clicked.getUniqueId());
         if (game == null) return;
-        Team npcTeam = game.shopNpcTeam(event.getRightClicked().getUniqueId());
+        Team npcTeam = game.shopNpcTeam(clicked.getUniqueId());
         if (npcTeam == null) return;
         event.setCancelled(true);
-        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (hand != EquipmentSlot.HAND) return;
 
         Player player = event.getPlayer();
         GamePlayer gp = game.getGamePlayer(player.getUniqueId());
         if (gp == null || gp.getTeam() != npcTeam) return;
+
         boolean roleMenu = player.isSneaking();
         if (!game.feature(roleMenu ? "roles" : "shop")) {
             player.sendActionBar(plugin.getMessageService().get("feature-disabled"));
             return;
         }
-        player.openInventory(roleMenu ? game.getRoleService().buildRoleMenu() : plugin.getShopService().buildMenu());
+        var menus = plugin.providers().menu().resolve(plugin.settings().getString("ui.menu", "chest"));
+        if (roleMenu) menus.openRoles(player, game, gp);
+        else menus.openShop(player, game, gp);
     }
 
     @EventHandler

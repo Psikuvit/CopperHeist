@@ -10,11 +10,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Item;
-import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
@@ -62,10 +61,8 @@ public class LootBagManager {
         Location base = location.clone().add(0, 0.5, 0);
         long lifetime = plugin.settings().getLong("loot.bag-despawn-seconds", 45) * 1000L;
 
-        ItemDisplay display = base.getWorld().spawn(base, ItemDisplay.class, entity -> {
-            entity.setItemStack(new ItemStack(Material.BUNDLE));
-            entity.setPersistent(true);
-        });
+        Entity display = plugin.providers().lootBagVisual()
+                .resolve(plugin.settings().getString("loot.bag.visual", "item-display")).spawn(base);
         Interaction hitbox = base.getWorld().spawn(base, Interaction.class, entity -> {
             entity.setInteractionWidth(0.9f);
             entity.setInteractionHeight(0.9f);
@@ -153,7 +150,7 @@ public class LootBagManager {
     private void remove(LootBag bag) {
         bags.remove(bag);
         plugin.getGameManager().unregisterHeistEntity(bag.getHitbox().getUniqueId());
-        bag.getDisplay().remove();
+        if (bag.getDisplay() != null) bag.getDisplay().remove();
         bag.getHitbox().remove();
         bag.getLabel().remove();
     }

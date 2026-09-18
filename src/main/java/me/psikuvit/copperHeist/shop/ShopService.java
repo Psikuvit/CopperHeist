@@ -84,6 +84,14 @@ public class ShopService {
                 s.getInt("cooldown-seconds", 0), s.getInt("slot", -1), params);
     }
 
+    public List<ShopEntry> entries() {
+        return new ArrayList<>(entries.values());
+    }
+
+    public String menuTitle() {
+        return config.getString("menu.title", "<gold><bold>Copper Heist Shop");
+    }
+
     public ShopEntry entry(String id) {
         return id == null ? null : entries.get(id.toLowerCase(Locale.ROOT));
     }

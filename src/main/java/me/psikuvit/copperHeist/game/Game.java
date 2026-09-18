@@ -10,6 +10,9 @@ import me.psikuvit.copperHeist.heist.AlarmManager;
 import me.psikuvit.copperHeist.heist.DockLockManager;
 import me.psikuvit.copperHeist.heist.VaultDrillManager;
 import me.psikuvit.copperHeist.loot.LootBagManager;
+import me.psikuvit.copperHeist.npc.NpcHandle;
+import me.psikuvit.copperHeist.npc.NpcSpec;
+import me.psikuvit.copperHeist.npc.VillagerNpcProvider;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootSpawner;
 import me.psikuvit.copperHeist.relic.RelicManager;
@@ -24,14 +27,15 @@ import me.psikuvit.copperHeist.util.PdcKeys;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.GameRules;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Villager;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -52,6 +56,7 @@ public class Game {
     private final Map<UUID, GamePlayer.SavedState> spectators = new LinkedHashMap<>();
     private boolean lootStarted;
     private final Map<UUID, Team> shopNpcs = new LinkedHashMap<>();
+    private final List<Entity> npcEntities = new ArrayList<>();
     private final Map<UUID, Long> disconnectedUntil = new LinkedHashMap<>();
     private final java.util.Set<String> scoredLootIds = new java.util.HashSet<>();
 
@@ -262,29 +267,40 @@ public class Game {
     // ---- shop NPCs ----
 
     private void spawnShopNpcs() {
+        var provider = plugin.providers().npc().resolve(plugin.settings().getString("npc.type", "villager"));
+        String format = plugin.settings().getString("npc.name-format", "{team} Shop");
         for (Team team : Team.values()) {
             Location loc = arena.site(team).shop;
             if (loc == null || loc.getWorld() == null) continue;
-            Villager npc = loc.getWorld().spawn(loc, Villager.class, villager -> {
-                villager.setAI(false);
-                villager.setInvulnerable(true);
-                villager.setSilent(true);
-                villager.setPersistent(true);
-                villager.customName(Component.text(team.displayName() + " Shop", team.color()));
-                villager.setCustomNameVisible(true);
-            });
-            Pdc.set(npc, PdcKeys.MATCH_ID, matchId);
-            shopNpcs.put(npc.getUniqueId(), team);
-            plugin.getGameManager().registerHeistEntity(this, npc.getUniqueId());
+            Component name = MiniMessage.miniMessage().deserialize(format.replace("{team}", team.displayName()))
+                    .colorIfAbsent(team.color());
+            NpcHandle handle;
+            try {
+                handle = provider.spawn(new NpcSpec(loc, name, team, plugin.settings()));
+            } catch (LinkageError | RuntimeException ex) {
+                plugin.getLogger().warning("NPC type '" + plugin.settings().getString("npc.type", "villager")
+                        + "' failed (" + ex + ") - falling back to a villager.");
+                handle = new VillagerNpcProvider().spawn(new NpcSpec(loc, name, team, plugin.settings()));
+            }
+            if (handle == null) continue;
+            for (Entity entity : allNpcEntities(handle)) Pdc.set(entity, PdcKeys.MATCH_ID, matchId);
+            shopNpcs.put(handle.clickable().getUniqueId(), team);
+            npcEntities.addAll(allNpcEntities(handle));
+            plugin.getGameManager().registerHeistEntity(this, handle.clickable().getUniqueId());
         }
     }
 
+    private List<Entity> allNpcEntities(NpcHandle handle) {
+        List<Entity> all = new ArrayList<>();
+        all.add(handle.clickable());
+        all.addAll(handle.extras());
+        return all;
+    }
+
     private void removeShopNpcs() {
-        for (UUID id : shopNpcs.keySet()) {
-            var entity = Bukkit.getEntity(id);
-            if (entity != null) entity.remove();
-            plugin.getGameManager().unregisterHeistEntity(id);
-        }
+        for (UUID id : shopNpcs.keySet()) plugin.getGameManager().unregisterHeistEntity(id);
+        for (Entity entity : npcEntities) entity.remove();
+        npcEntities.clear();
         shopNpcs.clear();
     }
 
@@ -497,16 +513,11 @@ public class Game {
 
     /** Puts a freshly killed player in spectator for the respawn delay, then sends them back to spawn with their loadout. */
     public void beginRespawnWait(Player player, GamePlayer gp) {
-        int delay = plugin.settings().getInt("match.respawn-delay-seconds", 6);
-        if (delay <= 0) {
-            finishRespawn(player, gp);
-            return;
-        }
-        player.setGameMode(GameMode.SPECTATOR);
-        new RespawnTask(plugin, this, player, gp, delay).runTaskTimer(plugin, 0L, 20L);
+        plugin.providers().respawn().resolve(plugin.settings().getString("respawn.mode", "spectator-wait")).begin(this, player, gp);
     }
 
     public void finishRespawn(Player player, GamePlayer gp) {
+        gp.setGhost(false);
         Location spawn = arena.site(gp.getTeam()).spawn;
         if (spawn != null) player.teleport(spawn);
         roleService.giveLoadout(player, gp.getRole(), gp.getTeam());
@@ -688,7 +699,7 @@ public class Game {
     private void beginReset() {
         state = GameState.RESETTING;
         golemManager.despawnAll();
-        plugin.getArenaResetter().reset(arena);
+        plugin.providers().reset().resolve(plugin.settings().getString("reset.method", "entities")).reset(arena);
 
         for (UUID uuid : new ArrayList<>(players.keySet())) {
             Player player = Bukkit.getPlayer(uuid);

@@ -48,6 +48,11 @@ public class LootListener implements Listener {
             return;
         }
 
+        if (gp.isGhost()) {
+            event.setCancelled(true);
+            return;
+        }
+
         int carryLimit = plugin.settings().getInt("loot.carry-limit", 80);
         int itemValue = LootItem.getValue(item) * item.getAmount();
         if (!plugin.getLootWeightService().canCarry(player, item)) {

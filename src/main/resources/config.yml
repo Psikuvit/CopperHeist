@@ -60,6 +60,10 @@ loot:
   carry-limit: 80
   weight-per-10-value: 0.05
   max-slowdown: 0.35
+  bag:
+    visual: item-display     # item-display | block-display | label-only
+    item: BUNDLE              # for item-display
+    block: CHEST              # for block-display
   bag-despawn-seconds: 45
   unclaimed-bonus:
     after-seconds: 60
@@ -75,6 +79,49 @@ relic:
 # Team look-and-feel. name/prefix are shown in chat, tab and scoreboard; color is a chat color name;
 # armor-color is a Bukkit color name (ORANGE, SILVER, ...) or a #RRGGBB hex for leather armor.
 # Switch whole mechanics on or off. Disabled features simply never start.
+# ---- selectable implementations -------------------------------------------------
+# Each of these picks one of several built-in choices; an unknown value logs a warning and uses the default.
+
+# Shop / role NPC standing at each team's shop point (arena setshop <arena> <team>).
+# type: mannequin | villager | armor-stand | interaction | none
+npc:
+  type: villager
+  name-format: "{team} Shop"        # MiniMessage; {team} is the team's display name
+  mannequin:
+    skin:
+      type: player-name             # player-name | uuid | texture
+      value: "Notch"                # a name, a UUID, or (texture) the base64 texture value
+      signature: ""                 # only for type: texture
+    pose: STANDING
+    immovable: true
+    show-name: true
+    description: ""                 # MiniMessage line shown under the name; empty hides it
+    skin-parts: {cape: true, jacket: true, sleeves: true, pants: true, hat: true}
+  villager:
+    profession: librarian
+  armor-stand:
+    small: false
+    arms: true
+  interaction:
+    width: 0.9
+    height: 1.9
+
+# How the shop and role picker open: chest (inventory GUI) or dialog (Paper's pop-up dialog screen).
+ui:
+  menu: chest
+
+# What a loot bag looks like: item-display | block-display | label-only
+loot-bag-visual-note: "see loot.bag below"
+
+# spectator-wait: watch from spectator mode | instant: back at spawn right away
+# ghost: stay at your spawn, invisible and invulnerable, unable to pick anything up
+respawn:
+  mode: spectator-wait
+
+# How an arena is cleaned after a match. entities: clear items/golems/displays/chests.
+reset:
+  method: entities
+
 features:
   roles: true
   shop: true

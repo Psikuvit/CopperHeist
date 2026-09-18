@@ -205,7 +205,8 @@ public final class CopperHeistCommand {
             Msg.err(player, "Roles are disabled on this server.");
             return 0;
         }
-        player.openInventory(game.getRoleService().buildRoleMenu());
+        plugin.providers().menu().resolve(plugin.settings().getString("ui.menu", "chest"))
+                .openRoles(player, game, game.getGamePlayer(player.getUniqueId()));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -229,7 +230,7 @@ public final class CopperHeistCommand {
             Msg.err(player, "Use your team's shop NPC, or go back near your spawn to open the shop.");
             return 0;
         }
-        player.openInventory(plugin.getShopService().buildMenu());
+        plugin.providers().menu().resolve(plugin.settings().getString("ui.menu", "chest")).openShop(player, shopGame, shopGp);
         return Command.SINGLE_SUCCESS;
     }
 

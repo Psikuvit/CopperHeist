@@ -1,7 +1,7 @@
 package me.psikuvit.copperHeist.loot;
 
 import org.bukkit.entity.Interaction;
-import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
 
@@ -11,12 +11,12 @@ import java.util.List;
 public class LootBag {
 
     private final List<ItemStack> items;
-    private final ItemDisplay display;
+    private final Entity display;
     private final Interaction hitbox;
     private final TextDisplay label;
     private final long expiresAtMillis;
 
-    public LootBag(List<ItemStack> items, ItemDisplay display, Interaction hitbox, TextDisplay label, long expiresAtMillis) {
+    public LootBag(List<ItemStack> items, Entity display, Interaction hitbox, TextDisplay label, long expiresAtMillis) {
         this.items = items;
         this.display = display;
         this.hitbox = hitbox;
@@ -28,7 +28,7 @@ public class LootBag {
         return items;
     }
 
-    public ItemDisplay getDisplay() {
+    public Entity getDisplay() {
         return display;
     }
 

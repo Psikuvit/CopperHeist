@@ -24,6 +24,7 @@ public class GamePlayer {
     private int stolenValue;
     private int relicsDelivered;
     private long protectedUntilMillis;
+    private boolean ghost;
     private final java.util.Map<String, Integer> purchases = new java.util.HashMap<>();
     private final java.util.Map<String, Long> purchaseCooldowns = new java.util.HashMap<>();
     private UUID lastAttacker;
@@ -124,6 +125,14 @@ public class GamePlayer {
     public void recordPurchase(String entryId, int cooldownSeconds) {
         purchases.merge(entryId, 1, Integer::sum);
         if (cooldownSeconds > 0) purchaseCooldowns.put(entryId, System.currentTimeMillis() + cooldownSeconds * 1000L);
+    }
+
+    public boolean isGhost() {
+        return ghost;
+    }
+
+    public void setGhost(boolean ghost) {
+        this.ghost = ghost;
     }
 
     public boolean isProtected() {

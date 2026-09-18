@@ -21,8 +21,9 @@ import java.util.List;
  * MVP reset strategy: players can't break/place blocks in an arena, so there's
  * nothing to roll back structurally. Reset just clears entities and chests.
  */
-public class ArenaResetter {
+public class ArenaResetter implements ArenaResetStrategy {
 
+    @Override
     public void reset(Arena arena) {
         clearEntities(arena);
         clearChests(arena);
@@ -35,8 +36,7 @@ public class ArenaResetter {
             if (!arena.isInBounds(entity.getLocation())) continue;
             if (entity instanceof Item || entity instanceof Display || entity instanceof Interaction || entity instanceof Firework) {
                 entity.remove();
-            } else if ((entity.getType() == EntityType.COPPER_GOLEM || entity.getType() == EntityType.VILLAGER)
-                    && Pdc.has(entity, PdcKeys.MATCH_ID)) {
+            } else if (!(entity instanceof org.bukkit.entity.Player) && Pdc.has(entity, PdcKeys.MATCH_ID)) {
                 // Only remove golems this plugin spawned - a real player-owned copper
                 // golem that happened to wander into the bounds is left alone.
                 entity.remove();
