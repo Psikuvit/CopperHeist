@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.loot;
 import me.psikuvit.copperHeist.game.Game;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
@@ -58,6 +59,30 @@ public class LootSpawner {
                 spawnAt(point);
                 nextSpawnAt.remove(point);
             }
+        }
+        applyUnclaimedBonus();
+    }
+
+    /** Loot left lying around for a while gains value over time, to pull turtling teams out. */
+    private void applyUnclaimedBonus() {
+        var config = game.getPlugin().getConfig();
+        int after = config.getInt("loot.unclaimed-bonus.after-seconds", 60);
+        int every = Math.max(1, config.getInt("loot.unclaimed-bonus.every-seconds", 30));
+        int max = config.getInt("loot.unclaimed-bonus.max-bonus", 5);
+        World world = game.getArena().getWorld();
+        if (world == null) return;
+
+        for (Item entity : world.getEntitiesByClass(Item.class)) {
+            ItemStack stack = entity.getItemStack();
+            if (!LootItem.isLoot(stack) || !game.getMatchId().equals(LootItem.getMatchId(stack))) continue;
+            LootItem.Tier tier = LootItem.getTier(stack);
+            if (tier == null || tier == LootItem.Tier.RELIC) continue;
+
+            int ageSeconds = entity.getTicksLived() / 20;
+            int bonus = ageSeconds < after ? 0 : Math.min(max, (ageSeconds - after) / every + 1);
+            if (LootItem.getValue(stack) == tier.value + bonus) continue;
+            LootItem.setValue(stack, tier.value + bonus);
+            entity.setItemStack(stack);
         }
     }
 

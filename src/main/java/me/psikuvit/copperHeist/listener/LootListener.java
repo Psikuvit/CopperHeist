@@ -16,7 +16,10 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 public class LootListener implements Listener {
 
@@ -45,9 +48,8 @@ public class LootListener implements Listener {
         }
 
         int carryLimit = plugin.getConfig().getInt("loot.carry-limit", 80);
-        int currentValue = plugin.getLootWeightService().getCarriedValue(player);
         int itemValue = LootItem.getValue(item) * item.getAmount();
-        if (currentValue + itemValue > carryLimit) {
+        if (!plugin.getLootWeightService().canCarry(player, item)) {
             event.setCancelled(true);
             player.sendActionBar(plugin.getMessageService().get("actionbar.carry-limit", "limit", carryLimit));
             return;
@@ -71,6 +73,11 @@ public class LootListener implements Listener {
         if (game == null) return;
 
         Player killer = player.getKiller();
+        GamePlayer victimGp = game.getGamePlayer(player.getUniqueId());
+        if (killer == null && victimGp != null) {
+            UUID recent = victimGp.recentAttacker(10);
+            if (recent != null) killer = Bukkit.getPlayer(recent);
+        }
         if (killer != null) {
             GamePlayer killerGp = game.getGamePlayer(killer.getUniqueId());
             if (killerGp != null && game.isActive()) killerGp.addKill();
@@ -80,6 +87,7 @@ public class LootListener implements Listener {
         event.getDrops().clear();
 
         boolean lostRelic = false;
+        List<ItemStack> dropped = new ArrayList<>();
         Iterator<ItemStack> it = player.getInventory().iterator();
         while (it.hasNext()) {
             ItemStack item = it.next();
@@ -90,11 +98,12 @@ public class LootListener implements Listener {
                 // exact void/lava that "lost" it in the first place.
                 lostRelic = true;
             } else {
-                event.getDrops().add(item);
+                dropped.add(item);
             }
             it.remove();
         }
         if (lostRelic) game.getRelicManager().onLost(player);
+        if (game.isActive()) game.getLootBagManager().create(player.getLocation(), dropped);
     }
 
     @EventHandler
@@ -108,14 +117,14 @@ public class LootListener implements Listener {
 
         Arena.TeamSite site = game.getArena().site(gp.getTeam());
         if (site.spawn != null) event.setRespawnLocation(site.spawn);
-        gp.protectFor(plugin.getConfig().getInt("spawn-protection.invulnerable-seconds", 3));
 
         // Reapplied a tick late - giving items during the respawn event itself
         // can get clobbered by the client's own respawn handling. This is also
         // what makes a role change while dead take effect ("applies on respawn").
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (player.isOnline() && plugin.getGameManager().getGame(player) == game) {
-                game.getRoleService().giveLoadout(player, gp.getRole(), gp.getTeam());
+                if (game.isActive()) game.beginRespawnWait(player, gp);
+                else game.getRoleService().giveLoadout(player, gp.getRole(), gp.getTeam());
             }
         });
     }

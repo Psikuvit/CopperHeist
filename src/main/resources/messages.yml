@@ -52,6 +52,7 @@ drill:
   progress: "<gold>DRILL on {target} VAULT - {percent}%"
 
 actionbar:
+  respawning: "<red>Respawning in {seconds}..."
   heist-only: "<red>Vault Drills unlock in the Heist phase."
   carrying: "<gold>Carrying: {value}/{limit} value  |  Speed -{speed}%"
   carry-limit: "<red>Carrying too much loot! (limit {limit})"

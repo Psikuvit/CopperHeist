@@ -8,6 +8,7 @@ import me.psikuvit.copperHeist.golem.GolemManager;
 import me.psikuvit.copperHeist.golem.OxidationTask;
 import me.psikuvit.copperHeist.heist.AlarmManager;
 import me.psikuvit.copperHeist.heist.VaultDrillManager;
+import me.psikuvit.copperHeist.loot.LootBagManager;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootSpawner;
 import me.psikuvit.copperHeist.relic.RelicManager;
@@ -45,6 +46,8 @@ public class Game {
     private int secondsRemaining = 0;
     private int matchDurationSeconds = 0;
     private BossBar phaseBar;
+    private int forfeitCountdown = -1;
+    private Team forfeitWinner;
 
     private final GolemManager golemManager;
     private final LootSpawner lootSpawner;
@@ -52,6 +55,7 @@ public class Game {
     private final RelicManager relicManager;
     private final AlarmManager alarmManager;
     private final VaultDrillManager vaultDrillManager;
+    private final LootBagManager lootBagManager;
 
     private final BukkitTask timerTask;
     private final BukkitTask sidebarTask;
@@ -70,6 +74,7 @@ public class Game {
         this.relicManager = new RelicManager(plugin, this);
         this.alarmManager = new AlarmManager(plugin, this);
         this.vaultDrillManager = new VaultDrillManager(plugin, this);
+        this.lootBagManager = new LootBagManager(plugin, this);
 
         World world = arena.getWorld();
         if (world != null) world.setGameRule(GameRules.IMMEDIATE_RESPAWN, true);
@@ -126,6 +131,10 @@ public class Game {
 
     public VaultDrillManager getVaultDrillManager() {
         return vaultDrillManager;
+    }
+
+    public LootBagManager getLootBagManager() {
+        return lootBagManager;
     }
 
     public boolean isActive() {
@@ -203,20 +212,6 @@ public class Game {
             player.setGlowing(false);
             plugin.getSidebarService().showHub(player);
         }
-
-        if (isActive()) {
-            Team remaining = null;
-            for (Team team : Team.values()) {
-                if (!teams.get(team).getMembers().isEmpty()) {
-                    if (remaining != null) return; // both teams still have players
-                    remaining = team;
-                }
-            }
-            if (remaining != null) {
-                broadcast(Component.text("Other team left - " + remaining.displayName() + " wins by forfeit!", NamedTextColor.YELLOW));
-                end();
-            }
-        }
     }
 
     // ---- state machine ----
@@ -262,9 +257,73 @@ public class Game {
             end();
             return;
         }
+        if (checkForfeit()) return;
         GameState target = phaseFor(matchDurationSeconds - secondsRemaining);
         if (target != state) transitionPhase(target);
         updatePhaseBar();
+    }
+
+    /** One team empty starts a countdown; if it runs out the remaining team wins regardless of score. */
+    private boolean checkForfeit() {
+        Team remaining = null;
+        int nonEmpty = 0;
+        for (Team team : Team.values()) {
+            if (!teams.get(team).getMembers().isEmpty()) {
+                nonEmpty++;
+                remaining = team;
+            }
+        }
+        if (nonEmpty >= 2) {
+            forfeitCountdown = -1;
+            return false;
+        }
+        if (nonEmpty == 0) {
+            end();
+            return true;
+        }
+        if (forfeitCountdown < 0) {
+            forfeitCountdown = plugin.getConfig().getInt("match.forfeit-seconds", 30);
+            broadcast(Component.text("Other team left - " + remaining.displayName() + " wins by forfeit in "
+                    + forfeitCountdown + "s.", NamedTextColor.YELLOW));
+            return false;
+        }
+        if (--forfeitCountdown <= 0) {
+            forfeitWinner = remaining;
+            end();
+            return true;
+        }
+        return false;
+    }
+
+    /** Puts a freshly killed player in spectator for the respawn delay, then sends them back to spawn with their loadout. */
+    public void beginRespawnWait(Player player, GamePlayer gp) {
+        int delay = plugin.getConfig().getInt("match.respawn-delay-seconds", 6);
+        if (delay <= 0) {
+            finishRespawn(player, gp);
+            return;
+        }
+        player.setGameMode(GameMode.SPECTATOR);
+        int[] left = {delay};
+        Bukkit.getScheduler().runTaskTimer(plugin, task -> {
+            if (!player.isOnline() || players.get(player.getUniqueId()) != gp || !isActive()) {
+                task.cancel();
+                return;
+            }
+            if (left[0] <= 0) {
+                task.cancel();
+                finishRespawn(player, gp);
+                return;
+            }
+            player.sendActionBar(plugin.getMessageService().get("actionbar.respawning", "seconds", left[0]));
+            left[0]--;
+        }, 0L, 20L);
+    }
+
+    private void finishRespawn(Player player, GamePlayer gp) {
+        Location spawn = arena.site(gp.getTeam()).spawn;
+        if (spawn != null) player.teleport(spawn);
+        roleService.giveLoadout(player, gp.getRole(), gp.getTeam());
+        gp.protectFor(plugin.getConfig().getInt("spawn-protection.invulnerable-seconds", 3));
     }
 
     private GameState phaseFor(int elapsed) {
@@ -342,6 +401,7 @@ public class Game {
         relicManager.start();
         alarmManager.start();
         vaultDrillManager.start();
+        lootBagManager.start();
         oxidationTask = new OxidationTask(this).runTaskTimer(plugin, 20L, 20L);
         uiTask = Bukkit.getScheduler().runTaskTimer(plugin, this::uiTick, 10L, 10L);
 
@@ -360,11 +420,13 @@ public class Game {
     /** A player leaving mid-match doesn't take their loot with them - it drops where they stood (the relic respawns instead). */
     private void dropCarriedLoot(Player player) {
         boolean lostRelic = false;
+        List<ItemStack> dropped = new ArrayList<>();
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null || !LootItem.isLoot(item)) continue;
             if (LootItem.isRelic(item)) lostRelic = true;
-            else player.getWorld().dropItemNaturally(player.getLocation(), item);
+            else dropped.add(item);
         }
+        lootBagManager.create(player.getLocation(), dropped);
         for (int i = 0; i < player.getInventory().getSize(); i++) {
             if (LootItem.isLoot(player.getInventory().getItem(i))) player.getInventory().setItem(i, null);
         }
@@ -402,6 +464,7 @@ public class Game {
         relicManager.stop();
         alarmManager.stop();
         vaultDrillManager.stop();
+        lootBagManager.stop();
         if (oxidationTask != null) oxidationTask.cancel();
         if (uiTask != null) uiTask.cancel();
         if (phaseBar != null) {
@@ -423,6 +486,7 @@ public class Game {
             winner = copper.getSteals() > iron.getSteals() ? Team.COPPER : Team.IRON;
         }
 
+        if (forfeitWinner != null) winner = forfeitWinner;
         Bukkit.getPluginManager().callEvent(new MatchEndEvent(this, winner, copper.getScore(), iron.getScore()));
     }
 

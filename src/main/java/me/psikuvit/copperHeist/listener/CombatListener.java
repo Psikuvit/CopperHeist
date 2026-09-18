@@ -52,6 +52,7 @@ public class CombatListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
+            if (victimGp != null) victimGp.recordAttacker(attacker.getUniqueId());
             if (attackerGp != null) {
                 event.setDamage(event.getDamage() * game.getRoleService().damageMultiplier(attacker, attackerGp));
             }

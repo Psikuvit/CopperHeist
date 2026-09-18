@@ -34,6 +34,21 @@ public class LootWeightService {
         return total;
     }
 
+    /** The relic ignores the carry limit, but its holder can only carry a small amount of other loot on top. */
+    public boolean canCarry(Player player, ItemStack item) {
+        if (LootItem.isRelic(item)) return true;
+        int limit = plugin.getConfig().getInt("loot.carry-limit", 80);
+        int other = 0;
+        boolean holdingRelic = false;
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (!LootItem.isLoot(stack)) continue;
+            if (LootItem.isRelic(stack)) holdingRelic = true;
+            else other += LootItem.getValue(stack) * stack.getAmount();
+        }
+        if (holdingRelic) limit = Math.min(limit, plugin.getConfig().getInt("relic.holder-extra-carry", 20));
+        return other + LootItem.getValue(item) * item.getAmount() <= limit;
+    }
+
     public double getSpeedPenalty(int carriedValue) {
         return getSpeedPenalty(carriedValue, 1.0);
     }

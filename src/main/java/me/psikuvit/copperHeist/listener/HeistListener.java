@@ -7,6 +7,7 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.heist.Alarm;
 import me.psikuvit.copperHeist.heist.VaultDrill;
+import me.psikuvit.copperHeist.loot.LootBag;
 import me.psikuvit.copperHeist.shop.ShopItem;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
@@ -19,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -92,6 +94,17 @@ public class HeistListener implements Listener {
         VaultDrill drill = game.getVaultDrillManager().place(attackerTeam);
         if (drill == null) return;
         item.setAmount(item.getAmount() - 1);
+    }
+
+    @EventHandler
+    public void onBagInteract(PlayerInteractEntityEvent event) {
+        if (event.getRightClicked().getType() != EntityType.INTERACTION) return;
+        Game game = plugin.getGameManager().getGameForHeistEntity(event.getRightClicked().getUniqueId());
+        if (game == null) return;
+        LootBag bag = game.getLootBagManager().findByEntity(event.getRightClicked().getUniqueId());
+        if (bag == null) return;
+        event.setCancelled(true);
+        if (event.getHand() == EquipmentSlot.HAND) game.getLootBagManager().pickup(event.getPlayer(), bag);
     }
 
     @EventHandler

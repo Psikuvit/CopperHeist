@@ -24,6 +24,8 @@ public class GamePlayer {
     private int stolenValue;
     private int relicsDelivered;
     private long protectedUntilMillis;
+    private UUID lastAttacker;
+    private long lastAttackMillis;
 
     public GamePlayer(UUID uuid, Team team) {
         this.uuid = uuid;
@@ -96,6 +98,16 @@ public class GamePlayer {
 
     public double mvpScore() {
         return delivered + stolenValue * 1.5 + relicsDelivered * 20 + kills * 3 + scrapes * 2;
+    }
+
+    public void recordAttacker(UUID attacker) {
+        lastAttacker = attacker;
+        lastAttackMillis = System.currentTimeMillis();
+    }
+
+    /** Whoever last hit this player within the window, or null - used to credit void/environment deaths. */
+    public UUID recentAttacker(int seconds) {
+        return System.currentTimeMillis() - lastAttackMillis <= seconds * 1000L ? lastAttacker : null;
     }
 
     public boolean isProtected() {

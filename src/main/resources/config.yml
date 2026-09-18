@@ -8,6 +8,8 @@ match:
   duration-seconds: 900
   starting-countdown-seconds: 10
   ending-seconds: 10
+  respawn-delay-seconds: 6
+  forfeit-seconds: 30
   # Elapsed seconds since match start at which each phase ends. FINAL_RUSH
   # runs from heist-end-seconds until duration-seconds.
   phases:
@@ -30,10 +32,16 @@ loot:
   carry-limit: 80
   weight-per-10-value: 0.05
   max-slowdown: 0.35
+  bag-despawn-seconds: 45
+  unclaimed-bonus:
+    after-seconds: 60
+    every-seconds: 30
+    max-bonus: 5
 
 relic:
   spawn-interval-seconds: 180
   lost-respawn-seconds: 30
+  holder-extra-carry: 20
 
 golems:
   starting: 2

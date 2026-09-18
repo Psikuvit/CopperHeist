@@ -89,6 +89,16 @@ public final class LootItem {
         }
     }
 
+    public static void setValue(ItemStack item, int value) {
+        Pdc.set(item, PdcKeys.LOOT_VALUE, value);
+        Tier tier = getTier(item);
+        if (tier != null && tier != Tier.RELIC) {
+            var meta = item.getItemMeta();
+            meta.displayName(Component.text(tier.name() + " (" + value + ")", NamedTextColor.YELLOW));
+            item.setItemMeta(meta);
+        }
+    }
+
     public static boolean isRelic(ItemStack item) {
         return getTier(item) == Tier.RELIC;
     }
