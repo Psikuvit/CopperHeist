@@ -112,3 +112,16 @@ buildNumber.properties
 
 # Common working directory
 run/
+
+# Local test map and its generator (kept out of the repo on purpose)
+testmap/
+tools/
+
+# Editor and assistant folders
+.vscode/
+.claude/
+
+# Server data files created when the plugin is run from the project folder
+*.db
+*.db-shm
+*.db-wal
