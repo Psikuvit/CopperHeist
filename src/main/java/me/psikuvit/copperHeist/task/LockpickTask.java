@@ -28,7 +28,7 @@ public class LockpickTask extends BukkitRunnable {
         this.chestLocation = chestLocation;
         this.startLocation = player.getLocation();
         this.totalTicks = totalTicks;
-        double drift = plugin.settings().getDouble("dock.max-drift", 1.5);
+        double drift = game.settings().getDouble("dock.max-drift", 1.5);
         this.maxDriftSquared = drift * drift;
     }
 

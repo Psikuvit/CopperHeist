@@ -327,6 +327,7 @@ public final class CopperHeistCommand {
         Team.configure(plugin.getConfig().getConfigurationSection("teams"));
         plugin.getRoleRegistry().load();
         plugin.getLootTiers().load();
+        plugin.getPresets().load();
         Msg.ok(sender, "command.reloaded");
         return Command.SINGLE_SUCCESS;
     }
@@ -561,6 +562,7 @@ public final class CopperHeistCommand {
                     }
                 }))
                 .then(addPadCommand())
+                .then(optionCommands())
                 .then(arenaOnly("save", (player, arena) -> {
                     plugin.getArenaManager().save(arena);
                     Msg.ok(player, "setup.saved", "arena", arena.getName());
@@ -599,6 +601,96 @@ public final class CopperHeistCommand {
     }
 
     /** /ch arena addpad [arena] [power] - marks the block you're standing in as a gust pad. */
+    /** setpreset / setoption / clearoption / options: per-arena tweaks layered over config.yml (no player needed). */
+    private LiteralArgumentBuilder<CommandSourceStack> optionCommands() {
+        SuggestionProvider<CommandSourceStack> presets = (ctx, builder) -> {
+            String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
+            for (String name : plugin.getPresets().names()) if (name.startsWith(remaining)) builder.suggest(name);
+            if ("none".startsWith(remaining)) builder.suggest("none");
+            return builder.buildFuture();
+        };
+        return literal("options")
+                .then(argument("name", StringArgumentType.word()).suggests(arenaSuggestions)
+                        .executes(this::executeOptions)
+                        .then(literal("preset")
+                                .then(argument("preset", StringArgumentType.word()).suggests(presets)
+                                        .executes(this::executeSetPreset)))
+                        .then(literal("set")
+                                .then(argument("path", StringArgumentType.word())
+                                        .then(argument("value", StringArgumentType.greedyString())
+                                                .executes(this::executeSetOption))))
+                        .then(literal("clear")
+                                .then(argument("path", StringArgumentType.word())
+                                        .executes(this::executeClearOption))));
+    }
+
+    private int executeOptions(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "name"));
+        if (arena == null) return 0;
+        Msg.info(sender, "options.header", "arena", arena.getName(), "preset", arena.getPreset() == null ? "-" : arena.getPreset());
+        var values = arena.getOverrides().getValues(true);
+        if (values.isEmpty()) Msg.info(sender, "options.none");
+        values.forEach((path, value) -> Msg.info(sender, "options.line", "path", path, "value", String.valueOf(value)));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeSetPreset(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "name"));
+        if (arena == null) return 0;
+        String preset = StringArgumentType.getString(ctx, "preset");
+        if (preset.equalsIgnoreCase("none")) {
+            arena.setPreset(null);
+        } else if (plugin.getPresets().get(preset) == null) {
+            Msg.err(sender, "options.preset-unknown", "preset", preset, "presets", String.join(", ", plugin.getPresets().names()));
+            return 0;
+        } else {
+            arena.setPreset(preset.toLowerCase(Locale.ROOT));
+        }
+        plugin.getArenaManager().save(arena);
+        Msg.ok(sender, "options.preset-set", "arena", arena.getName(), "preset", arena.getPreset() == null ? "-" : arena.getPreset());
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeSetOption(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "name"));
+        if (arena == null) return 0;
+        String path = StringArgumentType.getString(ctx, "path");
+        String raw = StringArgumentType.getString(ctx, "value").trim();
+        arena.getOverrides().set(path, parseOption(raw));
+        plugin.getArenaManager().save(arena);
+        Msg.ok(sender, "options.set", "arena", arena.getName(), "path", path, "value", raw);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeClearOption(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        Arena arena = requireArena(sender, StringArgumentType.getString(ctx, "name"));
+        if (arena == null) return 0;
+        String path = StringArgumentType.getString(ctx, "path");
+        arena.getOverrides().set(path, null);
+        plugin.getArenaManager().save(arena);
+        Msg.ok(sender, "options.cleared", "arena", arena.getName(), "path", path);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** true/false, whole numbers and decimals become real values; anything else stays text. */
+    private static Object parseOption(String raw) {
+        if (raw.equalsIgnoreCase("true") || raw.equalsIgnoreCase("false")) return Boolean.parseBoolean(raw);
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException ignored) {
+            // not a whole number
+        }
+        try {
+            return Double.parseDouble(raw);
+        } catch (NumberFormatException ignored) {
+            return raw;
+        }
+    }
+
     private LiteralArgumentBuilder<CommandSourceStack> addPadCommand() {
         return literal("addpad")
                 .then(argument("name", StringArgumentType.word())

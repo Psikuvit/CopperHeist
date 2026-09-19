@@ -54,7 +54,7 @@ public class GolemManager {
     public GolemManager(CopperHeist plugin, Game game) {
         this.plugin = plugin;
         this.game = game;
-        this.effects = new GolemEffects(plugin.settings());
+        this.effects = new GolemEffects(game.settings());
     }
 
     public GolemEffects effects() {
@@ -70,7 +70,7 @@ public class GolemManager {
     }
 
     public void spawnStarting(Team team) {
-        int starting = plugin.settings().getInt("golems.starting", 2);
+        int starting = game.settings().getInt("golems.starting", 2);
         for (int i = 0; i < starting; i++) spawnOne(team);
     }
 
@@ -92,7 +92,7 @@ public class GolemManager {
         Pdc.set(entity, PdcKeys.MATCH_ID, game.getMatchId());
         Pdc.set(entity, PdcKeys.GOLEM_TEAM, team.name());
 
-        double health = plugin.settings().getDouble("golems.health", 30.0);
+        double health = game.settings().getDouble("golems.health", 30.0);
         AttributeInstance healthAttr = entity.getAttribute(Attribute.MAX_HEALTH);
         if (healthAttr != null) healthAttr.setBaseValue(health);
         entity.setHealth(health);
@@ -145,7 +145,7 @@ public class GolemManager {
     }
 
     public Settings settings() {
-        return plugin.settings();
+        return game.settings();
     }
 
     public boolean isInBounds(Location location) {
@@ -153,12 +153,12 @@ public class GolemManager {
     }
 
     public double currentSpeed(HeistGolem golem) {
-        double base = plugin.settings().getDouble("golems.base-speed", 0.3);
+        double base = game.settings().getDouble("golems.base-speed", 0.3);
         double multiplier = switch (golem.getEntity().getWeatheringState()) {
-            case UNAFFECTED -> plugin.settings().getDouble("golems.speed-multipliers.fresh", 1.0);
-            case EXPOSED -> plugin.settings().getDouble("golems.speed-multipliers.exposed", 0.8);
-            case WEATHERED -> plugin.settings().getDouble("golems.speed-multipliers.weathered", 0.55);
-            case OXIDIZED -> plugin.settings().getDouble("golems.speed-multipliers.oxidized", 0.0);
+            case UNAFFECTED -> game.settings().getDouble("golems.speed-multipliers.fresh", 1.0);
+            case EXPOSED -> game.settings().getDouble("golems.speed-multipliers.exposed", 0.8);
+            case WEATHERED -> game.settings().getDouble("golems.speed-multipliers.weathered", 0.55);
+            case OXIDIZED -> game.settings().getDouble("golems.speed-multipliers.oxidized", 0.0);
         };
         return base * multiplier;
     }
@@ -210,7 +210,7 @@ public class GolemManager {
 
         int value = LootItem.getValue(carried) * carried.getAmount();
         if (game.isFinalRushActive()) {
-            value = (int) Math.round(value * plugin.settings().getDouble("final-rush.loot-multiplier", 2.0));
+            value = (int) Math.round(value * game.settings().getDouble("final-rush.loot-multiplier", 2.0));
         }
         GameTeam gameTeam = game.getTeam(golem.getTeam());
         gameTeam.addScore(value);
@@ -232,8 +232,8 @@ public class GolemManager {
     public void onDamaged(HeistGolem golem, Player attacker) {
         if (golem.isStunImmune()) return;
         dropCarried(golem, golem.getEntity().getLocation());
-        int stunSeconds = plugin.settings().getInt("golems.stun-seconds", 3);
-        int immunitySeconds = plugin.settings().getInt("golems.stun-immunity-seconds", 5);
+        int stunSeconds = game.settings().getInt("golems.stun-seconds", 3);
+        int immunitySeconds = game.settings().getInt("golems.stun-immunity-seconds", 5);
         golem.stun(stunSeconds, immunitySeconds);
         effects.stunned(golem.getEntity().getLocation());
     }
@@ -245,13 +245,13 @@ public class GolemManager {
         game.getTeam(golem.getTeam()).getGolems().remove(golem);
         if (golem.getLabel() != null) golem.getLabel().remove();
 
-        int respawnSeconds = plugin.settings().getInt("golems.auto-respawn-seconds", 60);
+        int respawnSeconds = game.settings().getInt("golems.auto-respawn-seconds", 60);
         new GolemRespawnTask(this, golem.getTeam()).runTaskLater(plugin, respawnSeconds * 20L);
     }
 
     public void respawnIfShort(Team team) {
         if (!game.isActive()) return;
-        int starting = plugin.settings().getInt("golems.starting", 2);
+        int starting = game.settings().getInt("golems.starting", 2);
         if (game.getTeam(team).getGolems().size() < starting) spawnOne(team);
     }
 
@@ -277,7 +277,7 @@ public class GolemManager {
         golem.setStageDurationMillis(rollStageDuration());
         updateLabel(golem);
 
-        int cooldown = (int) (plugin.settings().getInt("golems.scrape-cooldown-seconds", 20) * cooldownMultiplier);
+        int cooldown = (int) (game.settings().getInt("golems.scrape-cooldown-seconds", 20) * cooldownMultiplier);
         scrapeCooldowns.set(id, cooldown);
         effects.scraped(golem.getEntity().getLocation());
         return true;
@@ -290,7 +290,7 @@ public class GolemManager {
     /** Freezes a golem's current oxidation stage - no aging, and it can't be scraped - for golems.wax-duration-seconds. */
     public void wax(HeistGolem golem) {
         golem.getEntity().setOxidizing(CopperGolem.Oxidizing.waxed());
-        int duration = plugin.settings().getInt("golems.wax-duration-seconds", 180);
+        int duration = game.settings().getInt("golems.wax-duration-seconds", 180);
         golem.setWaxedUntilMillis(System.currentTimeMillis() + duration * 1000L);
         effects.waxed(golem.getEntity().getLocation());
         updateLabel(golem);
@@ -309,9 +309,9 @@ public class GolemManager {
         Arena.TeamSite site = game.getArena().site(team);
         if (site.golemIdle == null || site.golemIdle.getWorld() == null) return;
         Location center = site.golemIdle;
-        double radius = plugin.settings().getDouble("golems.storm-rod.radius", 8.0);
+        double radius = game.settings().getDouble("golems.storm-rod.radius", 8.0);
         double radiusSquared = radius * radius;
-        double zapDamage = plugin.settings().getDouble("golems.storm-rod.damage", 6.0);
+        double zapDamage = game.settings().getDouble("golems.storm-rod.damage", 6.0);
 
         center.getWorld().strikeLightningEffect(center);
 
@@ -339,8 +339,8 @@ public class GolemManager {
     }
 
     private long rollStageDuration() {
-        long base = plugin.settings().getLong("golems.aging-seconds", 210) * 1000L;
-        long jitter = plugin.settings().getLong("golems.aging-jitter-seconds", 20) * 1000L;
+        long base = game.settings().getLong("golems.aging-seconds", 210) * 1000L;
+        long jitter = game.settings().getLong("golems.aging-jitter-seconds", 20) * 1000L;
         long jittered = base + (long) ((Math.random() * 2 - 1) * jitter);
         return Math.max(1000L, jittered);
     }

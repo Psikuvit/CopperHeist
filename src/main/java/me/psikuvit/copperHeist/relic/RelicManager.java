@@ -52,7 +52,7 @@ public class RelicManager {
     }
 
     public void start() {
-        schedule = plugin.settings().getIntegerList("relic.spawn-times");
+        schedule = game.settings().getIntegerList("relic.spawn-times");
         if (schedule.isEmpty()) schedule = List.of(180);
         scheduleIndex = 0;
         replayingLost = false;
@@ -179,7 +179,7 @@ public class RelicManager {
             resumeSeconds = secondsUntilSpawn;
             replayingLost = true;
         }
-        secondsUntilSpawn = plugin.settings().getInt("relic.lost-respawn-seconds", 30);
+        secondsUntilSpawn = game.settings().getInt("relic.lost-respawn-seconds", 30);
         Bukkit.getPluginManager().callEvent(new RelicLostEvent(game, player));
     }
 

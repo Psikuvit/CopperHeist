@@ -6,6 +6,7 @@ import me.psikuvit.copperHeist.arena.ArenaResetter;
 import me.psikuvit.copperHeist.command.CopperHeistCommand;
 import me.psikuvit.copperHeist.command.Msg;
 import me.psikuvit.copperHeist.config.ConfigMigrator;
+import me.psikuvit.copperHeist.config.PresetRegistry;
 import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.database.Database;
 import me.psikuvit.copperHeist.database.MysqlDatabase;
@@ -58,6 +59,7 @@ public final class CopperHeist extends JavaPlugin {
     private LobbyKitService lobbyKitService;
     private ShopService shopService;
     private Settings settings;
+    private PresetRegistry presets;
     private RoleRegistry roleRegistry;
     private LootTierRegistry lootTiers;
     private AbilityRegistry abilityRegistry;
@@ -75,6 +77,8 @@ public final class CopperHeist extends JavaPlugin {
         PdcKeys.init(this);
         DeliveryGoal.init(this);
 
+        presets = new PresetRegistry(this);
+        presets.load();
         arenaManager = new ArenaManager(this);
         arenaResetter = new ArenaResetter();
         providers = new Providers(this);
@@ -184,6 +188,10 @@ public final class CopperHeist extends JavaPlugin {
 
     public AbilityRegistry getAbilityRegistry() {
         return abilityRegistry;
+    }
+
+    public PresetRegistry getPresets() {
+        return presets;
     }
 
     public WorldRules getWorldRules() {

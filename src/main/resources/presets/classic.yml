@@ -1,0 +1,2 @@
+# A preset holds only the settings it changes; everything else comes from config.yml.
+# "classic" changes nothing - it is the plain config.yml experience, handy as a starting point for your own.

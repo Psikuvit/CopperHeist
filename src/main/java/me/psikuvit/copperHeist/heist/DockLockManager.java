@@ -44,7 +44,7 @@ public class DockLockManager {
 
     public void begin(Player player, GamePlayer gp, Location chestLocation) {
         if (!picking.add(player.getUniqueId())) return;
-        double seconds = plugin.settings().getDouble("dock.lockpick-seconds", 4.0)
+        double seconds = game.settings().getDouble("dock.lockpick-seconds", 4.0)
                 * game.getRoleService().lockpickMultiplier(gp.getRole());
         int totalTicks = Math.max(5, (int) (seconds * 20));
         new LockpickTask(plugin, game, this, player, chestLocation, totalTicks).runTaskTimer(plugin, 0L, 5L);
@@ -53,7 +53,7 @@ public class DockLockManager {
     public void finish(Player player, Location chestLocation, boolean success) {
         picking.remove(player.getUniqueId());
         if (!success) return;
-        long window = plugin.settings().getLong("dock.unlock-window-seconds", 15) * 1000L;
+        long window = game.settings().getLong("dock.unlock-window-seconds", 15) * 1000L;
         unlockedUntilMillis.put(player.getUniqueId(), System.currentTimeMillis() + window);
         if (chestLocation.getBlock().getState() instanceof Chest chest) player.openInventory(chest.getInventory());
     }

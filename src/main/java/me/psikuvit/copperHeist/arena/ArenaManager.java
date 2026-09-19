@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.arena;
 
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.util.LocationUtil;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
@@ -69,6 +70,10 @@ public class ArenaManager {
         yaml.set("name", arena.getName());
         yaml.set("enabled", arena.isEnabled());
         yaml.set("world", arena.getWorldName());
+        if (arena.getPreset() != null) yaml.set("preset", arena.getPreset());
+        for (Map.Entry<String, Object> option : arena.getOverrides().getValues(true).entrySet()) {
+            if (!(option.getValue() instanceof ConfigurationSection)) yaml.set("overrides." + option.getKey(), option.getValue());
+        }
         if (arena.getLobby() != null) yaml.set("lobby", LocationUtil.serialize(arena.getLobby()));
         if (arena.getSpectator() != null) yaml.set("spectator", LocationUtil.serialize(arena.getSpectator()));
         if (arena.getBound1() != null) yaml.set("bound1", LocationUtil.serialize(arena.getBound1()));
@@ -114,6 +119,13 @@ public class ArenaManager {
         String world = yaml.getString("world");
         arena.setWorldName(world);
         arena.setEnabled(yaml.getBoolean("enabled", false));
+        arena.setPreset(yaml.getString("preset"));
+        ConfigurationSection overrides = yaml.getConfigurationSection("overrides");
+        if (overrides != null) {
+            for (Map.Entry<String, Object> option : overrides.getValues(true).entrySet()) {
+                if (!(option.getValue() instanceof ConfigurationSection)) arena.getOverrides().set(option.getKey(), option.getValue());
+            }
+        }
         if (yaml.contains("lobby")) arena.setLobby(LocationUtil.deserialize(world, yaml.getList("lobby")));
         if (yaml.contains("spectator")) arena.setSpectator(LocationUtil.deserialize(world, yaml.getList("spectator")));
         if (yaml.contains("bound1")) arena.setBound1(LocationUtil.deserialize(world, yaml.getList("bound1")));

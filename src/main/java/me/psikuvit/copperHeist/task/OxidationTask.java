@@ -28,7 +28,7 @@ public class OxidationTask extends BukkitRunnable {
         if (!game.isActive()) return;
         long now = System.currentTimeMillis();
         double agingMultiplier = game.isFinalRushActive()
-                ? game.getPlugin().settings().getDouble("final-rush.aging-multiplier", 2.0) : 1.0;
+                ? game.settings().getDouble("final-rush.aging-multiplier", 2.0) : 1.0;
         List<HeistGolem> golems = game.getGolemManager().all().stream().toList();
         for (HeistGolem golem : golems) {
             if (golem.getEntity().isDead()) continue;
@@ -61,7 +61,7 @@ public class OxidationTask extends BukkitRunnable {
 
     /** Anti-turtle: a team that hasn't delivered anything for a while sees its golems age faster. */
     private double decayMultiplier(HeistGolem golem, long now) {
-        var config = game.getPlugin().settings();
+        var config = game.settings();
         if (!config.getBoolean("vault-decay.enabled", false) || game.getState() == GameState.SETUP) return 1.0;
         long idleMillis = now - game.getTeam(golem.getTeam()).getLastDeliveryMillis();
         if (idleMillis < config.getLong("vault-decay.after-seconds", 120) * 1000L) return 1.0;
@@ -69,8 +69,8 @@ public class OxidationTask extends BukkitRunnable {
     }
 
     private long rollDuration() {
-        long base = game.getPlugin().settings().getLong("golems.aging-seconds", 210) * 1000L;
-        long jitter = game.getPlugin().settings().getLong("golems.aging-jitter-seconds", 20) * 1000L;
+        long base = game.settings().getLong("golems.aging-seconds", 210) * 1000L;
+        long jitter = game.settings().getLong("golems.aging-jitter-seconds", 20) * 1000L;
         long jittered = base + (long) ((Math.random() * 2 - 1) * jitter);
         return Math.max(1000L, jittered);
     }

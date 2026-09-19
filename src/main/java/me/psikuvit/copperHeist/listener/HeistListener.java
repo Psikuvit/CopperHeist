@@ -152,7 +152,7 @@ public class HeistListener implements Listener {
             player.sendActionBar(plugin.getMessageService().get(player, "feature-disabled"));
             return;
         }
-        var menus = plugin.providers().menu().resolve(plugin.settings().getString("ui.menu", "chest"));
+        var menus = plugin.providers().menu().resolve(game.settings().getString("ui.menu", "chest"));
         if (roleMenu) menus.openRoles(player, game, gp);
         else menus.openShop(player, game, gp);
     }

@@ -57,10 +57,10 @@ public class LootBagManager {
             return null;
         }
         Location base = location.clone().add(0, 0.5, 0);
-        long lifetime = plugin.settings().getLong("loot.bag-despawn-seconds", 45) * 1000L;
+        long lifetime = game.settings().getLong("loot.bag-despawn-seconds", 45) * 1000L;
 
         Entity display = plugin.providers().lootBagVisual()
-                .resolve(plugin.settings().getString("loot.bag.visual", "item-display")).spawn(base);
+                .resolve(game.settings().getString("loot.bag.visual", "item-display")).spawn(base);
         Interaction hitbox = base.getWorld().spawn(base, Interaction.class, entity -> {
             entity.setInteractionWidth(0.9f);
             entity.setInteractionHeight(0.9f);
@@ -113,7 +113,7 @@ public class LootBagManager {
 
         if (!tookAny) {
             player.sendActionBar(plugin.getMessageService().get(player, "actionbar.carry-limit",
-                    "limit", plugin.settings().getInt("loot.carry-limit", 80)));
+                    "limit", game.settings().getInt("loot.carry-limit", 80)));
             return;
         }
         game.getRoleService().breakInvisibility(player);

@@ -18,7 +18,7 @@ public class SpectatorWaitRespawnProvider implements RespawnProvider {
 
     @Override
     public void begin(Game game, Player player, GamePlayer gamePlayer) {
-        int delay = plugin.settings().getInt("match.respawn-delay-seconds", 6);
+        int delay = game.settings().getInt("match.respawn-delay-seconds", 6);
         if (delay <= 0) {
             game.finishRespawn(player, gamePlayer);
             return;

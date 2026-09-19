@@ -1,0 +1,15 @@
+# Faster, meaner: instant respawns, hidden enemy score, and teams that stop delivering see their golems rust.
+match:
+  respawn-delay-seconds: 0
+  hidden-enemy-score: true
+respawn:
+  mode: instant
+vault-decay:
+  enabled: true
+  after-seconds: 90
+  aging-multiplier: 2.0
+golems:
+  aging-seconds: 150
+  stun-seconds: 4
+drill:
+  cooldown-seconds: 60

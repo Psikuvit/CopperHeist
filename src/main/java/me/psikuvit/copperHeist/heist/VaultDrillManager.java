@@ -103,7 +103,7 @@ public class VaultDrillManager {
         });
         plugin.getGameManager().registerHeistEntity(game, hitbox.getUniqueId());
 
-        double maxHealth = plugin.settings().getDouble("drill.health", 40.0);
+        double maxHealth = game.settings().getDouble("drill.health", 40.0);
         VaultDrill drill = new VaultDrill(attackerTeam, defenderTeam, display, label, hitbox, maxHealth, placer);
         activeDrills.put(defenderTeam, drill);
         updateVisuals(drill);
@@ -127,7 +127,7 @@ public class VaultDrillManager {
         GamePlayer gp = game.getGamePlayer(defender.getUniqueId());
         if (gp == null || gp.getTeam() != drill.getDefender()) return;
 
-        double damage = plugin.settings().getDouble("drill.hit-damage", 5.0);
+        double damage = game.settings().getDouble("drill.hit-damage", 5.0);
         drill.damage(damage);
         if (drill.isDestroyed()) {
             destroy(drill, defender);
@@ -138,8 +138,8 @@ public class VaultDrillManager {
 
     public void tick() {
         if (!game.isActive()) return;
-        double radiusSquared = Math.pow(plugin.settings().getDouble("drill.attacker-radius", 6), 2);
-        double duration = plugin.settings().getInt("drill.duration-seconds", 30);
+        double radiusSquared = Math.pow(game.settings().getDouble("drill.attacker-radius", 6), 2);
+        double duration = game.settings().getInt("drill.duration-seconds", 30);
 
         for (VaultDrill drill : new ArrayList<>(activeDrills.values())) {
             if (hasNearbyAttacker(drill, radiusSquared)) {
@@ -166,9 +166,9 @@ public class VaultDrillManager {
         removeVisuals(drill);
         hideBossBar(defenderTeam);
 
-        int breachSeconds = plugin.settings().getInt("drill.breach-open-seconds", 20);
+        int breachSeconds = game.settings().getInt("drill.breach-open-seconds", 20);
         breachOpenUntilMillis.put(defenderTeam, System.currentTimeMillis() + breachSeconds * 1000L);
-        int cooldownSeconds = plugin.settings().getInt("drill.cooldown-seconds", 90);
+        int cooldownSeconds = game.settings().getInt("drill.cooldown-seconds", 90);
         cooldownExpiryMillis.put(drill.getAttacker(), System.currentTimeMillis() + cooldownSeconds * 1000L);
 
         GamePlayer placerGp = game.getGamePlayer(drill.getPlacer());
@@ -194,18 +194,18 @@ public class VaultDrillManager {
 
     private void updateVisuals(VaultDrill drill) {
         drill.getProgressLabel().text(Component.text(
-                (int) (drill.progressFraction(plugin.settings().getInt("drill.duration-seconds", 30)) * 100) + "%  "
+                (int) (drill.progressFraction(game.settings().getInt("drill.duration-seconds", 30)) * 100) + "%  "
                         + (int) drill.getHealth() + "hp", NamedTextColor.RED));
 
         BossBar bar = bossBars.get(drill.getDefender());
         if (bar != null) {
-            bar.progress((float) drill.progressFraction(plugin.settings().getInt("drill.duration-seconds", 30)));
+            bar.progress((float) drill.progressFraction(game.settings().getInt("drill.duration-seconds", 30)));
             bar.name(progressText(drill));
         }
     }
 
     private Component progressText(VaultDrill drill) {
-        int percent = (int) (drill.progressFraction(plugin.settings().getInt("drill.duration-seconds", 30)) * 100);
+        int percent = (int) (drill.progressFraction(game.settings().getInt("drill.duration-seconds", 30)) * 100);
         return plugin.getMessageService().get("drill.progress", "target", drill.getDefender().displayName(), "percent", percent);
     }
 

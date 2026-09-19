@@ -268,6 +268,15 @@ stat:
   drills_destroyed: "Drills destroyed"
   mvps: "MVPs"
 
+options:
+  header: "<gold>{arena} <gray>- preset: <white>{preset}"
+  none: "<gray>No per-arena overrides."
+  line: "<gray>{path}: <white>{value}"
+  preset-set: "{arena} now uses the preset: {preset}"
+  preset-unknown: "No preset called {preset} (available: {presets})."
+  set: "{arena}: {path} = {value}"
+  cleared: "{arena}: removed the override for {path}"
+
 stats:
   disabled: "Stats are turned off on this server."
   loading: "Your stats are still loading - try again in a moment."

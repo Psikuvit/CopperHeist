@@ -1,0 +1,14 @@
+# An 8 minute match with the phases squeezed to fit.
+match:
+  duration-seconds: 480
+  starting-countdown-seconds: 5
+  phases:
+    setup-seconds: 20
+    collection-end-seconds: 260
+    heist-end-seconds: 420
+loot:
+  respawn-seconds: 20
+relic:
+  spawn-times: [90, 200, 320]
+golems:
+  aging-seconds: 120

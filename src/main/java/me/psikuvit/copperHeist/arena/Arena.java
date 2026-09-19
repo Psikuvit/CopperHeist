@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.ui.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -57,6 +58,23 @@ public class Arena {
     private final Map<LootZone, List<Location>> lootZones = new EnumMap<>(LootZone.class);
     private final List<Location> relicPoints = new ArrayList<>();
     private final List<GustPad> gustPads = new ArrayList<>();
+
+    private String preset;
+    private final YamlConfiguration overrides = new YamlConfiguration();
+
+    /** Name of the preset (presets/&lt;name&gt;.yml) this arena plays with, or null for plain config.yml. */
+    public String getPreset() {
+        return preset;
+    }
+
+    public void setPreset(String preset) {
+        this.preset = preset;
+    }
+
+    /** Settings that apply to this arena only, stored under "overrides:" in its file; they beat the preset and config.yml. */
+    public YamlConfiguration getOverrides() {
+        return overrides;
+    }
 
     public Arena(String name) {
         this.name = name;
