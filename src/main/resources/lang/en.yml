@@ -220,6 +220,8 @@ setup:
   region-corner-set: "Set corner {n} of the {team} {region} region for {arena}."
   snapshot-no-bounds: "Set the arena bounds first (setbounds1 / setbounds2)."
   snapshot-failed: "Could not save the snapshot: {reason}"
+  paste-no-snapshot: "{arena} has no snapshot file to paste."
+  paste-started: "Pasting {arena} from its snapshot ({blocks} blocks) - it builds over the next few seconds."
   snapshot-saved: "Saved a snapshot of {arena} ({blocks} blocks) - use reset.method: snapshot to restore it after matches."
 
 arena:

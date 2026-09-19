@@ -24,6 +24,7 @@ import me.psikuvit.copperHeist.role.RoleDefinition;
 import me.psikuvit.copperHeist.stats.PlayerStats;
 import me.psikuvit.copperHeist.stats.Stat;
 import me.psikuvit.copperHeist.stats.StatsService;
+import me.psikuvit.copperHeist.task.SnapshotRestoreTask;
 import me.psikuvit.copperHeist.ui.Text;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
@@ -31,6 +32,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -542,6 +544,21 @@ public final class CopperHeistCommand {
                         return;
                     }
                     Msg.ok(player, "setup.snapshot-saved", "arena", arena.getName(), "blocks", snapshot.blockCount());
+                }))
+                .then(arenaOnly("paste", (player, arena) -> {
+                    File file = plugin.getArenaManager().snapshotFile(arena);
+                    if (!file.exists()) {
+                        Msg.err(player, "setup.paste-no-snapshot", "arena", arena.getName());
+                        return;
+                    }
+                    try {
+                        ArenaSnapshot snapshot = ArenaSnapshot.read(file);
+                        int perTick = Math.max(1000, plugin.settings().getInt("reset.snapshot.blocks-per-tick", 20000));
+                        new SnapshotRestoreTask(snapshot, perTick).runTaskTimer(plugin, 1L, 1L);
+                        Msg.ok(player, "setup.paste-started", "arena", arena.getName(), "blocks", snapshot.blockCount());
+                    } catch (IOException ex) {
+                        Msg.err(player, "setup.snapshot-failed", "reason", ex.getMessage());
+                    }
                 }))
                 .then(addPadCommand())
                 .then(arenaOnly("save", (player, arena) -> {
