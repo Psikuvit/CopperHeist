@@ -1,5 +1,7 @@
 package me.psikuvit.copperHeist;
 
+import me.psikuvit.copperHeist.api.CopperHeistAPI;
+import me.psikuvit.copperHeist.api.CopperHeistAPIImpl;
 import me.psikuvit.copperHeist.arena.ArenaManager;
 import me.psikuvit.copperHeist.arena.WorldRules;
 import me.psikuvit.copperHeist.arena.ArenaResetter;
@@ -7,6 +9,7 @@ import me.psikuvit.copperHeist.command.CopperHeistCommand;
 import me.psikuvit.copperHeist.command.Msg;
 import me.psikuvit.copperHeist.config.ConfigMigrator;
 import me.psikuvit.copperHeist.config.PresetRegistry;
+import me.psikuvit.copperHeist.hook.HookManager;
 import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.database.Database;
 import me.psikuvit.copperHeist.database.MysqlDatabase;
@@ -34,6 +37,7 @@ import me.psikuvit.copperHeist.provider.Providers;
 import me.psikuvit.copperHeist.loot.LootTierRegistry;
 import me.psikuvit.copperHeist.loot.LootWeightService;
 import me.psikuvit.copperHeist.shop.ShopService;
+import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.StatsRepository;
 import me.psikuvit.copperHeist.stats.StatsService;
 import me.psikuvit.copperHeist.shop.action.ShopActionRegistry;
@@ -41,6 +45,7 @@ import me.psikuvit.copperHeist.ui.LobbyKitService;
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.SidebarService;
 import me.psikuvit.copperHeist.util.PdcKeys;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -66,6 +71,7 @@ public final class CopperHeist extends JavaPlugin {
     private ShopActionRegistry shopActions;
     private Providers providers;
     private StatsService statsService;
+    private LeaderboardService leaderboards;
 
     @Override
     public void onEnable() {
@@ -103,6 +109,7 @@ public final class CopperHeist extends JavaPlugin {
         roleRegistry.load();
         startStats();
 
+
         arenaManager.loadAll();
         arenaManager.all().forEach(arena -> providers.reset().resolve(settings.getString("reset.method", "entities")).reset(arena));
 
@@ -120,7 +127,9 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new VaultRegionListener(this), this);
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
 
+        HookManager.enable(this);
         CopperHeistCommand.register(this);
+        getServer().getServicesManager().register(CopperHeistAPI.class, new CopperHeistAPIImpl(this), this, ServicePriority.Normal);
 
         getLogger().info("Copper Heist enabled - " + arenaManager.all().size() + " arena(s) loaded.");
     }
@@ -128,6 +137,7 @@ public final class CopperHeist extends JavaPlugin {
     @Override
     public void onDisable() {
         if (gameManager != null) gameManager.shutdownAll();
+        if (leaderboards != null) leaderboards.stop();
         if (statsService != null) statsService.shutdown();
     }
 
@@ -152,6 +162,8 @@ public final class CopperHeist extends JavaPlugin {
         }
         statsService = new StatsService(this, new StatsRepository(database));
         statsService.start();
+        leaderboards = new LeaderboardService(this, statsService.repository());
+        leaderboards.start();
         getLogger().info("Player stats connected (" + type.toLowerCase() + ").");
     }
 
@@ -169,6 +181,10 @@ public final class CopperHeist extends JavaPlugin {
     }
 
     /** The stats service, or null if stats are disabled or the database couldn't be opened. */
+    public LeaderboardService getLeaderboards() {
+        return leaderboards;
+    }
+
     public StatsService getStats() {
         return statsService;
     }

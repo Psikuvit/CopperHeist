@@ -149,6 +149,24 @@ database:
     password: ""
     use-ssl: false
 
+# Pay players when a match ends. provider: none | vault (money through Vault) | commands (console commands).
+# The winning team gets "win", the losing team "loss" (a draw pays nobody), and the MVP gets "mvp" as well.
+rewards:
+  provider: none
+  vault:
+    win: 100
+    loss: 25
+    mvp: 50
+  commands:                         # {player} and {uuid} are filled in
+    win: []                         # e.g. - "eco give {player} 100"
+    loss: []
+    mvp: []
+
+leaderboards:
+  refresh-seconds: 120              # how often the top lists are re-read from the database
+  lines: 10                         # players shown per board and in /ch top
+  default-stat: wins                # what /ch top shows when no stat is given
+
 stats:
   enabled: true
   flush-seconds: 30                 # how often pending numbers are written to the database

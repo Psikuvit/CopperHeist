@@ -21,9 +21,11 @@ import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootTierDefinition;
 import me.psikuvit.copperHeist.role.RoleDefinition;
+import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.PlayerStats;
 import me.psikuvit.copperHeist.stats.Stat;
 import me.psikuvit.copperHeist.stats.StatsService;
+import me.psikuvit.copperHeist.stats.TopEntry;
 import me.psikuvit.copperHeist.task.SnapshotRestoreTask;
 import me.psikuvit.copperHeist.ui.Text;
 import org.bukkit.Location;
@@ -54,6 +56,14 @@ public final class CopperHeistCommand {
         for (GameState phase : new GameState[]{GameState.SETUP, GameState.COLLECTION, GameState.HEIST, GameState.FINAL_RUSH}) {
             String name = phase.name().toLowerCase(Locale.ROOT);
             if (name.startsWith(remaining)) builder.suggest(name);
+        }
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<CommandSourceStack> STAT_SUGGESTIONS = (ctx, builder) -> {
+        String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
+        for (Stat stat : Stat.values()) {
+            if (stat.key().startsWith(remaining)) builder.suggest(stat.key());
         }
         return builder.buildFuture();
     };
@@ -144,6 +154,27 @@ public final class CopperHeistCommand {
                             .then(argument("arena", StringArgumentType.word())
                                     .suggests(commands.arenaSuggestions)
                                     .executes(commands::executeSpectate)))
+                    .then(literal("top")
+                            .requires(src -> src.getSender().hasPermission(STATS))
+                            .executes(commands::executeTop)
+                            .then(argument("stat", StringArgumentType.word())
+                                    .suggests(STAT_SUGGESTIONS)
+                                    .executes(commands::executeTop)))
+                    .then(literal("info")
+                            .requires(src -> src.getSender().hasPermission(ADMIN_DEBUG))
+                            .executes(commands::executeInfo))
+                    .then(literal("setup")
+                            .requires(src -> src.getSender().hasPermission(ADMIN_ARENA))
+                            .then(argument("arena", StringArgumentType.word())
+                                    .suggests(commands.arenaSuggestions)
+                                    .executes(ctx -> {
+                                        CommandSender sender = ctx.getSource().getSender();
+                                        Arena arena = commands.requireArena(sender, StringArgumentType.getString(ctx, "arena"));
+                                        if (arena == null) return 0;
+                                        new SetupWizard(plugin).show(sender, arena);
+                                        return Command.SINGLE_SUCCESS;
+                                    })))
+                    .then(commands.leaderboardRoot())
                     .then(commands.arenaRoot());
 
             registrar.register(root.build(), "Copper Heist");
@@ -226,6 +257,120 @@ public final class CopperHeistCommand {
             if (error != null || found == null) Msg.err(sender, "stats.unknown-player", "player", requested);
             else sendStats(sender, found);
         });
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** A one-screen health check: what is loaded and which optional parts are switched on. */
+    private int executeInfo(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        var pm = plugin.getServer().getPluginManager();
+        Msg.info(sender, "info.header", "version", plugin.getPluginMeta().getVersion());
+        Msg.info(sender, "info.line", "key", "arenas", "value", plugin.getArenaManager().all().size()
+                + " (" + plugin.getGameManager().all().size() + " with a game object)");
+        Msg.info(sender, "info.line", "key", "roles / loot tiers", "value", plugin.getRoleRegistry().all().size()
+                + " / " + LootItem.tiers().all().size());
+        Msg.info(sender, "info.line", "key", "presets", "value", String.join(", ", plugin.getPresets().names()));
+        Msg.info(sender, "info.line", "key", "stats", "value", plugin.getStats() == null
+                ? "off" : plugin.settings().getString("database.type", "sqlite"));
+        Msg.info(sender, "info.line", "key", "leaderboards", "value", plugin.getLeaderboards() == null
+                ? "off" : String.valueOf(plugin.getLeaderboards().boards().size()));
+        Msg.info(sender, "info.line", "key", "npc / menu / reset", "value", plugin.settings().getString("npc.type", "villager")
+                + " / " + plugin.settings().getString("ui.menu", "chest") + " / " + plugin.settings().getString("reset.method", "entities"));
+        Msg.info(sender, "info.line", "key", "PlaceholderAPI / Vault", "value", pm.isPluginEnabled("PlaceholderAPI")
+                + " / " + pm.isPluginEnabled("Vault"));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeTop(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        LeaderboardService boards = plugin.getLeaderboards();
+        if (boards == null) {
+            Msg.err(sender, "stats.disabled");
+            return 0;
+        }
+        String requested = optionalString(ctx, "stat");
+        Stat stat = Stat.fromKey(requested != null ? requested : plugin.settings().getString("leaderboards.default-stat", "wins"));
+        if (stat == null) {
+            Msg.err(sender, "leaderboard.unknown-stat", "stat", requested, "stats", statNames());
+            return 0;
+        }
+        Msg.info(sender, "leaderboard.title", "stat", Msg.word(sender, stat.langKey()));
+        List<TopEntry> rows = boards.top(stat);
+        if (rows.isEmpty()) Msg.info(sender, "leaderboard.empty");
+        for (TopEntry row : rows) {
+            Msg.info(sender, "leaderboard.line", "rank", row.rank(), "player", row.name(), "value", row.value());
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static String statNames() {
+        StringBuilder names = new StringBuilder();
+        for (Stat stat : Stat.values()) names.append(names.isEmpty() ? "" : ", ").append(stat.key());
+        return names.toString();
+    }
+
+    /** /ch leaderboard create|remove|list - floating text boards showing a stat's top players. */
+    private LiteralArgumentBuilder<CommandSourceStack> leaderboardRoot() {
+        return literal("leaderboard")
+                .requires(src -> src.getSender().hasPermission(ADMIN_ARENA))
+                .then(literal("create")
+                        .then(argument("id", StringArgumentType.word())
+                                .then(argument("stat", StringArgumentType.word())
+                                        .suggests(STAT_SUGGESTIONS)
+                                        .executes(this::executeBoardCreate))))
+                .then(literal("remove")
+                        .then(argument("id", StringArgumentType.word())
+                                .executes(this::executeBoardRemove)))
+                .then(literal("list").executes(this::executeBoardList));
+    }
+
+    private int executeBoardCreate(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        LeaderboardService boards = plugin.getLeaderboards();
+        if (boards == null) {
+            Msg.err(sender, "stats.disabled");
+            return 0;
+        }
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "setup.in-game-only");
+            return 0;
+        }
+        String statName = StringArgumentType.getString(ctx, "stat");
+        Stat stat = Stat.fromKey(statName);
+        if (stat == null) {
+            Msg.err(sender, "leaderboard.unknown-stat", "stat", statName, "stats", statNames());
+            return 0;
+        }
+        String id = StringArgumentType.getString(ctx, "id");
+        boards.create(id, stat, player.getLocation().add(0, 1.5, 0));
+        Msg.ok(sender, "leaderboard.created", "id", id, "stat", stat.key());
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeBoardRemove(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        LeaderboardService boards = plugin.getLeaderboards();
+        String id = StringArgumentType.getString(ctx, "id");
+        if (boards == null || !boards.remove(id)) {
+            Msg.err(sender, "leaderboard.not-found", "id", id);
+            return 0;
+        }
+        Msg.ok(sender, "leaderboard.removed", "id", id);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeBoardList(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        LeaderboardService boards = plugin.getLeaderboards();
+        if (boards == null || boards.boards().isEmpty()) {
+            Msg.err(sender, "leaderboard.none");
+            return Command.SINGLE_SUCCESS;
+        }
+        for (LeaderboardService.Board board : boards.boards()) {
+            Location at = board.location();
+            Msg.info(sender, "leaderboard.list-line", "id", board.id(), "stat", board.stat().key(), "world", at.getWorld().getName(),
+                    "x", at.getBlockX(), "y", at.getBlockY(), "z", at.getBlockZ());
+        }
         return Command.SINGLE_SUCCESS;
     }
 

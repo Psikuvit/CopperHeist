@@ -268,6 +268,45 @@ stat:
   drills_destroyed: "Drills destroyed"
   mvps: "MVPs"
 
+info:
+  header: "<gold><bold>Copper Heist <gray>{version}"
+  line: "<gray>{key}: <white>{value}"
+
+wizard:
+  header: "<gold><bold>Setup: {arena} <gray>({done}/{total} done)"
+  line: "{mark} <white>{label} <click:run_command:'{command}'><hover:show_text:'{command}'><green>[set]</green></hover></click>"
+  footer: "<gray>Then <click:run_command:'{validate}'><yellow>[validate]</yellow></click> <gray>and <click:run_command:'{enable}'><green>[enable]</green></click>"
+  done: "<green>✔</green>"
+  todo: "<red>✘</red>"
+  step:
+    lobby: "Lobby point"
+    spectator: "Spectator point"
+    bounds1: "Arena bounds - corner 1"
+    bounds2: "Arena bounds - corner 2"
+    loot: "Loot points (6+ recommended; click adds one where you stand)"
+    relic: "Relic point"
+    spawn: "{team} spawn"
+    dock: "{team} dock chest (look at it)"
+    vault-chest: "{team} vault chest (look at it)"
+    vault-door: "{team} vault door block (look at it)"
+    golem-idle: "{team} golem idle point"
+    waypoint: "{team} golem waypoint (add several along the route)"
+    shop: "{team} shop NPC point"
+    base: "{team} base region (then run setbase2 too)"
+    vault-region: "{team} vault region (then run setvaultregion2 too)"
+    snapshot: "Block snapshot (needed for reset.method: snapshot)"
+
+leaderboard:
+  title: "<gold><bold>Top {stat}"
+  line: "<gray>#{rank} <white>{player} <gold>{value}"
+  empty: "<gray>Nobody yet"
+  unknown-stat: "Unknown stat {stat} (try: {stats})."
+  created: "Placed leaderboard {id} showing {stat} here."
+  removed: "Removed leaderboard {id}."
+  not-found: "No leaderboard called {id}."
+  list-line: "<gray>{id}: <white>{stat} <gray>at {world} {x} {y} {z}"
+  none: "There are no leaderboards placed yet."
+
 options:
   header: "<gold>{arena} <gray>- preset: <white>{preset}"
   none: "<gray>No per-arena overrides."

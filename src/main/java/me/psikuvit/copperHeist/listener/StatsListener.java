@@ -46,10 +46,7 @@ public class StatsListener implements Listener {
         Game game = event.getGame();
         Team winner = event.getWinner();
 
-        GamePlayer mvp = null;
-        for (GamePlayer gp : game.gamePlayers()) {
-            if (gp.mvpScore() > 0 && (mvp == null || gp.mvpScore() > mvp.mvpScore())) mvp = gp;
-        }
+        GamePlayer mvp = game.mvp();
 
         for (GamePlayer gp : game.gamePlayers()) {
             OfflinePlayer player = Bukkit.getOfflinePlayer(gp.getUuid());

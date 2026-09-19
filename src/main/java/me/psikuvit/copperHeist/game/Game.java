@@ -224,6 +224,15 @@ public class Game {
         return new ArrayList<>(players.values());
     }
 
+    /** The player with the best MVP score, or null if nobody scored anything. */
+    public GamePlayer mvp() {
+        GamePlayer best = null;
+        for (GamePlayer gp : players.values()) {
+            if (gp.mvpScore() > 0 && (best == null || gp.mvpScore() > best.mvpScore())) best = gp;
+        }
+        return best;
+    }
+
     public int elapsedSeconds() {
         return Math.max(0, matchDurationSeconds - secondsRemaining);
     }
