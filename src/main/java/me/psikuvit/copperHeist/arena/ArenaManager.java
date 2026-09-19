@@ -55,6 +55,15 @@ public class ArenaManager {
         return arena;
     }
 
+    /** Removes an arena from memory and deletes its file and snapshot. */
+    public void delete(Arena arena) {
+        arenas.remove(arena.getName().toLowerCase());
+        File yml = new File(arenasFolder, arena.getName().toLowerCase() + ".yml");
+        if (yml.exists() && !yml.delete()) plugin.getLogger().warning("Could not delete " + yml.getName());
+        File snapshot = snapshotFile(arena);
+        if (snapshot.exists() && !snapshot.delete()) plugin.getLogger().warning("Could not delete " + snapshot.getName());
+    }
+
     public Arena get(String name) {
         if (name == null) return null;
         return arenas.get(name.toLowerCase());

@@ -40,12 +40,21 @@ public class GameManager {
         return gamesByArena.get(arena.getName().toLowerCase());
     }
 
+    /** Drops the arena's game object (and its tasks) - used when an arena is deleted. */
+    public void discard(Arena arena) {
+        Game game = gamesByArena.remove(arena.getName().toLowerCase());
+        if (game != null) game.shutdown();
+    }
+
     public Game getGame(Player player) {
         String arenaName = playerArena.get(player.getUniqueId());
         return arenaName == null ? null : gamesByArena.get(arenaName);
     }
 
     public Text join(Player player, String arenaName) {
+        if (plugin.getNetwork().isMaintenance() && !player.hasPermission("copperheist.admin.bypass")) {
+            return Text.of("join-error.maintenance");
+        }
         Arena arena = arenaName != null ? plugin.getArenaManager().get(arenaName) : findJoinableArena();
         if (arena == null) return Text.of("join-error.no-arena");
         if (!arena.isEnabled()) return Text.of("join-error.not-enabled");

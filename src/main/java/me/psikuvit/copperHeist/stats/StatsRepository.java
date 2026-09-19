@@ -113,6 +113,40 @@ public class StatsRepository {
         });
     }
 
+    /** Overwrites one stat (delete + insert, so it works the same on SQLite and MySQL). */
+    public CompletableFuture<Void> setStat(UUID uuid, Stat stat, long value) {
+        return execute(connection -> {
+            boolean auto = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try (PreparedStatement delete = connection.prepareStatement("DELETE FROM ch_stats WHERE uuid = ? AND stat = ?");
+                 PreparedStatement insert = connection.prepareStatement("INSERT INTO ch_stats (uuid, stat, value) VALUES (?, ?, ?)")) {
+                delete.setString(1, uuid.toString());
+                delete.setString(2, stat.key());
+                delete.executeUpdate();
+                insert.setString(1, uuid.toString());
+                insert.setString(2, stat.key());
+                insert.setLong(3, value);
+                insert.executeUpdate();
+                connection.commit();
+            } catch (Exception ex) {
+                connection.rollback();
+                throw ex;
+            } finally {
+                connection.setAutoCommit(auto);
+            }
+        });
+    }
+
+    /** Deletes every stat of a player (their name row stays, so they can still be looked up). */
+    public CompletableFuture<Void> resetPlayer(UUID uuid) {
+        return execute(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM ch_stats WHERE uuid = ?")) {
+                statement.setString(1, uuid.toString());
+                statement.executeUpdate();
+            }
+        });
+    }
+
     /** The best {@code limit} players for a stat, highest first (players with a zero value are left out). */
     public CompletableFuture<List<TopEntry>> top(Stat stat, int limit) {
         return query(connection -> {

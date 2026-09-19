@@ -100,6 +100,26 @@ public class StatsService {
         return new PlayerStats(uuid, name, merged);
     }
 
+    /** Admin: sets a stat to an exact value (pending progress is written first so nothing is lost or double counted). */
+    public CompletableFuture<Void> set(UUID uuid, Stat stat, long value) {
+        return flush(uuid).thenCompose(ignored -> repository.setStat(uuid, stat, value))
+                .thenRun(() -> stored.computeIfPresent(uuid, (id, values) -> {
+                    values.put(stat, value);
+                    return values;
+                }));
+    }
+
+    /** Admin: wipes a player's stats. */
+    public CompletableFuture<Void> reset(UUID uuid) {
+        synchronized (pending) {
+            pending.remove(uuid);
+        }
+        return repository.resetPlayer(uuid).thenRun(() -> stored.computeIfPresent(uuid, (id, values) -> {
+            values.clear();
+            return values;
+        }));
+    }
+
     public boolean isLoaded(UUID uuid) {
         return stored.containsKey(uuid);
     }

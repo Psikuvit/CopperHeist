@@ -10,6 +10,7 @@ import me.psikuvit.copperHeist.command.Msg;
 import me.psikuvit.copperHeist.config.ConfigMigrator;
 import me.psikuvit.copperHeist.config.PresetRegistry;
 import me.psikuvit.copperHeist.hook.HookManager;
+import me.psikuvit.copperHeist.network.NetworkService;
 import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.database.Database;
 import me.psikuvit.copperHeist.database.MysqlDatabase;
@@ -72,6 +73,7 @@ public final class CopperHeist extends JavaPlugin {
     private Providers providers;
     private StatsService statsService;
     private LeaderboardService leaderboards;
+    private NetworkService network;
 
     @Override
     public void onEnable() {
@@ -109,6 +111,8 @@ public final class CopperHeist extends JavaPlugin {
         roleRegistry.load();
         startStats();
 
+        network = new NetworkService(this);
+        network.start();
 
         arenaManager.loadAll();
         arenaManager.all().forEach(arena -> providers.reset().resolve(settings.getString("reset.method", "entities")).reset(arena));
@@ -137,6 +141,7 @@ public final class CopperHeist extends JavaPlugin {
     @Override
     public void onDisable() {
         if (gameManager != null) gameManager.shutdownAll();
+        if (network != null) network.shutdown();
         if (leaderboards != null) leaderboards.stop();
         if (statsService != null) statsService.shutdown();
     }
@@ -181,6 +186,10 @@ public final class CopperHeist extends JavaPlugin {
     }
 
     /** The stats service, or null if stats are disabled or the database couldn't be opened. */
+    public NetworkService getNetwork() {
+        return network;
+    }
+
     public LeaderboardService getLeaderboards() {
         return leaderboards;
     }

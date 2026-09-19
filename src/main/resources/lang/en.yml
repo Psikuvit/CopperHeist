@@ -127,6 +127,7 @@ status:
   disabled: "disabled"
 
 join-error:
+  maintenance: "The game is in maintenance mode - try again later."
   no-arena: "No joinable arena available right now."
   not-enabled: "That arena isn't enabled."
   failed: "Couldn't join {arena} (full or already running)."
@@ -267,6 +268,32 @@ stat:
   drills_completed: "Drills completed"
   drills_destroyed: "Drills destroyed"
   mvps: "MVPs"
+
+network:
+  remote-line: "<gray>[{server}] <white>{arena} <gray>- {state}, {players}/{max} players <dark_gray>(/ch join {server}.{arena})"
+  none: "<gray>No arenas reported by other servers."
+  sending: "Sending you to {arena} on {server}..."
+  transfer-failed: "Could not start the transfer - try again."
+
+admin:
+  no-players: "<gray>Nobody is in {arena}."
+  players-header: "<gold>{arena} <gray>- {state}, {count} players"
+  player-line: "<gray>{player}: <white>{team} <gray>({role}) online: {online}"
+  not-in-match: "{player} isn't in a match."
+  kicked: "You were removed from the match by an admin."
+  kick-done: "Removed {player} from their match."
+  no-point: "{arena} has no {point} point set."
+  teleported: "Teleported to the {point} of {arena}."
+  maintenance-status: "<gray>Maintenance mode: <white>{state}"
+  maintenance-on: "Maintenance mode is on - only admins can join matches (network-wide when Redis is enabled)."
+  maintenance-off: "Maintenance mode is off."
+  broadcast-format: "<gold>[Announcement] <white>{message}"
+  network-header: "<gold>This server: <white>{server} <gray>- Redis: {redis}"
+  stat-done: "Set {player}'s {stat} to {value} (or added, for add)."
+  stat-reset: "Reset all stats of {player}."
+  arena-disabled: "{arena} is disabled - nobody new can join."
+  arena-busy: "{arena} still has players in it."
+  arena-deleted: "Deleted {arena} (its file and snapshot are gone; the world blocks are untouched)."
 
 info:
   header: "<gold><bold>Copper Heist <gray>{version}"

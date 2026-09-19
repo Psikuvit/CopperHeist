@@ -149,6 +149,22 @@ database:
     password: ""
     use-ssl: false
 
+# Several game servers behind one proxy (BungeeCord or Velocity) acting as one network. Needs a Redis server and,
+# for shared stats, database.type: mysql pointing every server at the same database. Needs a restart to change.
+# Every server lists the others' arenas in /ch list and can send players there with /ch join <server>.<arena>.
+network:
+  enabled: false
+  server-id: server-1               # unique per server
+  proxy-name: ""                    # the server's name in the proxy config; empty uses server-id
+  cluster: default                  # servers with the same cluster name see each other's arenas
+  status-seconds: 3                 # how often arena status is published and read
+  redis:
+    host: localhost
+    port: 6379
+    password: ""
+    database: 0
+    ssl: false
+
 # Pay players when a match ends. provider: none | vault (money through Vault) | commands (console commands).
 # The winning team gets "win", the losing team "loss" (a draw pays nobody), and the MVP gets "mvp" as well.
 rewards:

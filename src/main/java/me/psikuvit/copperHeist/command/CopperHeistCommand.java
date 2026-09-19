@@ -20,6 +20,7 @@ import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootTierDefinition;
+import me.psikuvit.copperHeist.network.RemoteArena;
 import me.psikuvit.copperHeist.role.RoleDefinition;
 import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.PlayerStats;
@@ -174,6 +175,7 @@ public final class CopperHeistCommand {
                                         new SetupWizard(plugin).show(sender, arena);
                                         return Command.SINGLE_SUCCESS;
                                     })))
+                    .then(new AdminCommands(plugin, commands.arenaSuggestions).root())
                     .then(commands.leaderboardRoot())
                     .then(commands.arenaRoot());
 
@@ -192,6 +194,16 @@ public final class CopperHeistCommand {
         String arenaName = optionalString(ctx, "arena");
         Text error = plugin.getGameManager().join(player, arenaName);
         if (error != null) {
+            if (plugin.getNetwork().isConnected() && !plugin.getNetwork().isMaintenance()) {
+                RemoteArena remote = plugin.getNetwork().findRemote(arenaName);
+                if (remote != null) {
+                    Msg.ok(player, "network.sending", "arena", remote.arena(), "server", remote.serverId());
+                    plugin.getNetwork().transfer(player, remote).thenAccept(sent -> {
+                        if (!sent) Msg.err(player, "network.transfer-failed");
+                    });
+                    return Command.SINGLE_SUCCESS;
+                }
+            }
             Msg.err(player, error);
             return 0;
         }
@@ -212,10 +224,11 @@ public final class CopperHeistCommand {
 
     private int executeList(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
-        if (plugin.getArenaManager().all().isEmpty()) {
+        if (plugin.getArenaManager().all().isEmpty() && plugin.getNetwork().remoteArenas().isEmpty()) {
             Msg.err(sender, "command.no-arenas");
             return Command.SINGLE_SUCCESS;
         }
+        for (RemoteArena remote : plugin.getNetwork().remoteArenas()) AdminCommands.sendRemoteLine(sender, remote);
         for (Arena arena : plugin.getArenaManager().all()) {
             Game game = plugin.getGameManager().peek(arena);
             String state = game != null ? game.getState().name() : GameState.WAITING.name();

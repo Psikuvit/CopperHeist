@@ -41,7 +41,10 @@ permissions:
     description: Reload configuration files
     default: op
   copperheist.admin.bypass:
-    description: Use any command while inside a match
+    description: Use any command while inside a match, and join during maintenance
+    default: op
+  copperheist.admin.manage:
+    description: Server administration - kick players from matches, edit stats, maintenance mode, broadcasts, delete arenas
     default: op
   copperheist.admin.*:
     description: All Copper Heist admin permissions
@@ -51,6 +54,7 @@ permissions:
       copperheist.admin.debug: true
       copperheist.admin.reload: true
       copperheist.admin.bypass: true
+      copperheist.admin.manage: true
   copperheist.*:
     description: Everything
     default: op
