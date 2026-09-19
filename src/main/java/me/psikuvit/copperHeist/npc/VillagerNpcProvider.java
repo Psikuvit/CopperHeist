@@ -19,8 +19,7 @@ public class VillagerNpcProvider implements NpcProvider {
             entity.setAI(false);
             entity.setInvulnerable(true);
             entity.setSilent(true);
-            entity.setPersistent(true);
-            entity.customName(spec.name());
+                entity.customName(spec.name());
             entity.setCustomNameVisible(true);
             if (resolved != null) entity.setProfession(resolved);
         });

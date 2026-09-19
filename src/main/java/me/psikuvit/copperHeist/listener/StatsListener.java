@@ -42,7 +42,7 @@ public class StatsListener implements Listener {
     @EventHandler
     public void onMatchEnd(MatchEndEvent event) {
         StatsService stats = plugin.getStats();
-        if (stats == null) return;
+        if (stats == null || plugin.getGameManager().isShuttingDown()) return;
         Game game = event.getGame();
         Team winner = event.getWinner();
 

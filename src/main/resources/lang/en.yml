@@ -293,6 +293,8 @@ admin:
   stat-reset: "Reset all stats of {player}."
   arena-disabled: "{arena} is disabled - nobody new can join."
   arena-busy: "{arena} still has players in it."
+  clean-all: "Removed {count} leftover Copper Heist entities."
+  clean-stale: "A match is running, so only entities left over from earlier sessions were removed ({count})."
   arena-deleted: "Deleted {arena} (its file and snapshot are gone; the world blocks are untouched)."
 
 hub:

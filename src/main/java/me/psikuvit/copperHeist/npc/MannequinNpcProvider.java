@@ -32,8 +32,7 @@ public class MannequinNpcProvider implements NpcProvider {
             entity.setAI(false);
             entity.setInvulnerable(true);
             entity.setSilent(true);
-            entity.setPersistent(true);
-            entity.setImmovable(immovable);
+                entity.setImmovable(immovable);
             entity.customName(spec.name());
             entity.setCustomNameVisible(showName);
             entity.setDescription(description.isBlank() ? Component.empty() : MiniMessage.miniMessage().deserialize(description));

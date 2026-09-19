@@ -43,7 +43,7 @@ public class Rewards implements Listener {
     @EventHandler
     public void onMatchEnd(MatchEndEvent event) {
         String provider = provider();
-        if ("none".equalsIgnoreCase(provider)) return;
+        if ("none".equalsIgnoreCase(provider) || plugin.getGameManager().isShuttingDown()) return;
         Game game = event.getGame();
         Team winner = event.getWinner();
         GamePlayer mvp = game.mvp();

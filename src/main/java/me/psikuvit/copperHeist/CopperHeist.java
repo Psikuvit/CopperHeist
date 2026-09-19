@@ -17,6 +17,7 @@ import me.psikuvit.copperHeist.database.MysqlDatabase;
 import me.psikuvit.copperHeist.database.SqliteDatabase;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.listener.LobbySafetyListener;
+import me.psikuvit.copperHeist.listener.StaleEntityListener;
 import me.psikuvit.copperHeist.listener.StatsListener;
 import me.psikuvit.copperHeist.role.RoleRegistry;
 import me.psikuvit.copperHeist.role.ability.AbilityRegistry;
@@ -47,12 +48,14 @@ import me.psikuvit.copperHeist.ui.HubSpawn;
 import me.psikuvit.copperHeist.ui.LobbyKitService;
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.SidebarService;
+import me.psikuvit.copperHeist.util.HeistEntities;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public final class CopperHeist extends JavaPlugin {
@@ -86,6 +89,7 @@ public final class CopperHeist extends JavaPlugin {
         Team.configure(getConfig().getConfigurationSection("teams"));
 
         PdcKeys.init(this);
+        HeistEntities.init(UUID.randomUUID().toString());
         DeliveryGoal.init(this);
 
         presets = new PresetRegistry(this);
@@ -136,6 +140,9 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new VaultRegionListener(this), this);
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbySafetyListener(this), this);
+        getServer().getPluginManager().registerEvents(new StaleEntityListener(this), this);
+        int stale = HeistEntities.sweepStaleEverywhere(gameManager::isMatchRunning);
+        if (stale > 0) getLogger().info("Removed " + stale + " leftover entities from a previous session.");
 
         HookManager.enable(this);
         CopperHeistCommand.register(this);
@@ -147,6 +154,7 @@ public final class CopperHeist extends JavaPlugin {
     @Override
     public void onDisable() {
         if (gameManager != null) gameManager.shutdownAll();
+        HeistEntities.removeCurrentSession();
         if (network != null) network.shutdown();
         if (leaderboards != null) leaderboards.stop();
         if (statsService != null) statsService.shutdown();

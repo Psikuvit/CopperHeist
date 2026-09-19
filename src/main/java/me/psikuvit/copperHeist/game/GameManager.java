@@ -116,9 +116,21 @@ public class GameManager {
         pendingRestore.put(uuid, state);
     }
 
+    public boolean isShuttingDown() {
+        return shuttingDown;
+    }
+
+    /** True while a game with this match id exists and hasn't finished - used to tell live loot from leftovers. */
+    public boolean isMatchRunning(String matchId) {
+        for (Game game : gamesByArena.values()) {
+            if (game.getMatchId().equals(matchId) && game.getState() != GameState.RESETTING) return true;
+        }
+        return false;
+    }
+
     public void shutdownAll() {
         shuttingDown = true;
-        for (Game game : new ArrayList<>(gamesByArena.values())) game.shutdown();
+        for (Game game : gamesByArena.values()) game.shutdown();
     }
 
     public void onQuit(Player player) {

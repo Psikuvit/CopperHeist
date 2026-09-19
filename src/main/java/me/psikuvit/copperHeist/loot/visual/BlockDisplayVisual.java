@@ -26,7 +26,6 @@ public class BlockDisplayVisual implements LootBagVisual {
         return location.getWorld().spawn(location.clone().subtract(0.25, 0.25, 0.25), BlockDisplay.class, entity -> {
             entity.setBlock(block.createBlockData());
             entity.setTransformation(new Transformation(new Vector3f(), new Quaternionf(), new Vector3f(0.5f, 0.5f, 0.5f), new Quaternionf()));
-            entity.setPersistent(true);
-        });
+            });
     }
 }

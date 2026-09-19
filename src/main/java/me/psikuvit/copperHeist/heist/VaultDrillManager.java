@@ -90,17 +90,14 @@ public class VaultDrillManager {
         Location loc = door.clone().add(0.5, 0, 0.5);
         BlockDisplay display = loc.getWorld().spawn(loc, BlockDisplay.class, entity -> {
             entity.setBlock(Material.IRON_BLOCK.createBlockData());
-            entity.setPersistent(true);
-        });
+            });
         TextDisplay label = loc.getWorld().spawn(loc.clone().add(0, 1.5, 0), TextDisplay.class, entity -> {
             entity.setBillboard(Display.Billboard.CENTER);
-            entity.setPersistent(true);
-        });
+            });
         Interaction hitbox = loc.getWorld().spawn(loc.clone(), Interaction.class, entity -> {
             entity.setInteractionWidth(1.0f);
             entity.setInteractionHeight(2.0f);
-            entity.setPersistent(true);
-        });
+            });
         plugin.getGameManager().registerHeistEntity(game, hitbox.getUniqueId());
 
         double maxHealth = game.settings().getDouble("drill.health", 40.0);

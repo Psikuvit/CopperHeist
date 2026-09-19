@@ -23,7 +23,6 @@ public class ItemDisplayVisual implements LootBagVisual {
         ItemStack stack = new ItemStack(material);
         return location.getWorld().spawn(location, ItemDisplay.class, entity -> {
             entity.setItemStack(stack);
-            entity.setPersistent(true);
-        });
+            });
     }
 }

@@ -1,7 +1,6 @@
 package me.psikuvit.copperHeist.heist;
 
 import me.psikuvit.copperHeist.CopperHeist;
-import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.event.AlarmDestroyedEvent;
 import me.psikuvit.copperHeist.event.AlarmTriggeredEvent;
 import me.psikuvit.copperHeist.game.Game;
@@ -80,8 +79,7 @@ public class AlarmManager {
         Interaction hitbox = loc.getWorld().spawn(loc.clone().add(0.5, 0, 0.5), Interaction.class, entity -> {
             entity.setInteractionWidth(0.8f);
             entity.setInteractionHeight(0.8f);
-            entity.setPersistent(true);
-        });
+            });
         plugin.getGameManager().registerHeistEntity(game, hitbox.getUniqueId());
 
         Alarm alarm = new Alarm(team, loc, hitbox);

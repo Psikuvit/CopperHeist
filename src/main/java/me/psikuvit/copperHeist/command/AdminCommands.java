@@ -17,6 +17,7 @@ import me.psikuvit.copperHeist.network.NetworkService;
 import me.psikuvit.copperHeist.network.RemoteArena;
 import me.psikuvit.copperHeist.stats.Stat;
 import me.psikuvit.copperHeist.stats.StatsService;
+import me.psikuvit.copperHeist.util.HeistEntities;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -84,6 +85,7 @@ public final class AdminCommands {
                 .then(literal("broadcast")
                         .then(argument("message", StringArgumentType.greedyString()).executes(this::broadcast)))
                 .then(literal("servers").executes(this::servers))
+                .then(literal("clean").executes(this::clean))
                 .then(literal("stats")
                         .then(literal("set").then(statArgs(true)))
                         .then(literal("add").then(statArgs(false)))
@@ -208,6 +210,18 @@ public final class AdminCommands {
     private int broadcast(CommandContext<CommandSourceStack> ctx) {
         String message = StringArgumentType.getString(ctx, "message");
         plugin.getNetwork().broadcast(plugin.getMessageService().rawFor(Bukkit.getConsoleSender(), "admin.broadcast-format", "message", message));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** Removes leftover match entities (golems, labels, NPCs, hitboxes, displays, stray loot). Only stale ones while a match is running. */
+    private int clean(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        boolean running = false;
+        for (Game game : plugin.getGameManager().all()) running |= game.isActive() || game.totalPlayers() > 0;
+        int removed = running
+                ? HeistEntities.sweepStaleEverywhere(plugin.getGameManager()::isMatchRunning)
+                : HeistEntities.removeAllTagged();
+        Msg.ok(sender, running ? "admin.clean-stale" : "admin.clean-all", "count", removed);
         return Command.SINGLE_SUCCESS;
     }
 

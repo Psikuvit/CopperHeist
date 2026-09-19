@@ -64,12 +64,10 @@ public class LootBagManager {
         Interaction hitbox = base.getWorld().spawn(base, Interaction.class, entity -> {
             entity.setInteractionWidth(0.9f);
             entity.setInteractionHeight(0.9f);
-            entity.setPersistent(true);
-        });
+            });
         TextDisplay label = base.getWorld().spawn(base.clone().add(0, 0.8, 0), TextDisplay.class, entity -> {
             entity.setBillboard(Display.Billboard.CENTER);
-            entity.setPersistent(true);
-        });
+            });
 
         LootBag bag = new LootBag(new ArrayList<>(items), display, hitbox, label, System.currentTimeMillis() + lifetime);
         bags.add(bag);

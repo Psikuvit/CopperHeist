@@ -16,8 +16,7 @@ public class ArmorStandNpcProvider implements NpcProvider {
             entity.setSmall(small);
             entity.setArms(arms);
             entity.setSilent(true);
-            entity.setPersistent(true);
-            entity.customName(spec.name());
+                entity.customName(spec.name());
             entity.setCustomNameVisible(true);
         });
         return NpcHandle.of(stand);

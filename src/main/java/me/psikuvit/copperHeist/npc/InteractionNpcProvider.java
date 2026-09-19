@@ -21,13 +21,11 @@ public class InteractionNpcProvider implements NpcProvider {
         Interaction hitbox = spec.location().getWorld().spawn(spec.location(), Interaction.class, entity -> {
             entity.setInteractionWidth(width);
             entity.setInteractionHeight(height);
-            entity.setPersistent(true);
-        });
+            });
         TextDisplay label = spec.location().getWorld().spawn(spec.location().clone().add(0, height + 0.3, 0), TextDisplay.class, entity -> {
             entity.setBillboard(Display.Billboard.CENTER);
             entity.text(spec.name());
-            entity.setPersistent(true);
-        });
+            });
         return new NpcHandle(hitbox, List.<Entity>of(label));
     }
 }

@@ -7,7 +7,6 @@ import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.event.LootDeliveredEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
-import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
@@ -34,7 +33,6 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -85,7 +83,6 @@ public class GolemManager {
         CopperGolem entity = (CopperGolem) spawnLoc.getWorld().spawnEntity(
                 spawnLoc, EntityType.COPPER_GOLEM, CreatureSpawnEvent.SpawnReason.CUSTOM);
         entity.setRemoveWhenFarAway(false);
-        entity.setPersistent(true);
         entity.customName(Component.text(team.displayName() + " Golem", team.color()));
         entity.setCustomNameVisible(false);
         entity.setWeatheringState(WeatheringCopperState.UNAFFECTED);
@@ -116,7 +113,6 @@ public class GolemManager {
         TextDisplay display = above.getWorld().spawn(above, TextDisplay.class, d -> {
             d.setBillboard(Display.Billboard.CENTER);
             d.text(Component.empty());
-            d.setPersistent(true);
         });
         golem.setLabel(display);
     }
