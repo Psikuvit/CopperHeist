@@ -31,6 +31,13 @@ world-rules:
   disable-mob-spawning: true      # natural spawns are cancelled; commands, spawn eggs and plugin-spawned mobs still work
   pvp-only-in-game: true          # players can only hurt each other during a running match, in the same match
 
+# What happens to players in the hub (everyone who is not in a running match). Admins with copperheist.admin.bypass are exempt from clear-on-join only.
+lobby:
+  clear-on-join: true             # joining the server wipes items, armor, offhand, potion effects, glow and vitals, then gives the hub kit
+  lock-items: true                # the compass, guide book and leave bed can't be dropped, moved into containers or swapped to the offhand
+  protect-players: true           # no damage of any kind (void rescues you) and no hunger outside a running match, for everyone
+  teleport-on-join: true          # players joining the server are sent to the hub spawn (/ch setlobby), if one is set
+
 shop:
   command-radius: 15
 

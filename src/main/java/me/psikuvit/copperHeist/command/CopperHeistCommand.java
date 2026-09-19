@@ -104,6 +104,10 @@ public final class CopperHeistCommand {
                                     .suggests(commands.arenaSuggestions)
                                     .executes(commands::executeJoin)))
                     .then(literal("leave").executes(commands::executeLeave))
+                    .then(literal("lobby").executes(commands::executeLobby))
+                    .then(literal("setlobby")
+                            .requires(src -> src.getSender().hasPermission(ADMIN_ARENA))
+                            .executes(commands::executeSetLobby))
                     .then(literal("list").executes(commands::executeList))
                     .then(literal("shop").executes(commands::executeShop))
                     .then(literal("stats")
@@ -219,6 +223,36 @@ public final class CopperHeistCommand {
         }
         plugin.getGameManager().leave(player);
         Msg.ok(player, "command.left-arena");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** /ch lobby - back to the hub spawn (leaving a match first). */
+    private int executeLobby(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "setup.in-game-only");
+            return 0;
+        }
+        Location hub = plugin.getHubSpawn().get();
+        if (hub == null) {
+            Msg.err(player, "hub.not-set");
+            return 0;
+        }
+        if (plugin.getGameManager().getGame(player) != null) plugin.getGameManager().leave(player);
+        player.teleport(hub);
+        Msg.ok(player, "hub.teleported");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** /ch setlobby - the hub spawn for the whole server (not an arena's waiting room; that is /ch arena setlobby). */
+    private int executeSetLobby(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "setup.in-game-only");
+            return 0;
+        }
+        plugin.getHubSpawn().set(player.getLocation());
+        Msg.ok(player, "hub.set");
         return Command.SINGLE_SUCCESS;
     }
 

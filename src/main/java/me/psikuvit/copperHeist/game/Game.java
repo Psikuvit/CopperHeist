@@ -26,6 +26,7 @@ import me.psikuvit.copperHeist.task.RejoinExpiryTask;
 import me.psikuvit.copperHeist.task.RespawnTask;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
+import me.psikuvit.copperHeist.util.PlayerSanitizer;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -260,7 +261,7 @@ public class Game {
         players.put(player.getUniqueId(), gamePlayer);
         teams.get(team).getMembers().add(player.getUniqueId());
 
-        player.getInventory().clear();
+        PlayerSanitizer.reset(player);
         player.setGameMode(GameMode.SURVIVAL);
         if (arena.getLobby() != null) player.teleport(arena.getLobby());
         plugin.getLobbyKitService().giveLeaveItem(player);
@@ -288,6 +289,9 @@ public class Game {
     }
 
     public static void restoreState(Player player, GamePlayer.SavedState saved) {
+        // Whatever the match left on the player (items, potion effects, glow, speed) goes before their old state comes back.
+        PlayerSanitizer.clearInventory(player);
+        PlayerSanitizer.clearEffects(player);
         player.getInventory().setContents(saved.contents());
         player.getInventory().setArmorContents(saved.armor());
         player.setGameMode(saved.gameMode());
@@ -407,7 +411,8 @@ public class Game {
         if (disconnectedUntil.remove(player.getUniqueId()) == null) return false;
         GamePlayer gp = players.get(player.getUniqueId());
         if (gp == null || !isActive()) return false;
-        player.getInventory().clear();
+        PlayerSanitizer.clearInventory(player);
+        PlayerSanitizer.clearEffects(player);
         beginRespawnWait(player, gp);
         return true;
     }
@@ -444,7 +449,8 @@ public class Game {
                 player.getGameMode(),
                 player.getHealth(),
                 player.getFoodLevel()));
-        player.getInventory().clear();
+        PlayerSanitizer.clearInventory(player);
+        PlayerSanitizer.clearEffects(player);
         player.setGameMode(GameMode.SPECTATOR);
         player.teleport(where);
         return true;

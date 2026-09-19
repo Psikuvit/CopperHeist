@@ -32,6 +32,8 @@ public class LobbyListener implements Listener {
 
         switch (action) {
             case "join_compass" -> plugin.getLobbyKitService().sendArenaList(player);
+            // The event is cancelled above so the item can't be placed or used; a book has to be opened by hand.
+            case "guide_book" -> player.openBook(item);
             case "leave_arena" -> {
                 if (plugin.getGameManager().getGame(player) != null) {
                     plugin.getGameManager().leave(player);

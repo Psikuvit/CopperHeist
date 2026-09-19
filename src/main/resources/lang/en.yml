@@ -295,6 +295,11 @@ admin:
   arena-busy: "{arena} still has players in it."
   arena-deleted: "Deleted {arena} (its file and snapshot are gone; the world blocks are untouched)."
 
+hub:
+  set: "Hub spawn set here. Players who join the server land on this spot, and /ch lobby brings them back."
+  teleported: "Teleported to the lobby."
+  not-set: "No hub spawn is set yet - an admin can set one with /ch setlobby."
+
 info:
   header: "<gold><bold>Copper Heist <gray>{version}"
   line: "<gray>{key}: <white>{value}"

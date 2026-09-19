@@ -60,6 +60,13 @@ Rod, Alarm, and the Vault Drill (Heist phase only).
 **Sabotage.** *Alarms* placed near your base flag intruders. A *Vault Drill* placed on an enemy vault door breaches it for a
 timed window if attackers stay near it and defenders don't destroy it first. *Gust Pads* launch whoever steps on them.
 
+**Clean state.** Players joining the server are reset (items, armor, offhand, potion effects, glow, vitals) and given the hub
+kit (join compass and guide book). Entering an arena, spectating and leaving a match all wipe the previous context's items and
+effects before the next state is applied, so nothing leaks between hub, match and spectating. Hub items can't be dropped or
+moved into containers, and players outside a running match (hub, waiting room, results screen) take no damage or hunger, admins included; falling into
+the void sends you back to a safe spot. All of this is under `lobby.*` in `config.yml`; only the join-time wipe skips admins
+with `copperheist.admin.bypass`.
+
 **Match rules.** Team-aware damage, spawn protection, a hidden enemy score option, an anti-turtle *vault decay* option,
 respawn modes, and in-match command blocking.
 

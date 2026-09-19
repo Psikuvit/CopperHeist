@@ -16,6 +16,7 @@ import me.psikuvit.copperHeist.database.Database;
 import me.psikuvit.copperHeist.database.MysqlDatabase;
 import me.psikuvit.copperHeist.database.SqliteDatabase;
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StatsListener;
 import me.psikuvit.copperHeist.role.RoleRegistry;
 import me.psikuvit.copperHeist.role.ability.AbilityRegistry;
@@ -42,6 +43,7 @@ import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.StatsRepository;
 import me.psikuvit.copperHeist.stats.StatsService;
 import me.psikuvit.copperHeist.shop.action.ShopActionRegistry;
+import me.psikuvit.copperHeist.ui.HubSpawn;
 import me.psikuvit.copperHeist.ui.LobbyKitService;
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.SidebarService;
@@ -63,6 +65,7 @@ public final class CopperHeist extends JavaPlugin {
     private SidebarService sidebarService;
     private LootWeightService lootWeightService;
     private LobbyKitService lobbyKitService;
+    private HubSpawn hubSpawn;
     private ShopService shopService;
     private Settings settings;
     private PresetRegistry presets;
@@ -100,6 +103,8 @@ public final class CopperHeist extends JavaPlugin {
         lootWeightService = new LootWeightService(this);
         lobbyKitService = new LobbyKitService(this);
         lobbyKitService.load();
+        hubSpawn = new HubSpawn(this);
+        hubSpawn.load();
         shopActions = new ShopActionRegistry();
         shopService = new ShopService(this);
         shopService.load();
@@ -130,6 +135,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GustPadListener(this), this);
         getServer().getPluginManager().registerEvents(new VaultRegionListener(this), this);
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
+        getServer().getPluginManager().registerEvents(new LobbySafetyListener(this), this);
 
         HookManager.enable(this);
         CopperHeistCommand.register(this);
@@ -186,6 +192,10 @@ public final class CopperHeist extends JavaPlugin {
     }
 
     /** The stats service, or null if stats are disabled or the database couldn't be opened. */
+    public HubSpawn getHubSpawn() {
+        return hubSpawn;
+    }
+
     public NetworkService getNetwork() {
         return network;
     }
