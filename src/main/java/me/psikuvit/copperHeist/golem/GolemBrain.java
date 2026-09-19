@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.golem;
 
 import com.destroystokyo.paper.entity.Pathfinder;
+import io.papermc.paper.entity.TeleportFlag;
 import org.bukkit.Location;
 import org.bukkit.entity.CopperGolem;
 import org.bukkit.inventory.ItemStack;
@@ -136,7 +137,7 @@ public class GolemBrain {
 
     /** Fell out of the arena (or got launched out of it) - back to the idle point, carrying whatever it had. */
     private void returnToDock() {
-        golem.getEntity().teleport(golem.getDockIdle());
+        golem.getEntity().teleport(golem.getDockIdle(), TeleportFlag.EntityState.RETAIN_PASSENGERS);
         phase = HeistGolem.Phase.AT_DOCK;
         waypointIndex = 0;
         currentTarget = null;
@@ -233,7 +234,7 @@ public class GolemBrain {
 
     /** A waypoint that can't be pathed to: skip it, or if it's the final one, jump straight onto it. */
     private void giveUpOn(Location target, boolean last) {
-        if (last) golem.getEntity().teleport(target);
+        if (last) golem.getEntity().teleport(target, TeleportFlag.EntityState.RETAIN_PASSENGERS);
         waypointIndex++;
         currentTarget = null;
         pathFailures = 0;
@@ -299,7 +300,7 @@ public class GolemBrain {
                     ? golem.getWaypointsToDock()
                     : golem.getWaypointsToVault();
             int index = Math.min(waypointIndex, route.size() - 1);
-            if (index >= 0) golem.getEntity().teleport(route.get(index));
+            if (index >= 0) golem.getEntity().teleport(route.get(index), TeleportFlag.EntityState.RETAIN_PASSENGERS);
             currentTarget = null;
             lastPosition = golem.getEntity().getLocation();
             lastMovedMillis = now;

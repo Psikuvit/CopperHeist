@@ -29,6 +29,9 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -109,19 +112,27 @@ public class GolemManager {
     }
 
     private void spawnLabel(HeistGolem golem) {
-        Location above = golem.getEntity().getLocation().add(0, 2.3, 0);
-        TextDisplay display = above.getWorld().spawn(above, TextDisplay.class, d -> {
+        Location at = golem.getEntity().getLocation();
+        float lift = (float) game.settings().getDouble("golems.label-height", 0.7);
+        TextDisplay display = at.getWorld().spawn(at, TextDisplay.class, d -> {
             d.setBillboard(Display.Billboard.CENTER);
             d.text(Component.empty());
+            // The label rides the golem as a passenger, so the client moves it together with the golem every frame;
+            // the translation lifts it above the golem's head.
+            d.setTransformation(new Transformation(new Vector3f(0, lift, 0), new AxisAngle4f(), new Vector3f(1, 1, 1), new AxisAngle4f()));
         });
         golem.setLabel(display);
+        golem.getEntity().addPassenger(display);
     }
 
-    /** Called from the game's periodic UI tick; labels don't ride the golem, just follow it. */
+    /** Called from the game's periodic UI tick: keeps every label mounted and its text up to date. */
     public void syncLabels() {
         for (HeistGolem golem : golems.values()) {
-            if (golem.getLabel() != null && !golem.getLabel().isDead()) {
-                golem.getLabel().teleport(golem.getEntity().getLocation().add(0, 2.3, 0));
+            TextDisplay label = golem.getLabel();
+            // Nothing to move any more - just put the label back on if something knocked it off (a teleport, a plugin).
+            if (label != null && !label.isDead() && !golem.getEntity().getPassengers().contains(label)) {
+                label.teleport(golem.getEntity().getLocation());
+                golem.getEntity().addPassenger(label);
             }
             updateLabel(golem);
         }

@@ -229,6 +229,7 @@ teams:
     armor-color: SILVER
 
 golems:
+  label-height: 0.7              # how far above the golem's head its label floats
   ai:
     arrive-distance: 1.5
     stuck-seconds: 8
