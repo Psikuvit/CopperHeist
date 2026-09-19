@@ -49,10 +49,16 @@ public class GolemManager {
     private final Game game;
     private final Map<UUID, HeistGolem> golems = new HashMap<>();
     private final Cooldowns scrapeCooldowns = new Cooldowns();
+    private final GolemEffects effects;
 
     public GolemManager(CopperHeist plugin, Game game) {
         this.plugin = plugin;
         this.game = game;
+        this.effects = new GolemEffects(plugin.settings());
+    }
+
+    public GolemEffects effects() {
+        return effects;
     }
 
     public Collection<HeistGolem> all() {
@@ -229,6 +235,7 @@ public class GolemManager {
         int stunSeconds = plugin.settings().getInt("golems.stun-seconds", 3);
         int immunitySeconds = plugin.settings().getInt("golems.stun-immunity-seconds", 5);
         golem.stun(stunSeconds, immunitySeconds);
+        effects.stunned(golem.getEntity().getLocation());
     }
 
     public void onDeath(HeistGolem golem) {
@@ -272,6 +279,7 @@ public class GolemManager {
 
         int cooldown = (int) (plugin.settings().getInt("golems.scrape-cooldown-seconds", 20) * cooldownMultiplier);
         scrapeCooldowns.set(id, cooldown);
+        effects.scraped(golem.getEntity().getLocation());
         return true;
     }
 
@@ -284,6 +292,7 @@ public class GolemManager {
         golem.getEntity().setOxidizing(CopperGolem.Oxidizing.waxed());
         int duration = plugin.settings().getInt("golems.wax-duration-seconds", 180);
         golem.setWaxedUntilMillis(System.currentTimeMillis() + duration * 1000L);
+        effects.waxed(golem.getEntity().getLocation());
         updateLabel(golem);
     }
 

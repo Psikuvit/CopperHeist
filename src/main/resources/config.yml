@@ -25,6 +25,12 @@ match:
     collection-end-seconds: 480
     heist-end-seconds: 780
 
+# Keeps the worlds you play in calm. scope: arena (only worlds that contain an arena) | all (every world).
+world-rules:
+  scope: arena
+  disable-mob-spawning: true      # natural spawns are cancelled; commands, spawn eggs and plugin-spawned mobs still work
+  pvp-only-in-game: true          # players can only hurt each other during a running match, in the same match
+
 shop:
   command-radius: 15
 
@@ -182,6 +188,14 @@ golems:
     stuck-seconds: 8
     off-path-distance: 4
     off-path-seconds: 2
+    corner-cut-distance: 1.5        # extra distance at which a middle waypoint counts as reached, so golems flow round corners
+    repath-seconds: 0.5             # minimum time between path re-issues when a path ends early
+    max-path-failures: 3            # a waypoint that can't be pathed to this many times in a row is skipped
+  animation:
+    enabled: true                   # arm animations, the held item, and the effects below
+    pause-seconds: 1.0              # how long a golem stands still while picking up or dropping off
+    sounds: true
+    particles: true
   storm-rod:
     radius: 8
     damage: 6.0

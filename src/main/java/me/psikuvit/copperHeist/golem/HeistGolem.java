@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.CopperGolem;
 import org.bukkit.entity.CopperGolem.Oxidizing;
 import org.bukkit.entity.TextDisplay;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -91,6 +92,15 @@ public class HeistGolem {
 
     public void setCarried(ItemStack carried) {
         this.carried = carried;
+        if (carried != null) showInHand(carried);
+        else if (!brain.holdsHandVisual()) showInHand(null);
+    }
+
+    /** Puts a plain look-alike of the item in the golem's hand (never the real loot stack), or empties the hand. */
+    public void showInHand(ItemStack item) {
+        EntityEquipment equipment = entity.getEquipment();
+        equipment.setItemInMainHand(item == null ? ItemStack.empty() : new ItemStack(item.getType()));
+        equipment.setItemInMainHandDropChance(0f);
     }
 
     public boolean isCarrying() {
