@@ -84,7 +84,7 @@ public class LootWeightService {
         }
         int carryLimit = plugin.settings().getInt("loot.carry-limit", 80);
         if (player.getGameMode() == GameMode.SPECTATOR) return; // the respawn countdown owns the bar while dead
-        player.sendActionBar(plugin.getMessageService().get(player, "actionbar.carrying",
+        plugin.getActionBar().ambient(player, plugin.getMessageService().get(player, "actionbar.carrying",
                 "value", carried, "limit", carryLimit, "speed", Math.round(penalty * 100), "ability", ability));
     }
 

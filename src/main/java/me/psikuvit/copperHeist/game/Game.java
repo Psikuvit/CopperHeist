@@ -374,7 +374,7 @@ public class Game {
             Arena.TeamSite site = arena.site(gp.getTeam());
             if (site.base() == null || site.spawn == null || site.base().contains(player.getLocation())) continue;
             player.teleport(site.spawn);
-            player.sendActionBar(plugin.getMessageService().get(player, "game.confined"));
+            plugin.getActionBar().show(player, plugin.getMessageService().get(player, "game.confined"));
         }
     }
 

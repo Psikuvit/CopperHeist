@@ -34,7 +34,7 @@ public class RespawnTask extends BukkitRunnable {
             game.finishRespawn(player, gamePlayer);
             return;
         }
-        player.sendActionBar(plugin.getMessageService().get(player, "actionbar.respawning", "seconds", secondsLeft));
+        plugin.getActionBar().important(player, plugin.getMessageService().get(player, "actionbar.respawning", "seconds", secondsLeft));
         secondsLeft--;
     }
 }

@@ -238,7 +238,7 @@ public class RoleService {
     public void activate(Player player, GamePlayer gp) {
         AbilitySpec spec = gp.getRole().ability();
         if (spec == null) {
-            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.no-ability"));
+            plugin.getActionBar().show(player, plugin.getMessageService().get(player, "actionbar.no-ability"));
             return;
         }
         RoleAbility ability = plugin.getAbilityRegistry().get(spec.id());
@@ -249,14 +249,14 @@ public class RoleService {
 
         UUID id = player.getUniqueId();
         if (!abilityCooldowns.isReady(id)) {
-            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.ability-cooldown", "seconds", abilityCooldowns.remainingSeconds(id)));
+            plugin.getActionBar().show(player, plugin.getMessageService().get(player, "actionbar.ability-cooldown", "seconds", abilityCooldowns.remainingSeconds(id)));
             return;
         }
         ability.activate(new AbilityContext(plugin, game, player, gp, spec));
         abilityCooldowns.set(id, spec.cooldownSeconds());
 
         String custom = spec.text("message", null);
-        player.sendActionBar(custom != null ? miniMessage.deserialize(custom)
+        plugin.getActionBar().show(player, custom != null ? miniMessage.deserialize(custom)
                 : plugin.getMessageService().get(player, ability.defaultMessageKey(),
                 "seconds", (int) spec.number("duration-seconds", 0)));
     }

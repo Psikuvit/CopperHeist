@@ -39,16 +39,16 @@ public class LockpickTask extends BukkitRunnable {
                 || player.getLocation().distanceSquared(startLocation) > maxDriftSquared) {
             cancel();
             locks.finish(player, chestLocation, false);
-            if (player.isOnline()) player.sendActionBar(plugin.getMessageService().get(player, "dock.interrupted"));
+            if (player.isOnline()) plugin.getActionBar().important(player, plugin.getMessageService().get(player, "dock.interrupted"));
             return;
         }
         if (elapsedTicks >= totalTicks) {
             cancel();
-            player.sendActionBar(plugin.getMessageService().get(player, "dock.unlocked"));
+            plugin.getActionBar().important(player, plugin.getMessageService().get(player, "dock.unlocked"));
             locks.finish(player, chestLocation, true);
             return;
         }
-        player.sendActionBar(plugin.getMessageService().get(player, "dock.picking", "percent", elapsedTicks * 100 / totalTicks));
+        plugin.getActionBar().important(player, plugin.getMessageService().get(player, "dock.picking", "percent", elapsedTicks * 100 / totalTicks));
         elapsedTicks += 5;
     }
 }

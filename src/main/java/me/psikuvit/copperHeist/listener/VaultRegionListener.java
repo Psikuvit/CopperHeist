@@ -44,7 +44,7 @@ public class VaultRegionListener implements Listener {
             boolean breachingAttacker = gp.getTeam() != vaultTeam && game.getVaultDrillManager().isBreached(vaultTeam);
             if (breachingAttacker) return;
             event.setTo(from);
-            player.sendActionBar(plugin.getMessageService().get(player, "vault.no-entry"));
+            plugin.getActionBar().show(player, plugin.getMessageService().get(player, "vault.no-entry"));
             return;
         }
     }

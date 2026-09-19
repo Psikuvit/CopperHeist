@@ -44,6 +44,7 @@ import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.StatsRepository;
 import me.psikuvit.copperHeist.stats.StatsService;
 import me.psikuvit.copperHeist.shop.action.ShopActionRegistry;
+import me.psikuvit.copperHeist.ui.ActionBarService;
 import me.psikuvit.copperHeist.ui.HubSpawn;
 import me.psikuvit.copperHeist.ui.LobbyKitService;
 import me.psikuvit.copperHeist.ui.MessageService;
@@ -69,6 +70,7 @@ public final class CopperHeist extends JavaPlugin {
     private LootWeightService lootWeightService;
     private LobbyKitService lobbyKitService;
     private HubSpawn hubSpawn;
+    private ActionBarService actionBar;
     private ShopService shopService;
     private Settings settings;
     private PresetRegistry presets;
@@ -107,6 +109,8 @@ public final class CopperHeist extends JavaPlugin {
         lootWeightService = new LootWeightService(this);
         lobbyKitService = new LobbyKitService(this);
         lobbyKitService.load();
+        actionBar = new ActionBarService(this);
+        actionBar.start();
         hubSpawn = new HubSpawn(this);
         hubSpawn.load();
         shopActions = new ShopActionRegistry();
@@ -155,6 +159,7 @@ public final class CopperHeist extends JavaPlugin {
     public void onDisable() {
         if (gameManager != null) gameManager.shutdownAll();
         HeistEntities.removeCurrentSession();
+        if (actionBar != null) actionBar.stop();
         if (network != null) network.shutdown();
         if (leaderboards != null) leaderboards.stop();
         if (statsService != null) statsService.shutdown();
@@ -200,6 +205,10 @@ public final class CopperHeist extends JavaPlugin {
     }
 
     /** The stats service, or null if stats are disabled or the database couldn't be opened. */
+    public ActionBarService getActionBar() {
+        return actionBar;
+    }
+
     public HubSpawn getHubSpawn() {
         return hubSpawn;
     }

@@ -37,5 +37,6 @@ public class PlayerConnectionListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         plugin.getGameManager().onQuit(event.getPlayer());
         plugin.getSidebarService().clear(event.getPlayer());
+        plugin.getActionBar().clear(event.getPlayer());
     }
 }

@@ -110,7 +110,7 @@ public class LootBagManager {
         }
 
         if (!tookAny) {
-            player.sendActionBar(plugin.getMessageService().get(player, "actionbar.carry-limit",
+            plugin.getActionBar().show(player, plugin.getMessageService().get(player, "actionbar.carry-limit",
                     "limit", game.settings().getInt("loot.carry-limit", 80)));
             return;
         }

@@ -38,6 +38,11 @@ lobby:
   protect-players: true           # no damage of any kind (void rescues you) and no hunger outside a running match, for everyone
   teleport-on-join: true          # players joining the server are sent to the hub spawn (/ch setlobby), if one is set
 
+# Action bar: messages ("Bought X", warnings) stay for this long and beat the looped status line (what you carry).
+# Progress bars and the respawn countdown are higher priority than ordinary messages.
+actionbar:
+  message-seconds: 2
+
 shop:
   command-radius: 15
 

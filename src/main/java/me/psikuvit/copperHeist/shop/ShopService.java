@@ -170,16 +170,16 @@ public class ShopService {
         var messages = plugin.getMessageService();
 
         if (entry.minPhase() != null && !(game.isActive() && game.getState().ordinal() >= entry.minPhase().ordinal())) {
-            player.sendActionBar(messages.get(player, "actionbar.shop-locked", "phase", entry.minPhase().name().replace('_', ' ')));
+            plugin.getActionBar().show(player, messages.get(player, "actionbar.shop-locked", "phase", entry.minPhase().name().replace('_', ' ')));
             return;
         }
         if (entry.maxPerPlayer() > 0 && gp.purchaseCount(entry.id()) >= entry.maxPerPlayer()) {
-            player.sendActionBar(messages.get(player, "actionbar.shop-limit", "limit", entry.maxPerPlayer()));
+            plugin.getActionBar().show(player, messages.get(player, "actionbar.shop-limit", "limit", entry.maxPerPlayer()));
             return;
         }
         long cooldown = gp.purchaseCooldownRemaining(entry.id());
         if (cooldown > 0) {
-            player.sendActionBar(messages.get(player, "actionbar.shop-cooldown", "seconds", cooldown));
+            plugin.getActionBar().show(player, messages.get(player, "actionbar.shop-cooldown", "seconds", cooldown));
             return;
         }
 
@@ -191,18 +191,18 @@ public class ShopService {
         ShopPurchase purchase = new ShopPurchase(plugin, game, player, gp, entry);
         String refusal = action.check(purchase);
         if (refusal != null) {
-            player.sendActionBar(messages.get(player, refusal));
+            plugin.getActionBar().show(player, messages.get(player, refusal));
             return;
         }
 
         if (!charge(player, entry.cost())) {
-            player.sendActionBar(messages.get(player, "actionbar.cant-afford", "cost", entry.cost()));
+            plugin.getActionBar().show(player, messages.get(player, "actionbar.cant-afford", "cost", entry.cost()));
             return;
         }
 
         action.perform(purchase);
         gp.recordPurchase(entry.id(), entry.cooldownSeconds());
-        player.sendActionBar(messages.get(player, "actionbar.purchased", "item", entry.name()));
+        plugin.getActionBar().show(player, messages.get(player, "actionbar.purchased", "item", entry.name()));
     }
 
     /** Removes tagged loot worth at least cost, smallest-value pieces first, or refuses if there isn't enough. */
