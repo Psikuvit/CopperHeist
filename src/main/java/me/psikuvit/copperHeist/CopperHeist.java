@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist;
 
 import me.psikuvit.copperHeist.arena.ArenaManager;
+import me.psikuvit.copperHeist.arena.WorldRules;
 import me.psikuvit.copperHeist.arena.ArenaResetter;
 import me.psikuvit.copperHeist.command.CopperHeistCommand;
 import me.psikuvit.copperHeist.command.Msg;
@@ -48,6 +49,7 @@ import java.util.logging.Level;
 public final class CopperHeist extends JavaPlugin {
 
     private ArenaManager arenaManager;
+    private final WorldRules worldRules = new WorldRules(this);
     private ArenaResetter arenaResetter;
     private GameManager gameManager;
     private MessageService messageService;
@@ -182,6 +184,10 @@ public final class CopperHeist extends JavaPlugin {
 
     public AbilityRegistry getAbilityRegistry() {
         return abilityRegistry;
+    }
+
+    public WorldRules getWorldRules() {
+        return worldRules;
     }
 
     public ArenaManager getArenaManager() {

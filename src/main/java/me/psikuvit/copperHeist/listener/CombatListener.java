@@ -41,6 +41,11 @@ public class CombatListener implements Listener {
 
         if (victim instanceof Player victimPlayer && resolveAttacker(event.getDamager()) instanceof Player attacker) {
             Game game = plugin.getGameManager().getGame(victimPlayer);
+            if (plugin.getWorldRules().pvpOnlyInGame(victimPlayer.getWorld())
+                    && (game == null || !game.isActive() || plugin.getGameManager().getGame(attacker) != game)) {
+                event.setCancelled(true);
+                return;
+            }
             if (game == null) return;
             if (game.getState() == GameState.SETUP) {
                 event.setCancelled(true);

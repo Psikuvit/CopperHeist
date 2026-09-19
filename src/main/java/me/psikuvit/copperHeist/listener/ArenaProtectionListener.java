@@ -150,7 +150,17 @@ public class ArenaProtectionListener implements Listener {
 
     @EventHandler
     public void onNaturalSpawn(CreatureSpawnEvent event) {
-        if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM) return;
+        switch (event.getSpawnReason()) {
+            case CUSTOM, COMMAND, SPAWNER_EGG, DISPENSE_EGG -> {
+                return;
+            }
+            default -> {
+            }
+        }
+        if (plugin.getWorldRules().blocksMobSpawns(event.getLocation().getWorld())) {
+            event.setCancelled(true);
+            return;
+        }
         for (Arena arena : plugin.getArenaManager().all()) {
             if (arena.isInBounds(event.getLocation())) {
                 event.setCancelled(true);
