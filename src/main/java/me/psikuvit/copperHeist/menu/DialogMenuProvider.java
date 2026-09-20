@@ -91,6 +91,7 @@ public class DialogMenuProvider implements MenuProvider {
         Dialog dialog = Dialog.create(factory -> factory.empty()
                 .base(DialogBase.builder(title)
                         .canCloseWithEscape(true)
+                        .pause(false)
                         .afterAction(DialogBase.DialogAfterAction.NONE)
                         .body(List.of(DialogBody.plainMessage(intro)))
                         .build())
