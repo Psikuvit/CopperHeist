@@ -31,6 +31,22 @@ public interface Database {
                     + "stat VARCHAR(48) NOT NULL, "
                     + "value BIGINT NOT NULL DEFAULT 0, "
                     + "PRIMARY KEY (uuid, stat))");
+            // The profile: scalar fields (first_join, streaks, flags ...), everything the player owns, and what they have equipped.
+            statement.execute("CREATE TABLE IF NOT EXISTS ch_profile ("
+                    + "uuid VARCHAR(36) NOT NULL, "
+                    + "field VARCHAR(64) NOT NULL, "
+                    + "value VARCHAR(255) NOT NULL, "
+                    + "PRIMARY KEY (uuid, field))");
+            statement.execute("CREATE TABLE IF NOT EXISTS ch_unlocks ("
+                    + "uuid VARCHAR(36) NOT NULL, "
+                    + "item_id VARCHAR(64) NOT NULL, "
+                    + "acquired BIGINT NOT NULL, "
+                    + "PRIMARY KEY (uuid, item_id))");
+            statement.execute("CREATE TABLE IF NOT EXISTS ch_equipped ("
+                    + "uuid VARCHAR(36) NOT NULL, "
+                    + "category VARCHAR(48) NOT NULL, "
+                    + "item_id VARCHAR(64) NOT NULL, "
+                    + "PRIMARY KEY (uuid, category))");
             statement.execute("CREATE TABLE IF NOT EXISTS ch_matches ("
                     + "match_id VARCHAR(36) NOT NULL PRIMARY KEY, "
                     + "arena VARCHAR(64) NOT NULL, "

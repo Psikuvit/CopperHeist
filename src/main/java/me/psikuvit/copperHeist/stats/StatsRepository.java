@@ -18,11 +18,13 @@ import java.util.concurrent.Executors;
 /** Every SQL statement the stats system uses. All methods are asynchronous - results arrive off the main thread. */
 public class StatsRepository {
 
-    private interface Query<T> {
+    /** Work that returns a value, run on the database thread with its own connection. */
+    public interface Query<T> {
         T run(Connection connection) throws Exception;
     }
 
-    private interface Update {
+    /** Work that returns nothing, run on the database thread with its own connection. */
+    public interface Update {
         void run(Connection connection) throws Exception;
     }
 
@@ -42,7 +44,8 @@ public class StatsRepository {
         executor.shutdown();
     }
 
-    private <T> CompletableFuture<T> query(Query<T> work) {
+    /** Runs work on the single database thread (so SQLite never sees two writers); other repositories share it through this. */
+    public <T> CompletableFuture<T> query(Query<T> work) {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = database.getConnection()) {
                 return work.run(connection);
@@ -52,7 +55,7 @@ public class StatsRepository {
         }, executor);
     }
 
-    private CompletableFuture<Void> execute(Update work) {
+    public CompletableFuture<Void> execute(Update work) {
         return query(connection -> {
             work.run(connection);
             return null;

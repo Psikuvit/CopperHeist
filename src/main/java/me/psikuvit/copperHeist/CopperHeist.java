@@ -21,6 +21,8 @@ import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StaleEntityListener;
 import me.psikuvit.copperHeist.listener.ProgressListener;
 import me.psikuvit.copperHeist.listener.StatsListener;
+import me.psikuvit.copperHeist.profile.ProfileRepository;
+import me.psikuvit.copperHeist.profile.ProfileService;
 import me.psikuvit.copperHeist.progress.ProgressService;
 import me.psikuvit.copperHeist.role.RoleRegistry;
 import me.psikuvit.copperHeist.role.ability.AbilityRegistry;
@@ -88,6 +90,7 @@ public final class CopperHeist extends JavaPlugin {
     private NetworkService network;
     private MenuManager menus;
     private ProgressService progress;
+    private ProfileService profiles;
 
     @Override
     public void onEnable() {
@@ -133,6 +136,8 @@ public final class CopperHeist extends JavaPlugin {
 
         network = new NetworkService(this);
         network.start();
+        if (profiles != null) profiles.start(); // needs the network (player hand-off), so it starts after it
+
         arenaManager.loadAll();
         arenaManager.all().forEach(arena -> providers.reset().resolve(settings.getString("reset.method", "entities")).reset(arena));
 
@@ -166,7 +171,9 @@ public final class CopperHeist extends JavaPlugin {
     @Override
     public void onDisable() {
         if (menus != null) menus.stop();
-        if (gameManager != null) gameManager.shutdownAll();        HeistEntities.removeCurrentSession();
+        if (gameManager != null) gameManager.shutdownAll();
+        if (profiles != null) profiles.shutdown(); // save everyone and release them for other servers before the network closes
+        HeistEntities.removeCurrentSession();
         if (actionBar != null) actionBar.stop();
         if (golemDebug != null) golemDebug.stop();
         if (network != null) network.shutdown();
@@ -195,6 +202,7 @@ public final class CopperHeist extends JavaPlugin {
         }
         statsService = new StatsService(this, new StatsRepository(database));
         statsService.start();
+        profiles = new ProfileService(this, new ProfileRepository(statsService.repository()));
         progress = new ProgressService(this);
         progress.load();
         leaderboards = new LeaderboardService(this, statsService.repository());
@@ -299,6 +307,11 @@ public final class CopperHeist extends JavaPlugin {
 
     public ShopActionRegistry getShopActions() {
         return shopActions;
+    }
+
+    /** Saved player data across the network (profile, hand-off between servers), or null when stats/the database are off. */
+    public ProfileService getProfiles() {
+        return profiles;
     }
 
     /** Levels, XP and coins, or null when stats (where they are stored) are off. */

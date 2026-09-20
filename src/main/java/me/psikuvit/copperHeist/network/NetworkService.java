@@ -24,8 +24,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
@@ -46,11 +48,19 @@ public class NetworkService {
 
     private static final String PROXY_CHANNEL = "BungeeCord";
 
+    /** A claim expires on its own after this long unless refreshed (every status sync), so a crashed server can't hold a player forever. */
+    private static final int PROFILE_CLAIM_SECONDS = 90;
+
+    /** Deletes the key only if it still names this server - a new server may already have taken over. */
+    private static final String RELEASE_SCRIPT =
+            "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+
     private final CopperHeist plugin;
     private volatile boolean redisUp = false;
     private volatile boolean localMaintenance = false;
     private volatile boolean networkMaintenance = false;
     private volatile List<RemoteArena> remote = List.of();
+    private final Set<UUID> claimed = ConcurrentHashMap.newKeySet();
 
     private JedisPool pool;
     private BukkitTask statusTask;
@@ -236,6 +246,77 @@ public class NetworkService {
         });
     }
 
+    // ---- player data hand-off ----
+
+    private String profileKey(UUID uuid) {
+        return key("profile:" + uuid);
+    }
+
+    /**
+     * Player data (stats, XP, coins, profile) must not be read on one server while another still holds unsaved changes for the same
+     * player - the proxy usually connects a player to the new server BEFORE the old one sees them quit. So whichever server has a
+     * player "claims" them in Redis; a joining server waits until the previous holder has saved and released, then claims and loads.
+     * The future completes off the main thread. It completes immediately without Redis, and after
+     * network.profile-handoff-seconds anyway (a crashed server must not lock a player out).
+     */
+    public CompletableFuture<Void> claimProfile(UUID uuid) {
+        CompletableFuture<Void> done = new CompletableFuture<>();
+        if (!redisUp) {
+            done.complete(null);
+            return done;
+        }
+        long deadline = System.currentTimeMillis() + Math.max(1, plugin.settings().getInt("network.profile-handoff-seconds", 8)) * 1000L;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                while (true) {
+                    JedisPool current = pool;
+                    if (current == null) break;
+                    try (Jedis jedis = current.getResource()) {
+                        String holder = jedis.get(profileKey(uuid));
+                        boolean free = holder == null || holder.equals(serverId());
+                        if (free || System.currentTimeMillis() >= deadline) {
+                            if (!free) {
+                                plugin.getLogger().warning("Server '" + holder + "' did not release player " + uuid
+                                        + " in time - loading their data anyway.");
+                            }
+                            jedis.setex(profileKey(uuid), PROFILE_CLAIM_SECONDS, serverId());
+                            claimed.add(uuid);
+                            break;
+                        }
+                    }
+                    Thread.sleep(100);
+                }
+            } catch (RuntimeException ex) {
+                logError("Could not claim a player's data", ex);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            } finally {
+                done.complete(null);
+            }
+        });
+        return done;
+    }
+
+    /** Lets other servers load this player. Call only after their data has been written. Only releases a claim this server holds. */
+    public void releaseProfile(UUID uuid) {
+        claimed.remove(uuid);
+        if (!redisUp) return;
+        async(jedis -> jedis.eval(RELEASE_SCRIPT, 1, profileKey(uuid), serverId()));
+    }
+
+    /** Shutdown: releases every claim right now (blocking), so the players' next server doesn't have to wait for the timeout. */
+    public void releaseAllProfiles() {
+        List<UUID> mine = new ArrayList<>(claimed);
+        claimed.clear();
+        JedisPool current = pool;
+        if (!redisUp || current == null) return;
+        try (Jedis jedis = current.getResource()) {
+            for (UUID uuid : mine) jedis.eval(RELEASE_SCRIPT, 1, profileKey(uuid), serverId());
+        } catch (RuntimeException ex) {
+            logError("Could not release players' data on shutdown", ex);
+        }
+    }
+
     // ---- broadcast ----
 
     /** Sends a MiniMessage line to every player on this server and, with Redis, on every other server. */
@@ -268,6 +349,7 @@ public class NetworkService {
                 }
                 networkMaintenance = jedis.exists(key("maintenance"));
                 remote = readRemote(jedis);
+                for (UUID uuid : claimed) jedis.expire(profileKey(uuid), PROFILE_CLAIM_SECONDS); // keep our players' claims alive
             } catch (RuntimeException ex) {
                 logError("Lost the Redis connection", ex);
             }

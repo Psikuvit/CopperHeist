@@ -186,6 +186,7 @@ network:
   proxy-name: ""                    # the server's name in the proxy config; empty uses server-id
   cluster: default                  # servers with the same cluster name see each other's arenas
   status-seconds: 3                 # how often arena status is published and read
+  profile-handoff-seconds: 8        # a joining server waits at most this long for the player's previous server to save them (then loads anyway)
   redis:
     host: localhost
     port: 6379

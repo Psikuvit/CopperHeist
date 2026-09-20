@@ -166,6 +166,13 @@
             <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
+        <!-- Only for the repository tests: the server bundles its own SQLite driver at runtime, so this is never shipped. -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.51.3.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>

@@ -161,6 +161,11 @@ Several Paper servers behind BungeeCord or Velocity can act as one network, usin
 - Every server publishes its arenas' status; `/ch list` shows arenas from all servers.
 - `/ch join` sends a player to a joinable arena on another server when none is available locally, and
   `/ch join <server>.<arena>` targets a specific one. The destination puts them straight into the arena.
+- **Player data follows the player.** Stats, XP, coins and the profile (first join, flags, owned and equipped items) live in the
+  shared MySQL database. When a player moves between servers, the new server waits (via Redis) until the old one has saved and
+  released them, then loads - so nothing is read stale or lost, and coins can't be spent twice. Counters are written as additions,
+  so two servers never overwrite each other. `network.profile-handoff-seconds` caps the wait (a crashed server can't lock anyone
+  out). Without Redis it works on one server; several servers on one MySQL *without* Redis can read stale data on a fast switch.
 - Maintenance mode and admin broadcasts cover the whole network.
 - A lobby server is just a server with no arenas. If Redis is unreachable the plugin runs as a single server.
 

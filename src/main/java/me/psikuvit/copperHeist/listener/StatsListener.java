@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.event.MatchEndEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.profile.ProfileService;
 import me.psikuvit.copperHeist.stats.MatchRecord;
 import me.psikuvit.copperHeist.stats.Stat;
 import me.psikuvit.copperHeist.stats.StatsService;
@@ -27,16 +28,18 @@ public class StatsListener implements Listener {
         this.plugin = plugin;
     }
 
+    /** The profile service orders the load: wait for the player's previous server to save them, then load stats and profile. */
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        StatsService stats = plugin.getStats();
-        if (stats != null) stats.onJoin(event.getPlayer());
+        ProfileService profiles = plugin.getProfiles();
+        if (profiles != null) profiles.onJoin(event.getPlayer());
     }
 
+    /** Stats and profile are written first; only then is the player released for whichever server they go to next. */
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        StatsService stats = plugin.getStats();
-        if (stats != null) stats.onQuit(event.getPlayer());
+        ProfileService profiles = plugin.getProfiles();
+        if (profiles != null) profiles.onQuit(event.getPlayer());
     }
 
     @EventHandler

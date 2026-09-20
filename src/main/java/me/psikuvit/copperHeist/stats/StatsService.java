@@ -43,7 +43,7 @@ public class StatsService {
     public void start() {
         long ticks = Math.max(5, plugin.settings().getLong("stats.flush-seconds", 30)) * 20L;
         flushTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::flushAll, ticks, ticks);
-        for (Player player : Bukkit.getOnlinePlayers()) onJoin(player);
+        // Players already online are loaded by ProfileService.start(), which waits for the network hand-off first.
     }
 
     /** Stops the timer and blocks (briefly) until everything pending has been written. */
@@ -71,9 +71,10 @@ public class StatsService {
                 });
     }
 
-    public void onQuit(Player player) {
+    /** Writes the player's pending stats and forgets them; the future completes once the database has them. */
+    public CompletableFuture<Void> onQuit(Player player) {
         UUID uuid = player.getUniqueId();
-        flush(uuid).whenComplete((ignored, error) -> {
+        return flush(uuid).whenComplete((ignored, error) -> {
             stored.remove(uuid);
             names.remove(uuid);
         });
