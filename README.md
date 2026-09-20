@@ -13,6 +13,7 @@ Requires **Paper 26.2 or newer** and **Java 25**.
 ## Contents
 
 - [Gameplay](#gameplay)
+- [Look and feel](#look-and-feel)
 - [Configuration and content](#configuration-and-content)
 - [Selectable implementations](#selectable-implementations)
 - [Arena setup](#arena-setup)
@@ -62,11 +63,13 @@ active ability with a cooldown; extra abilities such as Dash and Heal Pulse are 
 **Shop** (paid with the loot value you carry): honeycomb, wind charges, healing potion, oxidizer splash, a new golem, Storm
 Rod, Alarm, and the Vault Drill (Heist phase only).
 
-**Sabotage.** *Alarms* placed near your base flag intruders. A *Vault Drill* placed on an enemy vault door breaches it for a
+**Sabotage.** *Alarms* placed near your base flag intruders; each one shows a glowing marker box that only your own team can
+see (enemies never do; `alarms.show-box` turns it off). A *Vault Drill* placed on an enemy vault door breaches it for a
 timed window if attackers stay near it and defenders don't destroy it first. *Gust Pads* launch whoever steps on them.
 
 **Clean state.** Players joining the server are reset (items, armor, offhand, potion effects, glow, vitals) and given the hub
-kit (join compass and guide book). Entering an arena, spectating and leaving a match all wipe the previous context's items and
+kit (join compass and guide book). The compass opens the **arena picker**: a live menu of every arena, on this server and on
+the rest of the network, coloured by whether you can join it right now, with its state, player count and preset. Entering an arena, spectating and leaving a match all wipe the previous context's items and
 effects before the next state is applied, so nothing leaks between hub, match and spectating. Hub items can't be dropped or
 moved into containers, and players outside a running match (hub, waiting room, results screen) take no damage or hunger, admins included; falling into
 the void sends you back to a safe spot. All of this is under `lobby.*` in `config.yml`; only the join-time wipe skips admins
@@ -74,6 +77,18 @@ with `copperheist.admin.bypass`.
 
 **Match rules.** Team-aware damage, spawn protection, a hidden enemy score option, an anti-turtle *vault decay* option,
 respawn modes, and in-match command blocking.
+
+## Look and feel
+
+The whole plugin is styled from one palette, so you can rebrand it without touching any text.
+
+- **Theme** (`theme:` in `config.yml`): twelve colours (`primary`, `secondary`, `accent`, `ok`, `bad`, `info`, `text`, `muted`,
+  `dim`, `special`, `copper`, `iron`), applied on `/ch reload`. The bundled messages, scoreboard, shop, roles and guide use these
+  as MiniMessage tags (`<primary>`, `<muted>` ...) plus symbol tags (`<arrow>`, `<check>`, `<cross>`, `<dot>`, `<bar>`, `<star>`,
+  `<line>`). Every normal MiniMessage tag (`<red>`, `<#ff8800>`, `<gradient>`, click and hover) still works alongside them.
+- **Framed menus** with consistent sounds: the shop shows each item's price, whether you can afford it and any lock, limit or
+  cooldown, plus your carried balance, and refreshes as you buy; the role picker marks your current role; the arena picker updates live.
+- Restyled scoreboard, tab list, chat prefix, action bar, leaderboards and stats output, including gold/silver/bronze top-three lines.
 
 ## Configuration and content
 
@@ -88,6 +103,10 @@ Almost everything is data, not code.
 - **Language packs** in `lang/<code>.yml`: every message is a key, players can see their own client language, and anything
   missing falls back to English. Role names, shop text and the guide book can be translated per language too.
 - Scoreboard layout (`scoreboard.yml`) and the in-game guide book (`guide.yml`) are configurable.
+- **Updates keep your files:** options added by a new version are written into `config.yml`, `lang/en.yml`, `scoreboard.yml`
+  and `guide.yml` on start, with their comments; your values are never changed and the old file is kept as `<name>.bak`.
+  `shop.yml`, `roles.yml` and `loot.yml` are not touched, since a missing entry there usually means you removed it on purpose.
+  A file with a syntax error is reported in the log and the built-in defaults are used until it is fixed.
 - `/ch reload` re-reads config, messages, scoreboard, shop, roles, loot, presets and the lobby kit.
 
 Per-arena tweaks without editing files: `/ch arena options <arena> preset <name>`,
@@ -118,6 +137,8 @@ The Mannequin NPC supports a skin from a player name, a UUID or a raw texture va
 - `/ch arena validate <arena>` explains what blocks enabling; `/ch arena enable <arena>` turns it on.
 - **Snapshots:** `/ch arena snapshot <arena>` saves every block in the arena's bounds; with `reset.method: snapshot` they
   are restored after each match, spread over several ticks. `/ch arena paste <arena>` builds a snapshot into the world.
+- **Centred points:** lobby, spectator, spawns, golem idle, shop NPC, waypoints, loot and relic points and the hub spawn are snapped
+  to the middle of their block (x.5, z.5) when set and when loaded, so loot, NPCs and golems always spawn centred, even in older arena files.
 - **Regions:** optional base regions (confinement, alarm and Guard rules) and sealed vault regions.
 - A ready-made, fully configured **test arena** is generated by `tools/gen_testmap.py` into `testmap/` (see `testmap/README.md`).
 
@@ -152,6 +173,11 @@ points, maintenance mode, network broadcasts, edit or reset player stats, disabl
 (`servers`). Also `/ch info` for a health check, `/ch forcestart`, `/ch forcestop`, `/ch setphase`, `/ch spawnrelic` and
 `/ch giveloot` for testing.
 
+**Golem debugging** (`/ch admin debug ...`, off by default and free when off): `golems on|off` logs what vanilla's golems do
+(state changes, what they pick up and put down, the nearest chest) and what the plugin's safety guards do about it;
+`visuals on|off` shows each golem's state on its label, draws a particle line to where it is heading and marks every dock and vault
+chest; `dump` prints a snapshot of every golem plus pending chest reservations. `verbose` is reserved for extra detail.
+
 ## Integrations and API
 
 - Optional soft dependencies: **PlaceholderAPI** and **Vault**. Missing plugins never cause errors.
@@ -161,6 +187,9 @@ points, maintenance mode, network broadcasts, edit or reset player stats, disabl
   registration of shop actions, role abilities and NPC, menu, respawn, loot-bag and reset providers. Custom events cover the
   match lifecycle (loot delivered or stolen, relics, alarms, vault drills, phase changes, match end).
   See [`docs/api.md`](docs/api.md).
+- **GUI framework:** every chest menu is a `Menu` opened through one `MenuManager`. It cancels all clicks and drags, routes each click
+  to the button's action, ignores click spam, redraws menus that ask to, and closes them on shutdown. A new menu only says what
+  it looks like and what its buttons do (`plugin.getMenus().open(player, new MyMenu(plugin, player))`).
 
 ## Commands and permissions
 
@@ -187,7 +216,7 @@ mvn clean package
 ```
 
 Needs JDK 25. The result is `target/CopperHeist-1.0.jar` (Jedis is shaded in). `mvn test` runs the small unit test suite
-(settings layering, bundled YAML validity, presets, stat names).
+(settings layering, bundled YAML validity, presets, stat names, theme tags).
 
 More docs: [`docs/playtest-guide.md`](docs/playtest-guide.md), [`docs/multi-server.md`](docs/multi-server.md),
 [`docs/api.md`](docs/api.md).
