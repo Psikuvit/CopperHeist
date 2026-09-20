@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.api;
 
 import me.psikuvit.copperHeist.arena.ArenaResetStrategy;
+import me.psikuvit.copperHeist.cosmetics.EffectProvider;
 import me.psikuvit.copperHeist.loot.visual.LootBagVisual;
 import me.psikuvit.copperHeist.menu.MenuProvider;
 import me.psikuvit.copperHeist.npc.NpcProvider;
@@ -61,4 +62,10 @@ public interface CopperHeistAPI {
     void registerLootBagVisual(String id, Supplier<LootBagVisual> factory);
 
     void registerResetStrategy(String id, Supplier<ArenaResetStrategy> factory);
+
+    /**
+     * Adds an effect that cosmetics.yml entries can use through {@code effect: <id>}. Register it in your onEnable (cosmetics.yml is read
+     * after every plugin has enabled). Effects must be purely visual.
+     */
+    void registerCosmeticEffect(EffectProvider effect);
 }

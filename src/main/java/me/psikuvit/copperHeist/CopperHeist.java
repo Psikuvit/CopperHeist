@@ -12,6 +12,9 @@ import me.psikuvit.copperHeist.config.PresetRegistry;
 import me.psikuvit.copperHeist.hook.HookManager;
 import me.psikuvit.copperHeist.network.NetworkService;
 import me.psikuvit.copperHeist.config.Settings;
+import me.psikuvit.copperHeist.cosmetics.CosmeticRegistry;
+import me.psikuvit.copperHeist.cosmetics.CosmeticService;
+import me.psikuvit.copperHeist.cosmetics.EffectRegistry;
 import me.psikuvit.copperHeist.database.Database;
 import me.psikuvit.copperHeist.database.MysqlDatabase;
 import me.psikuvit.copperHeist.database.SqliteDatabase;
@@ -91,6 +94,9 @@ public final class CopperHeist extends JavaPlugin {
     private MenuManager menus;
     private ProgressService progress;
     private ProfileService profiles;
+    private EffectRegistry cosmeticEffects;
+    private CosmeticRegistry cosmeticRegistry;
+    private CosmeticService cosmetics;
 
     @Override
     public void onEnable() {
@@ -137,6 +143,12 @@ public final class CopperHeist extends JavaPlugin {
         network = new NetworkService(this);
         network.start();
         if (profiles != null) profiles.start(); // needs the network (player hand-off), so it starts after it
+
+        cosmeticEffects = new EffectRegistry();
+        cosmeticRegistry = new CosmeticRegistry(this, cosmeticEffects);
+        cosmetics = new CosmeticService(this, cosmeticRegistry, cosmeticEffects);
+        // Other plugins register their own effects in their onEnable, so cosmetics.yml is read once every plugin is up.
+        getServer().getScheduler().runTask(this, cosmeticRegistry::load);
 
         arenaManager.loadAll();
         arenaManager.all().forEach(arena -> providers.reset().resolve(settings.getString("reset.method", "entities")).reset(arena));
@@ -307,6 +319,20 @@ public final class CopperHeist extends JavaPlugin {
 
     public ShopActionRegistry getShopActions() {
         return shopActions;
+    }
+
+    /** Everything about owning, buying, equipping and playing cosmetics. */
+    public CosmeticService getCosmetics() {
+        return cosmetics;
+    }
+
+    /** The effects cosmetics can use (built-in and registered by other plugins). */
+    public EffectRegistry getCosmeticEffects() {
+        return cosmeticEffects;
+    }
+
+    public CosmeticRegistry getCosmeticRegistry() {
+        return cosmeticRegistry;
     }
 
     /** Saved player data across the network (profile, hand-off between servers), or null when stats/the database are off. */

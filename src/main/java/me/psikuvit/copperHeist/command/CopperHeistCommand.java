@@ -552,6 +552,7 @@ public final class CopperHeistCommand {
         plugin.getLootTiers().load();
         plugin.getPresets().load();
         if (plugin.getProgress() != null) plugin.getProgress().load();
+        plugin.getCosmeticRegistry().load();
         Msg.ok(sender, "command.reloaded");
         return Command.SINGLE_SUCCESS;
     }

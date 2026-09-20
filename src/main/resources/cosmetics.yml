@@ -1,0 +1,41 @@
+# Cosmetics: things players unlock and equip that only change how the game looks (never how it plays).
+# They are bought with coins (see progress.yml for how coins are earned), given as rewards, or granted by permission.
+# /ch reload re-reads this file. A cosmetic with a mistake is skipped with a warning in the console; the rest still load.
+#
+# cosmetics.<id>:
+#   category      trail | kill-effect | victory | golem | npc | title | join
+#   effect        which effect plays it (not needed for titles). Effects come with the plugin or from other plugins.
+#   name          MiniMessage; theme tags like <primary> work
+#   description   lore lines shown in the menu
+#   icon          the menu item (any material)
+#   rarity        common | rare | epic | legendary (only changes the name's colour)
+#   price         coins to buy it; 0 = it can't be bought (a reward, a permission or free)
+#   level         progression level needed to buy it (or, for a free cosmetic, to get it); 0 = none
+#   permission    a permission that grants it without buying. copperheist.cosmetic.<id> and copperheist.cosmetic.* always work too,
+#                 so a store plugin can sell any cosmetic just by giving that permission
+#   free          everyone has it from the start (from its level up)
+#   hidden        not listed until the player has it
+#   params        settings for the effect; each effect documents its own
+#
+# Example (remove the # to try it once an effect with that id exists):
+#
+# cosmetics:
+#   flame_trail:
+#     category: trail
+#     effect: particle-trail
+#     name: "<accent>Flame Trail"
+#     description: ["<muted>Your arrows leave a trail of fire."]
+#     icon: BLAZE_POWDER
+#     rarity: rare
+#     price: 500
+#     level: 5
+#     params:
+#       particle: FLAME
+#   thief_title:
+#     category: title
+#     name: "<info>[Thief]"
+#     rarity: common
+#     free: true
+#     level: 10
+
+cosmetics: {}

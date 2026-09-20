@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.api;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.ArenaResetStrategy;
+import me.psikuvit.copperHeist.cosmetics.EffectProvider;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.loot.visual.LootBagVisual;
 import me.psikuvit.copperHeist.menu.MenuProvider;
@@ -101,5 +102,10 @@ public final class CopperHeistAPIImpl implements CopperHeistAPI {
     @Override
     public void registerResetStrategy(String id, Supplier<ArenaResetStrategy> factory) {
         plugin.providers().reset().register(id, factory);
+    }
+
+    @Override
+    public void registerCosmeticEffect(EffectProvider effect) {
+        plugin.getCosmeticEffects().register(effect);
     }
 }

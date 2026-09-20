@@ -12,6 +12,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
+import me.psikuvit.copperHeist.cosmetics.CosmeticService;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
@@ -95,6 +96,15 @@ public final class AdminCommands {
                         .then(argument("multiplier", DoubleArgumentType.doubleArg(1.0, 10.0))
                                 .then(argument("minutes", IntegerArgumentType.integer(1, 1440)).executes(this::booster)))
                         .then(literal("off").executes(this::boosterOff)))
+                .then(literal("cosmetic")
+                        .then(literal("give")
+                                .then(argument("player", StringArgumentType.word()).suggests(ONLINE_PLAYERS)
+                                        .then(argument("id", StringArgumentType.word()).suggests(cosmeticSuggestions())
+                                                .executes(ctx -> changeCosmetic(ctx, true)))))
+                        .then(literal("take")
+                                .then(argument("player", StringArgumentType.word()).suggests(ONLINE_PLAYERS)
+                                        .then(argument("id", StringArgumentType.word()).suggests(cosmeticSuggestions())
+                                                .executes(ctx -> changeCosmetic(ctx, false))))))
                 .then(literal("coins")
                         .then(literal("give")
                                 .then(argument("player", StringArgumentType.word()).suggests(ONLINE_PLAYERS)
@@ -254,6 +264,36 @@ public final class AdminCommands {
         plugin.getProgress().setBooster(1.0, 0);
         Msg.ok(sender, "admin.booster-off");
         return Command.SINGLE_SUCCESS;
+    }
+
+    private SuggestionProvider<CommandSourceStack> cosmeticSuggestions() {
+        return (ctx, builder) -> {
+            for (var cosmetic : plugin.getCosmeticRegistry().all()) builder.suggest(cosmetic.id());
+            return builder.buildFuture();
+        };
+    }
+
+    /** Gives or takes a cosmetic (for testing, support and store plugins that run console commands). */
+    private int changeCosmetic(CommandContext<CommandSourceStack> ctx, boolean give) {
+        CommandSender sender = ctx.getSource().getSender();
+        String playerName = StringArgumentType.getString(ctx, "player");
+        Player target = Bukkit.getPlayerExact(playerName);
+        if (target == null) {
+            Msg.err(sender, "admin.player-offline", "player", playerName);
+            return 0;
+        }
+        var cosmetic = plugin.getCosmeticRegistry().get(StringArgumentType.getString(ctx, "id"));
+        if (cosmetic == null) {
+            Msg.err(sender, "cosmetics.unknown", "id", StringArgumentType.getString(ctx, "id"));
+            return 0;
+        }
+        var outcome = give ? plugin.getCosmetics().grant(target, cosmetic, "admin") : plugin.getCosmetics().take(target, cosmetic);
+        if (outcome == CosmeticService.Outcome.OK) {
+            Msg.ok(sender, give ? "cosmetics.given" : "cosmetics.taken", "id", cosmetic.id(), "player", target.getName());
+            return Command.SINGLE_SUCCESS;
+        }
+        Msg.err(sender, "cosmetics.outcome." + outcome.name().toLowerCase(Locale.ROOT));
+        return 0;
     }
 
     private int giveCoins(CommandContext<CommandSourceStack> ctx) {

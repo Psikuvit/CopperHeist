@@ -232,6 +232,7 @@ features:
   loot-bags: true
   final-rush: true
   unclaimed-bonus: true
+  cosmetics: true       # unlockable cosmetics (needs stats/database and progression to be on)
 
 teams:
   copper:

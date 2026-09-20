@@ -309,6 +309,29 @@ stat:
   coins: "Coins"
   coins_earned: "Coins earned"
 
+cosmetics:
+  unknown: "There is no cosmetic called {id}."
+  given: "Gave {player} the cosmetic {id}."
+  taken: "Took the cosmetic {id} from {player}."
+  category:
+    trail: "Arrow Trails"
+    kill-effect: "Kill Effects"
+    victory: "Victory Effects"
+    golem: "Golem Skins"
+    npc: "Shop Skins"
+    title: "Titles"
+    join: "Join Effects"
+  outcome:
+    ok: "Done."
+    already_have: "You already have that."
+    not_for_sale: "That can't be bought - it is a reward."
+    level_too_low: "You aren't a high enough level for that yet."
+    not_enough_coins: "You don't have enough coins."
+    not_available: "You don't have that cosmetic."
+    cancelled: "That can't be equipped right now."
+    not_loaded: "Your profile is still loading - try again in a moment."
+    disabled: "Cosmetics are turned off on this server."
+
 progress:
   disabled: "Levels and coins are turned off on this server."
   header: "<dim><line></dim> <primary><bold>{player}</bold></primary> <dim><line></dim>"

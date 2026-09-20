@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.progress;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.config.ConfigFiles;
+import me.psikuvit.copperHeist.event.CoinsChangedEvent;
 import me.psikuvit.copperHeist.event.LevelUpEvent;
 import me.psikuvit.copperHeist.stats.PlayerStats;
 import me.psikuvit.copperHeist.stats.Stat;
@@ -160,6 +161,7 @@ public class ProgressService {
         stats.add(uuid, name, Stat.COINS_EARNED, paidCoins + levelCoins);
 
         Award award = new Award(paidXp, paidCoins + levelCoins, before, after);
+        if (award.coins() > 0) fireCoinsChanged(uuid, name, award.coins(), "match");
         Player player = Bukkit.getPlayer(uuid);
         if (player != null && award.leveledUp()) levelUp(player, before, after);
         return award;
@@ -174,18 +176,42 @@ public class ProgressService {
 
     /** Coins with no XP (quests, admin gifts): counts towards coins earned. */
     public void grantCoins(UUID uuid, String name, long amount) {
+        grantCoins(uuid, name, amount, "grant");
+    }
+
+    /** As above, with a short reason id ("quest", "admin" ...) that is passed on in the {@link CoinsChangedEvent}. */
+    public void grantCoins(UUID uuid, String name, long amount, String reason) {
         StatsService stats = plugin.getStats();
         if (stats == null || amount <= 0) return;
         stats.add(uuid, name, Stat.COINS, amount);
         stats.add(uuid, name, Stat.COINS_EARNED, amount);
+        fireCoinsChanged(uuid, name, amount, reason);
     }
 
     /** Takes coins if the player has enough. Returns false (and takes nothing) if they don't. */
     public boolean spend(UUID uuid, String name, long amount) {
+        return spend(uuid, name, amount, "spend");
+    }
+
+    public boolean spend(UUID uuid, String name, long amount, String reason) {
         StatsService stats = plugin.getStats();
         if (stats == null || amount < 0 || coins(uuid, name) < amount) return false;
+        if (amount == 0) return true;
         stats.add(uuid, name, Stat.COINS, -amount);
+        fireCoinsChanged(uuid, name, -amount, reason);
         return true;
+    }
+
+    /** Puts coins back after a failed purchase (not counted as earned). */
+    public void refundCoins(UUID uuid, String name, long amount) {
+        StatsService stats = plugin.getStats();
+        if (stats == null || amount <= 0) return;
+        stats.add(uuid, name, Stat.COINS, amount);
+        fireCoinsChanged(uuid, name, amount, "refund");
+    }
+
+    private void fireCoinsChanged(UUID uuid, String name, long delta, String reason) {
+        Bukkit.getPluginManager().callEvent(new CoinsChangedEvent(uuid, delta, coins(uuid, name), reason));
     }
 
     private void levelUp(Player player, int from, int to) {
