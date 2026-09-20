@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.progress;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.config.ConfigFiles;
+import me.psikuvit.copperHeist.cosmetics.CosmeticService;
 import me.psikuvit.copperHeist.event.CoinsChangedEvent;
 import me.psikuvit.copperHeist.event.LevelUpEvent;
 import me.psikuvit.copperHeist.stats.PlayerStats;
@@ -117,6 +118,15 @@ public class ProgressService {
         return bracket(level).name();
     }
 
+    /**
+     * How a stat is shown on leaderboards and in lists: XP is shown as a level (with the XP in brackets), everything else as the number.
+     * The result is MiniMessage.
+     */
+    public String display(Stat stat, long value) {
+        if (stat != Stat.XP) return String.valueOf(value);
+        return "Lv " + curve.levelFor(value) + " <dim>(" + value + " XP)</dim>";
+    }
+
     /** A progress bar for the XP inside the current level, e.g. {@code <ok>██████</ok><dim>░░░░</dim>}. */
     public String bar(long xp) {
         int length = Math.max(3, config == null ? 10 : config.getInt("levels.bar-length", 10));
@@ -154,7 +164,9 @@ public class ProgressService {
 
         int after = curve.levelFor(baseXp + paidXp);
         long levelCoins = 0;
-        for (int level = before + 1; level <= after; level++) levelCoins += coinsForLevel(level);
+        for (int level = before + 1; level <= after; level++) {
+            levelCoins += coinsForLevel(level) + (config == null ? 0 : config.getLong("level-rewards." + level + ".coins", 0));
+        }
 
         stats.add(uuid, name, Stat.XP, paidXp);
         stats.add(uuid, name, Stat.COINS, paidCoins + levelCoins);
@@ -221,5 +233,21 @@ public class ProgressService {
                 messages.get(player, "progress.level-up-subtitle", "level", to, "rank", rank(to), "coins", coinsForLevel(to))));
         player.sendMessage(messages.get(player, "progress.level-up-chat", "level", to, "rank", rank(to)));
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+        for (int level = from + 1; level <= to; level++) grantLevelCosmetic(player, level);
+    }
+
+    /** level-rewards.<level>.cosmetic in progress.yml: hands the player that cosmetic when they reach the level. */
+    private void grantLevelCosmetic(Player player, int level) {
+        if (config == null) return;
+        String id = config.getString("level-rewards." + level + ".cosmetic");
+        if (id == null || plugin.getCosmetics() == null) return;
+        var cosmetic = plugin.getCosmeticRegistry().get(id);
+        if (cosmetic == null) {
+            plugin.getLogger().warning("progress.yml level-rewards." + level + " gives cosmetic '" + id + "' which is not in cosmetics.yml.");
+            return;
+        }
+        if (plugin.getCosmetics().grant(player, cosmetic, "level") == CosmeticService.Outcome.OK) {
+            player.sendMessage(plugin.getMessageService().get(player, "progress.reward-cosmetic", "name", cosmetic.name()));
+        }
     }
 }

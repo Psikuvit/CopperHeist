@@ -375,7 +375,8 @@ public final class CopperHeistCommand {
         List<TopEntry> rows = boards.top(stat);
         if (rows.isEmpty()) Msg.info(sender, "leaderboard.empty");
         for (TopEntry row : rows) {
-            Msg.info(sender, LeaderboardService.lineKey(row.rank()), "rank", row.rank(), "player", row.name(), "value", row.value());
+            Msg.info(sender, LeaderboardService.lineKey(row.rank()), "rank", row.rank(), "player", row.name(), "value",
+                    plugin.getProgress() == null ? String.valueOf(row.value()) : plugin.getProgress().display(stat, row.value()));
         }
         return Command.SINGLE_SUCCESS;
     }

@@ -36,9 +36,10 @@ hub:
     - "<muted>Right-click the compass"
     - "<muted>to pick an arena"
 
+# The tab list is built per player, so it can also use your own {level} {rank} {xp_bar} {coins}.
 tab:
   header: "<primary><bold>COPPER HEIST</bold></primary> <dim><bar></dim> <muted>{arena}"
-  footer: "<copper>Copper <accent>{copper_score}</accent></copper> <dim><bar></dim> <iron>Iron <accent>{iron_score}</accent></iron> <dim><bar></dim> <text>{time}"
+  footer: "<copper>Copper <accent>{copper_score}</accent></copper> <dim><bar></dim> <iron>Iron <accent>{iron_score}</accent></iron> <dim><bar></dim> <text>{time}</text> <dim><bar></dim> <accent>Lv {level}</accent> <dim><bar></dim> <accent>{coins}</accent> <muted>coins"
 
 golem-line: " <dim><arrow></dim> {stage}{carrying}"
 

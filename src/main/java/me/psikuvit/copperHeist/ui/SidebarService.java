@@ -96,14 +96,7 @@ public class SidebarService {
         placeholders.put("{arenas_enabled}", String.valueOf(enabled));
         placeholders.put("{arenas_total}", String.valueOf(total));
         placeholders.put("{players_online}", String.valueOf(Bukkit.getOnlinePlayers().size()));
-        var progress = plugin.getProgress();
-        boolean shown = progress != null && progress.enabled() && plugin.getStats().isLoaded(player.getUniqueId());
-        long xp = shown ? progress.xp(player.getUniqueId(), player.getName()) : 0;
-        int level = shown ? progress.curve().levelFor(xp) : 1;
-        placeholders.put("{level}", String.valueOf(level));
-        placeholders.put("{rank}", shown ? progress.rank(level) : "");
-        placeholders.put("{xp_bar}", shown ? progress.bar(xp) : "");
-        placeholders.put("{coins}", shown ? String.valueOf(progress.coins(player.getUniqueId(), player.getName())) : "0");
+        placeholders.putAll(progressPlaceholders(player));
 
         List<Component> lines = new ArrayList<>();
         for (String template : config.getStringList("hub.lines")) {
@@ -111,6 +104,20 @@ public class SidebarService {
         }
         if (lines.size() > 15) lines = lines.subList(0, 15);
         return ScoreboardContext.of(title, lines);
+    }
+
+    /** {level} {rank} {xp_bar} {coins} for this player (level 1 / empty / 0 while their stats are still loading or progression is off). */
+    private Map<String, String> progressPlaceholders(Player player) {
+        var progress = plugin.getProgress();
+        boolean shown = progress != null && progress.enabled() && plugin.getStats().isLoaded(player.getUniqueId());
+        long xp = shown ? progress.xp(player.getUniqueId(), player.getName()) : 0;
+        int level = shown ? progress.curve().levelFor(xp) : 1;
+        Map<String, String> values = new HashMap<>();
+        values.put("{level}", String.valueOf(level));
+        values.put("{rank}", shown ? progress.rank(level) : "");
+        values.put("{xp_bar}", shown ? progress.bar(xp) : "");
+        values.put("{coins}", shown ? String.valueOf(progress.coins(player.getUniqueId(), player.getName())) : "0");
+        return values;
     }
 
     private String applyAll(String template, Map<String, String> placeholders) {
@@ -172,10 +179,11 @@ public class SidebarService {
     }
 
     private void updateTabList(Player player, Game game, Team viewer) {
-        Component header = miniMessage.deserialize(substitute(
-                config.getString("tab.header", "<gold><bold>COPPER HEIST <gray>- Arena: <white>{arena}"), game, viewer));
-        Component footer = miniMessage.deserialize(substitute(
-                config.getString("tab.footer", "<gold>Copper {copper_score} <gray>| Iron {iron_score} <gray>| <white>{time}"), game, viewer));
+        Map<String, String> mine = progressPlaceholders(player);
+        Component header = miniMessage.deserialize(applyAll(substitute(
+                config.getString("tab.header", "<gold><bold>COPPER HEIST <gray>- Arena: <white>{arena}"), game, viewer), mine));
+        Component footer = miniMessage.deserialize(applyAll(substitute(
+                config.getString("tab.footer", "<gold>Copper {copper_score} <gray>| Iron {iron_score} <gray>| <white>{time}"), game, viewer), mine));
         player.sendPlayerListHeaderAndFooter(header, footer);
 
         GamePlayer gp = game.getGamePlayer(player.getUniqueId());

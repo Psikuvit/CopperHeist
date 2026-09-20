@@ -342,6 +342,8 @@ progress:
   booster-note: " <special>(x{multiplier} booster)"
   level-up-title: "<accent><bold>LEVEL UP!"
   level-up-subtitle: "<text>Level {level} <dim><bar></dim> {rank} <dim><bar></dim> <accent>+{coins} coins"
+  first-win: "<special><star> First win of the day!</special> <accent>+{xp} XP <dim><bar></dim> +{coins} coins"
+  reward-cosmetic: "<ok><star></ok> <text>Level reward unlocked: {name}"
   level-up-chat: "<ok><star></ok> <text>You reached level <accent>{level}</accent> {rank}<text>!"
 
 network:

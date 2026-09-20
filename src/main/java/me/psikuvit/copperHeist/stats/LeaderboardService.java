@@ -178,7 +178,8 @@ public class LeaderboardService {
         if (rows.isEmpty()) return text.appendNewline().append(messages.get("leaderboard.empty"));
         for (TopEntry row : rows) {
             text = text.appendNewline().append(messages.get(lineKey(row.rank()),
-                    "rank", row.rank(), "player", row.name(), "value", row.value()));
+                    "rank", row.rank(), "player", row.name(), "value", plugin.getProgress() == null
+                            ? String.valueOf(row.value()) : plugin.getProgress().display(board.stat, row.value())));
         }
         return text;
     }

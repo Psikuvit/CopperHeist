@@ -10,6 +10,7 @@ rewards:
   win:           { xp: 40, coins: 15 }  # on the winning team
   loss:          { xp: 10, coins: 3 }   # on the losing team (a draw pays neither win nor loss)
   mvp:           { xp: 25, coins: 10 }  # the match MVP, on top of the above
+  first-win-of-day: { xp: 50, coins: 25 }  # extra, once per day (the day changes at midnight UTC), the first time your team wins
 
 # Paid per action, multiplied by how much you did. Fractions are fine (they are rounded once, at the end of the match).
 per:
@@ -28,6 +29,14 @@ levels:
   coins-per-level: 10       # coins paid on every level-up (multiplied by the level, capped by max-coins)
   max-coins: 200
   bar-length: 10            # width of the XP progress bar in characters
+
+# Extra rewards for reaching specific levels, on top of the coins every level pays. "cosmetic" gives that cosmetic (an id from
+# cosmetics.yml) to players who are online when they level up. Example (remove the #):
+#
+# level-rewards:
+#   10: { coins: 100, cosmetic: thief_title }
+#   25: { coins: 250 }
+level-rewards: {}
 
 # The rank shown next to a level: the last entry whose "from" is at or below the level. color is a theme tag or a color name / #hex.
 brackets:

@@ -32,8 +32,10 @@ public enum Stat {
         return "stat." + key();
     }
 
+    /** The stat for a key; "level" is accepted for XP (leaderboards of XP are shown as levels). */
     public static Stat fromKey(String key) {
         if (key == null) return null;
+        if (key.equalsIgnoreCase("level")) return XP;
         try {
             return valueOf(key.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {

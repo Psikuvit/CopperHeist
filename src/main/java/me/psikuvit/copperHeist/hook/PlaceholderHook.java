@@ -62,9 +62,6 @@ public class PlaceholderHook extends PlaceholderExpansion {
         if (key.startsWith("arena_state_")) return arenaState(key.substring("arena_state_".length()));
         if (key.startsWith("arena_players_")) return arenaPlayers(key.substring("arena_players_".length()));
 
-        Stat stat = Stat.fromKey(key);
-        if (stat != null) return stat(player, stat);
-
         var progress = plugin.getProgress();
         if (progress != null && player != null && progress.enabled()) {
             long xp = progress.xp(player.getUniqueId(), String.valueOf(player.getName()));
@@ -83,6 +80,11 @@ public class PlaceholderHook extends PlaceholderExpansion {
                 }
             }
         }
+
+        // After the level placeholders above: "level" is also accepted as a stat key (it means XP) and must not shadow them.
+        if (key.equals("level")) return "1"; // progression is off (otherwise handled above)
+        Stat stat = Stat.fromKey(key);
+        if (stat != null) return stat(player, stat);
 
         Game game = player instanceof Player online ? plugin.getGameManager().getGame(online) : null;
         GamePlayer gp = game == null ? null : game.getGamePlayer(player.getUniqueId());
