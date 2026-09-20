@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.loot;
 
 import me.psikuvit.copperHeist.arena.Arena;
+import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -16,7 +17,7 @@ import java.util.Set;
 public record LootTierDefinition(String id, Material material, int value, int weight, Set<Arena.LootZone> zones,
                                  String nameTemplate, boolean relic, Integer customModelData, boolean glint) {
 
-    private static final MiniMessage MINI = MiniMessage.miniMessage();
+    private static final MiniMessage MINI = Theme.mini();
 
     public Component displayName(int currentValue) {
         return MINI.deserialize(nameTemplate.replace("{value}", String.valueOf(currentValue)))

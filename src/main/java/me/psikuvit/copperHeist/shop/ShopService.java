@@ -6,11 +6,13 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.loot.LootItem;
+import me.psikuvit.copperHeist.menu.Gui;
 import me.psikuvit.copperHeist.shop.action.GiveItemAction;
 import me.psikuvit.copperHeist.shop.action.ShopAction;
 import me.psikuvit.copperHeist.shop.action.ShopPurchase;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
+import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -38,7 +40,7 @@ import java.util.Map;
 public class ShopService {
 
     private final CopperHeist plugin;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final MiniMessage miniMessage = Theme.mini();
     private final Map<String, ShopEntry> entries = new LinkedHashMap<>();
     private FileConfiguration config;
 
@@ -117,47 +119,61 @@ public class ShopService {
 
     // ---- menu ----
 
+    /** A framed menu: entries laid out over the inside, your carried loot value at the bottom, a close button in the corner. */
     public Inventory buildMenu(Player viewer) {
-        List<ShopEntry> list = new ArrayList<>(entries.values());
-        int rows = config.getInt("menu.rows", 0);
-        if (rows <= 0) rows = Math.max(1, (list.size() + 8) / 9);
-        rows = Math.min(6, rows);
+        int rows = Gui.rowsFor(entries.size());
         Inventory inventory = Bukkit.createInventory(new ShopHolder(), rows * 9, miniMessage.deserialize(menuTitle(viewer)));
-
-        Material filler = Material.matchMaterial(config.getString("menu.filler", ""));
-        if (filler != null && filler != Material.AIR) {
-            ItemStack pane = new ItemStack(filler);
-            ItemMeta meta = pane.getItemMeta();
-            meta.displayName(Component.empty());
-            pane.setItemMeta(meta);
-            for (int i = 0; i < inventory.getSize(); i++) inventory.setItem(i, pane);
-        }
-
-        for (ShopEntry entry : list) {
-            ItemStack display = buildDisplayItem(entry, viewer);
-            if (entry.slot() >= 0 && entry.slot() < inventory.getSize()) {
-                inventory.setItem(entry.slot(), display);
-                continue;
-            }
-            for (int i = 0; i < inventory.getSize(); i++) {
-                if (inventory.getItem(i) == null || inventory.getItem(i).getType() == filler) {
-                    inventory.setItem(i, display);
-                    break;
-                }
-            }
-        }
+        fill(inventory, viewer);
         return inventory;
     }
 
-    private ItemStack buildDisplayItem(ShopEntry entry, Player viewer) {
+    /** (Re)draws the whole menu. Also used to refresh an open menu after a purchase so prices and locks stay current. */
+    public void fill(Inventory inventory, Player viewer) {
+        inventory.clear();
+        Material frame = Material.matchMaterial(config.getString("menu.border", "GRAY_STAINED_GLASS_PANE"));
+        Gui.border(inventory, frame == null ? Material.GRAY_STAINED_GLASS_PANE : frame);
+
+        Game game = plugin.getGameManager().getGame(viewer);
+        GamePlayer gp = game == null ? null : game.getGamePlayer(viewer.getUniqueId());
+        int have = plugin.getLootWeightService().getCarriedValue(viewer);
+        int footer = inventory.getSize() - 9;
+
+        int index = 0;
+        for (ShopEntry entry : entries.values()) {
+            int slot = entry.slot() >= 0 && entry.slot() < footer ? entry.slot() : Gui.slotFor(index++);
+            if (slot >= footer) continue; // more entries than the menu has room for
+            inventory.setItem(slot, buildDisplayItem(entry, viewer, game, gp, have));
+        }
+
+        var messages = plugin.getMessageService();
+        inventory.setItem(footer + 4, Gui.item(Material.GOLD_INGOT, messages.rawFor(viewer, "gui.shop.balance-name"),
+                List.of(messages.rawFor(viewer, "gui.shop.balance-lore", "value", have),
+                        messages.rawFor(viewer, "gui.shop.balance-hint")), "info"));
+        inventory.setItem(footer + 8, Gui.item(Material.BARRIER, messages.rawFor(viewer, "gui.close"), List.of(), "close"));
+    }
+
+    private ItemStack buildDisplayItem(ShopEntry entry, Player viewer, Game game, GamePlayer gp, int have) {
+        var messages = plugin.getMessageService();
         ItemStack stack = "give-item".equals(entry.action()) ? GiveItemAction.createStack(entry)
                 : new ItemStack(entry.material(), Math.max(1, entry.amount()));
         ItemMeta meta = stack.getItemMeta();
-        String costFormat = config.getString("menu.cost-format", " - {cost} value").replace("{cost}", String.valueOf(entry.cost()));
-        meta.displayName(miniMessage.deserialize(entryName(entry, viewer)).append(Component.text(costFormat))
-                .decoration(TextDecoration.ITALIC, false));
+        meta.displayName(Gui.text(entryName(entry, viewer)));
+
         List<Component> lore = new ArrayList<>();
-        for (String line : entryLore(entry, viewer)) lore.add(miniMessage.deserialize(line).decoration(TextDecoration.ITALIC, false));
+        for (String line : entryLore(entry, viewer)) lore.add(Gui.text(line));
+        lore.add(Component.empty());
+        boolean affordable = have >= entry.cost();
+        lore.add(Gui.text(messages.rawFor(viewer, affordable ? "gui.shop.cost-ok" : "gui.shop.cost-bad", "cost", entry.cost(), "have", have)));
+
+        String blocked = null;
+        if (entry.minPhase() != null && (game == null || !(game.isActive() && game.getState().ordinal() >= entry.minPhase().ordinal()))) {
+            blocked = messages.rawFor(viewer, "gui.shop.locked", "phase", entry.minPhase().name().replace('_', ' '));
+        } else if (gp != null && entry.maxPerPlayer() > 0 && gp.purchaseCount(entry.id()) >= entry.maxPerPlayer()) {
+            blocked = messages.rawFor(viewer, "gui.shop.limit", "limit", entry.maxPerPlayer());
+        } else if (gp != null && gp.purchaseCooldownRemaining(entry.id()) > 0) {
+            blocked = messages.rawFor(viewer, "gui.shop.cooldown", "seconds", gp.purchaseCooldownRemaining(entry.id()));
+        }
+        lore.add(Gui.text(blocked != null ? blocked : messages.rawFor(viewer, affordable ? "gui.shop.click" : "gui.shop.need-more")));
         meta.lore(lore);
         stack.setItemMeta(meta);
         Pdc.set(stack, PdcKeys.SHOP_ITEM, entry.id());
@@ -166,43 +182,45 @@ public class ShopService {
 
     // ---- buying ----
 
-    public void purchase(Player player, ShopEntry entry, Game game, GamePlayer gp) {
+    /** Tries to buy {@code entry}; tells the player why not on failure. Returns whether the purchase went through. */
+    public boolean purchase(Player player, ShopEntry entry, Game game, GamePlayer gp) {
         var messages = plugin.getMessageService();
 
         if (entry.minPhase() != null && !(game.isActive() && game.getState().ordinal() >= entry.minPhase().ordinal())) {
             plugin.getActionBar().show(player, messages.get(player, "actionbar.shop-locked", "phase", entry.minPhase().name().replace('_', ' ')));
-            return;
+            return false;
         }
         if (entry.maxPerPlayer() > 0 && gp.purchaseCount(entry.id()) >= entry.maxPerPlayer()) {
             plugin.getActionBar().show(player, messages.get(player, "actionbar.shop-limit", "limit", entry.maxPerPlayer()));
-            return;
+            return false;
         }
         long cooldown = gp.purchaseCooldownRemaining(entry.id());
         if (cooldown > 0) {
             plugin.getActionBar().show(player, messages.get(player, "actionbar.shop-cooldown", "seconds", cooldown));
-            return;
+            return false;
         }
 
         ShopAction action = plugin.getShopActions().get(entry.action());
         if (action == null) {
             plugin.getLogger().warning("Shop item '" + entry.id() + "' uses unknown action '" + entry.action() + "'");
-            return;
+            return false;
         }
         ShopPurchase purchase = new ShopPurchase(plugin, game, player, gp, entry);
         String refusal = action.check(purchase);
         if (refusal != null) {
             plugin.getActionBar().show(player, messages.get(player, refusal));
-            return;
+            return false;
         }
 
         if (!charge(player, entry.cost())) {
             plugin.getActionBar().show(player, messages.get(player, "actionbar.cant-afford", "cost", entry.cost()));
-            return;
+            return false;
         }
 
         action.perform(purchase);
         gp.recordPurchase(entry.id(), entry.cooldownSeconds());
         plugin.getActionBar().show(player, messages.get(player, "actionbar.purchased", "item", entry.name()));
+        return true;
     }
 
     /** Removes tagged loot worth at least cost, smallest-value pieces first, or refuses if there isn't enough. */

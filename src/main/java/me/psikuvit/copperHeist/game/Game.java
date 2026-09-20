@@ -27,6 +27,7 @@ import me.psikuvit.copperHeist.task.RespawnTask;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import me.psikuvit.copperHeist.util.PlayerSanitizer;
+import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -309,7 +310,7 @@ public class Game {
         for (Team team : Team.values()) {
             Location loc = arena.site(team).shop;
             if (loc == null || loc.getWorld() == null) continue;
-            Component name = MiniMessage.miniMessage().deserialize(format.replace("{team}", team.displayName()))
+            Component name = Theme.mini().deserialize(format.replace("{team}", team.displayName()))
                     .colorIfAbsent(team.color());
             NpcHandle handle;
             try {

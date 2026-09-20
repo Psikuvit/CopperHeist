@@ -4,6 +4,7 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GameState;
+import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -239,7 +240,7 @@ public class NetworkService {
 
     /** Sends a MiniMessage line to every player on this server and, with Redis, on every other server. */
     public void broadcast(String miniMessage) {
-        Bukkit.broadcast(MiniMessage.miniMessage().deserialize(miniMessage));
+        Bukkit.broadcast(Theme.mini().deserialize(miniMessage));
         if (redisUp) async(jedis -> jedis.publish(key("broadcast"), serverId() + " " + miniMessage));
     }
 
@@ -306,7 +307,7 @@ public class NetworkService {
                 int split = message.indexOf(' ');
                 if (split < 0 || message.substring(0, split).equals(serverId())) return;
                 String text = message.substring(split + 1);
-                Bukkit.getScheduler().runTask(plugin, () -> Bukkit.broadcast(MiniMessage.miniMessage().deserialize(text)));
+                Bukkit.getScheduler().runTask(plugin, () -> Bukkit.broadcast(Theme.mini().deserialize(text)));
             }
         };
         subscriber = new Thread(() -> {

@@ -25,6 +25,22 @@ match:
     collection-end-seconds: 480
     heist-end-seconds: 780
 
+# The plugin's look. Every message, menu, scoreboard line and book page uses these named colors (<primary>, <ok>, <bad> ...),
+# so changing them here restyles everything, including translations. Hex (#RRGGBB) or a vanilla color name. /ch reload applies it.
+theme:
+  primary: "#E8853A"                # headings and highlights
+  secondary: "#B87333"              # the copper accent used for names and titles
+  accent: "#FFC857"                 # values, prices, things to notice
+  ok: "#7BD88F"                     # success, "available"
+  bad: "#F26D6D"                    # errors, "locked"
+  info: "#6CB6FF"                   # neutral notices
+  text: "#EDEDED"                   # body text
+  muted: "#A0A4AB"                  # secondary text
+  dim: "#5C6067"                    # separators and footers
+  special: "#C792EA"                # relics and rare things
+  copper: "#E8853A"                 # the copper team
+  iron: "#B8C4D0"                   # the iron team
+
 # Keeps the worlds you play in calm. scope: arena (only worlds that contain an arena) | all (every world).
 world-rules:
   scope: arena
@@ -267,6 +283,7 @@ alarms:
   trigger-radius: 4
   cooldown-seconds: 8
   intruder-glow-seconds: 3
+  show-box: true   # a glowing marker on each alarm, shown only to the owning team (enemies can't see it)
 
 drill:
   health: 40.0

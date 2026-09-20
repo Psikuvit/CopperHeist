@@ -1,5 +1,6 @@
 # Sidebar layout, one list of lines per match state (see GameState). Lines
 # are MiniMessage templates; {placeholder} tokens are substituted live.
+# Colors are theme tags (<primary>, <accent>, <copper>, <iron> ... - see theme: in config.yml), so a new theme restyles this too.
 #
 # Available everywhere:
 #   {arena} {phase} {time} {players} {min_players} {max_players}
@@ -15,87 +16,88 @@
 # "footer" is appended after every state's lines. Max 15 lines total
 # (title doesn't count) - anything past that is dropped.
 
-title: "<gold><bold>COPPER HEIST"
+title: "<primary><bold>COPPER HEIST"
 
 # Shown to any online player not currently in a match (before /ch join, or
 # after leaving one). {arenas_enabled} {arenas_total} {players_online}
 hub:
-  title: "<gold><bold>COPPER HEIST"
+  title: "<primary><bold>COPPER HEIST"
   lines:
-    - "<gray>Welcome!"
+    - "<muted>Welcome!"
     - ""
-    - "<white>{arenas_enabled}/{arenas_total} arenas open"
-    - "<white>{players_online} players online"
+    - "<primary>Arenas</primary> <dim><bar></dim> <text>{arenas_enabled}/{arenas_total} open"
+    - "<primary>Online</primary> <dim><bar></dim> <text>{players_online}"
     - ""
-    - "<gray>/ch join <arena>"
+    - "<muted>Right-click the compass"
+    - "<muted>to pick an arena"
 
 tab:
-  header: "<gold><bold>COPPER HEIST <gray>- Arena: <white>{arena}"
-  footer: "<gold>Copper {copper_score} <dark_gray>|</dark_gray> <gray>Iron {iron_score} <dark_gray>|</dark_gray> <white>{time}"
+  header: "<primary><bold>COPPER HEIST</bold></primary> <dim><bar></dim> <muted>{arena}"
+  footer: "<copper>Copper <accent>{copper_score}</accent></copper> <dim><bar></dim> <iron>Iron <accent>{iron_score}</accent></iron> <dim><bar></dim> <text>{time}"
 
-golem-line: " - {stage}{carrying}"
+golem-line: " <dim><arrow></dim> {stage}{carrying}"
 
 footer:
   - ""
-  - "<dark_gray>{arena}"
+  - "<dim>{arena}"
 
 states:
   waiting:
-    - "<gray>Waiting for players..."
-    - "<white>{players}/{min_players} players needed"
+    - "<muted>Waiting for players..."
+    - "<primary>Players</primary> <dim><bar></dim> <text>{players}</text><dim>/</dim><muted>{min_players} needed"
   starting:
-    - "<gray>Starting in <white>{time}"
-    - "<white>{players} players"
+    - "<accent><bold>Starting in {time}"
+    - "<primary>Players</primary> <dim><bar></dim> <text>{players}"
   setup:
-    - "<blue>SETUP <gray>- no loot yet"
-    - "<gray>Time: <white>{time}"
-    - "<light_purple>Relic: <white>{relic_holder} <gray>({relic_countdown})"
+    - "<info><bold>SETUP</bold> <dim><bar></dim> <muted>no loot yet"
+    - "<muted>Time</muted> <dim><bar></dim> <text>{time}"
     - ""
-    - "<gold>COPPER VAULT  <white>{copper_score}"
-    - "<gray>IRON VAULT  <white>{iron_score}"
+    - "<copper><bold>COPPER</bold></copper> <dim><bar></dim> <accent>{copper_score}"
+    - "<iron><bold>IRON</bold></iron> <dim><bar></dim> <accent>{iron_score}"
+    - "<special>Relic</special> <dim><bar></dim> <text>{relic_holder} <dim>({relic_countdown})"
     - ""
-    - "<gold>Copper golems: {copper_golem_count}"
+    - "<copper>Golems {copper_golem_count}"
     - "<golems:copper>"
-    - "<gray>Iron golems: {iron_golem_count}"
+    - "<iron>Golems {iron_golem_count}"
     - "<golems:iron>"
   collection:
-    - "<green>COLLECTION"
-    - "<gray>Time: <white>{time}"
-    - "<light_purple>Relic: <white>{relic_holder} <gray>({relic_countdown})"
+    - "<ok><bold>COLLECTION</bold> <dim><bar></dim> <muted>grab loot"
+    - "<muted>Time</muted> <dim><bar></dim> <text>{time}"
     - ""
-    - "<gold>COPPER VAULT  <white>{copper_score}"
-    - "<gray>IRON VAULT  <white>{iron_score}"
+    - "<copper><bold>COPPER</bold></copper> <dim><bar></dim> <accent>{copper_score}"
+    - "<iron><bold>IRON</bold></iron> <dim><bar></dim> <accent>{iron_score}"
+    - "<special>Relic</special> <dim><bar></dim> <text>{relic_holder} <dim>({relic_countdown})"
     - ""
-    - "<gold>Copper golems: {copper_golem_count}"
+    - "<copper>Golems {copper_golem_count}"
     - "<golems:copper>"
-    - "<gray>Iron golems: {iron_golem_count}"
+    - "<iron>Golems {iron_golem_count}"
     - "<golems:iron>"
   heist:
-    - "<yellow>HEIST <gray>- drills unlocked"
-    - "<gray>Time: <white>{time}"
-    - "<light_purple>Relic: <white>{relic_holder} <gray>({relic_countdown})"
+    - "<accent><bold>HEIST</bold> <dim><bar></dim> <muted>drills unlocked"
+    - "<muted>Time</muted> <dim><bar></dim> <text>{time}"
     - ""
-    - "<gold>COPPER VAULT  <white>{copper_score}"
-    - "<gray>IRON VAULT  <white>{iron_score}"
+    - "<copper><bold>COPPER</bold></copper> <dim><bar></dim> <accent>{copper_score}"
+    - "<iron><bold>IRON</bold></iron> <dim><bar></dim> <accent>{iron_score}"
+    - "<special>Relic</special> <dim><bar></dim> <text>{relic_holder} <dim>({relic_countdown})"
     - ""
-    - "<gold>Copper golems: {copper_golem_count}"
+    - "<copper>Golems {copper_golem_count}"
     - "<golems:copper>"
-    - "<gray>Iron golems: {iron_golem_count}"
+    - "<iron>Golems {iron_golem_count}"
     - "<golems:iron>"
   final_rush:
-    - "<red>FINAL RUSH <gray>- loot x2"
-    - "<gray>Time: <white>{time}"
-    - "<light_purple>Relic: <white>{relic_holder} <gray>({relic_countdown})"
+    - "<bad><bold>FINAL RUSH</bold> <dim><bar></dim> <muted>loot x2"
+    - "<muted>Time</muted> <dim><bar></dim> <text>{time}"
     - ""
-    - "<gold>COPPER VAULT  <white>{copper_score}"
-    - "<gray>IRON VAULT  <white>{iron_score}"
+    - "<copper><bold>COPPER</bold></copper> <dim><bar></dim> <accent>{copper_score}"
+    - "<iron><bold>IRON</bold></iron> <dim><bar></dim> <accent>{iron_score}"
+    - "<special>Relic</special> <dim><bar></dim> <text>{relic_holder} <dim>({relic_countdown})"
     - ""
-    - "<gold>Copper golems: {copper_golem_count}"
+    - "<copper>Golems {copper_golem_count}"
     - "<golems:copper>"
-    - "<gray>Iron golems: {iron_golem_count}"
+    - "<iron>Golems {iron_golem_count}"
     - "<golems:iron>"
   ending:
-    - "<gray>Match over!"
-    - "<gold>COPPER <white>{copper_score}  <gray>-  <white>{iron_score} <gray>IRON"
+    - "<accent><bold>Match over!"
+    - "<copper>COPPER <accent>{copper_score}</accent></copper> <dim>-</dim> <iron><accent>{iron_score}</accent> IRON</iron>"
   resetting:
-    - "<gray>Resetting arena..."
+    - "<muted>Resetting arena..."

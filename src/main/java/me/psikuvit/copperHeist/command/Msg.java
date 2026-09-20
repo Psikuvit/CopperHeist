@@ -2,13 +2,14 @@ package me.psikuvit.copperHeist.command;
 
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.Text;
+import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 
 /** Command feedback in the sender's language. Every text is a lang key - no English lives in the command code. */
 public final class Msg {
 
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private static final MiniMessage MINI_MESSAGE = Theme.mini();
     private static MessageService messages;
 
     private Msg() {

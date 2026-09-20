@@ -4,16 +4,21 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.menu.Gui;
 import me.psikuvit.copperHeist.role.ability.AbilityContext;
 import me.psikuvit.copperHeist.role.ability.RoleAbility;
 import me.psikuvit.copperHeist.ui.Text;
 import me.psikuvit.copperHeist.util.Cooldowns;
+import me.psikuvit.copperHeist.util.Pdc;
+import me.psikuvit.copperHeist.util.PdcKeys;
+import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.attribute.Attribute;
@@ -48,7 +53,7 @@ public class RoleService {
 
     private final CopperHeist plugin;
     private final Game game;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final MiniMessage miniMessage = Theme.mini();
     private final Cooldowns abilityCooldowns = new Cooldowns();
 
     public RoleService(CopperHeist plugin, Game game) {
@@ -70,24 +75,55 @@ public class RoleService {
         return null;
     }
 
-    /** One item per role, in registry order - the click listener maps slot index straight back to the role. */
+    /**
+     * A framed picker, one icon per role (the role id is stored on the item for the click handler). The role the viewer has now
+     * glows and says so; every other icon shows its ability, team limit and how to choose it.
+     */
     public Inventory buildRoleMenu(Player viewer) {
         List<RoleDefinition> all = roles().all();
-        int size = Math.max(9, (all.size() + 8) / 9 * 9);
-        Inventory inventory = Bukkit.createInventory(new RoleHolder(), size,
-                plugin.getMessageService().get(viewer, "menu.role-title").colorIfAbsent(NamedTextColor.GOLD));
-        for (RoleDefinition role : all) {
-            ItemStack icon = new ItemStack(role.icon());
-            ItemMeta meta = icon.getItemMeta();
-            meta.displayName(Component.text(displayName(role, viewer), role.color()).decoration(TextDecoration.ITALIC, false));
-            String description = description(role, viewer);
-            if (!description.isBlank()) {
-                meta.lore(List.of(miniMessage.deserialize(description).decoration(TextDecoration.ITALIC, false)));
-            }
-            icon.setItemMeta(meta);
-            inventory.addItem(icon);
+        var messages = plugin.getMessageService();
+        int rows = all.size() <= Gui.ITEMS_PER_ROW ? 3 : Gui.rowsFor(all.size());
+        Inventory inventory = Bukkit.createInventory(new RoleHolder(), rows * 9, Theme.mini().deserialize(messages.rawFor(viewer, "gui.roles.title")));
+        Gui.border(inventory, Material.GRAY_STAINED_GLASS_PANE);
+
+        GamePlayer gp = null;
+        Game current = plugin.getGameManager().getGame(viewer);
+        if (current != null) gp = current.getGamePlayer(viewer.getUniqueId());
+        String selected = gp == null || gp.getRole() == null ? null : gp.getRole().id();
+
+        // A short list is centred in the middle row instead of hugging the left edge.
+        int offset = all.size() < Gui.ITEMS_PER_ROW ? (Gui.ITEMS_PER_ROW - all.size()) / 2 : 0;
+        for (int i = 0; i < all.size(); i++) {
+            RoleDefinition role = all.get(i);
+            int slot = all.size() <= Gui.ITEMS_PER_ROW ? 9 + 1 + offset + i : Gui.slotFor(i);
+            inventory.setItem(slot, roleIcon(role, viewer, role.id().equals(selected)));
         }
         return inventory;
+    }
+
+    private ItemStack roleIcon(RoleDefinition role, Player viewer, boolean selected) {
+        var messages = plugin.getMessageService();
+        ItemStack icon = new ItemStack(role.icon());
+        ItemMeta meta = icon.getItemMeta();
+        Component name = Component.text(displayName(role, viewer), role.color());
+        meta.displayName(Gui.plain(selected ? name.decorate(TextDecoration.BOLD) : name));
+
+        List<Component> lore = new ArrayList<>();
+        String description = description(role, viewer);
+        if (!description.isBlank()) lore.add(Gui.text(description));
+        lore.add(Component.empty());
+        if (role.hasAbility()) {
+            lore.add(Gui.text(messages.rawFor(viewer, "gui.roles.ability", "ability", role.ability().id().replace('-', ' '),
+                    "cooldown", role.ability().cooldownSeconds())));
+        }
+        lore.add(Gui.text(messages.rawFor(viewer, "gui.roles.limit", "limit", roles().maxPerTeam(role))));
+        lore.add(Component.empty());
+        lore.add(Gui.text(messages.rawFor(viewer, selected ? "gui.roles.selected" : "gui.roles.click")));
+        meta.lore(lore);
+        icon.setItemMeta(meta);
+        Pdc.set(icon, PdcKeys.MENU_ID, role.id());
+        if (selected) Gui.glow(icon);
+        return icon;
     }
 
     /** A role's name in the viewer's language: lang key roles.&lt;id&gt;.name if a translation defines it, else roles.yml. */

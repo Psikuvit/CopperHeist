@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.stats;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.util.LocationUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -165,13 +166,18 @@ public class LeaderboardService {
         board.display = null;
     }
 
+    /** The lang key for a leaderboard row: the top three get their own style. */
+    public static String lineKey(int rank) {
+        return rank >= 1 && rank <= 3 ? "leaderboard.line-top" + rank : "leaderboard.line";
+    }
+
     private Component render(Board board) {
         var messages = plugin.getMessageService();
         Component text = messages.get("leaderboard.title", "stat", messages.rawFor(Bukkit.getConsoleSender(), board.stat.langKey()));
         List<TopEntry> rows = top(board.stat);
         if (rows.isEmpty()) return text.appendNewline().append(messages.get("leaderboard.empty"));
         for (TopEntry row : rows) {
-            text = text.appendNewline().append(messages.get("leaderboard.line",
+            text = text.appendNewline().append(messages.get(lineKey(row.rank()),
                     "rank", row.rank(), "player", row.name(), "value", row.value()));
         }
         return text;
@@ -194,7 +200,7 @@ public class LeaderboardService {
                 plugin.getLogger().warning("Skipping leaderboard '" + id + "' (unknown stat or world)");
                 continue;
             }
-            boards.put(id, new Board(id, stat, new Location(world, entry.getDouble("x"), entry.getDouble("y"), entry.getDouble("z"))));
+            boards.put(id, new Board(id, stat, LocationUtil.center(new Location(world, entry.getDouble("x"), entry.getDouble("y"), entry.getDouble("z")))));
         }
     }
 

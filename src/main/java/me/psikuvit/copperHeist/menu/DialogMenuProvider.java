@@ -12,6 +12,7 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.role.RoleDefinition;
 import me.psikuvit.copperHeist.shop.ShopEntry;
 import me.psikuvit.copperHeist.ui.Text;
+import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickCallback;
@@ -29,7 +30,7 @@ import java.util.UUID;
  */
 public class DialogMenuProvider implements MenuProvider {
 
-    private static final MiniMessage MINI = MiniMessage.miniMessage();
+    private static final MiniMessage MINI = Theme.mini();
 
     private final CopperHeist plugin;
 

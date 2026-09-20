@@ -26,7 +26,7 @@ import java.util.Map;
 public class MessageService {
 
     private final CopperHeist plugin;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final MiniMessage miniMessage = Theme.mini();
     private final Map<String, YamlConfiguration> languages = new HashMap<>();
     private String defaultLanguage = "en";
     private boolean perPlayer = true;
@@ -43,6 +43,11 @@ public class MessageService {
         if (!english.exists()) plugin.saveResource("lang/en.yml", false);
 
         YamlConfiguration bundled = ConfigFiles.bundled(plugin, "lang/en.yml");
+        if (bundled != null) {
+            // Only en.yml is topped up: other languages are translations and fall back to English per key.
+            YamlConfiguration current = ConfigFiles.loadFile(plugin, english, null);
+            if (!current.getKeys(false).isEmpty()) ConfigFiles.addMissing(plugin, english, current, bundled);
+        }
         languages.clear();
         File[] files = dir.listFiles((d, name) -> name.endsWith(".yml"));
         if (files != null) {
@@ -135,12 +140,14 @@ public class MessageService {
         return miniMessage.deserialize(rawFor(viewer, "prefix")).append(get(viewer, key, placeholders));
     }
 
+    /** Success feedback: a green check mark, then the message. */
     public Component ok(CommandSender viewer, String key, Object... placeholders) {
-        return miniMessage.deserialize("<green>" + rawFor(viewer, key, placeholders) + "</green>");
+        return miniMessage.deserialize("<ok><check></ok> <text>" + rawFor(viewer, key, placeholders));
     }
 
+    /** Failure feedback: a red cross, then the message in red. */
     public Component err(CommandSender viewer, String key, Object... placeholders) {
-        return miniMessage.deserialize("<red>" + rawFor(viewer, key, placeholders) + "</red>");
+        return miniMessage.deserialize("<bad><cross> " + rawFor(viewer, key, placeholders));
     }
 
     public Component err(CommandSender viewer, Text text) {

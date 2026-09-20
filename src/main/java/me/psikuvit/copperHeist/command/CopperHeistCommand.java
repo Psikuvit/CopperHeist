@@ -29,6 +29,8 @@ import me.psikuvit.copperHeist.stats.StatsService;
 import me.psikuvit.copperHeist.stats.TopEntry;
 import me.psikuvit.copperHeist.task.SnapshotRestoreTask;
 import me.psikuvit.copperHeist.ui.Text;
+import me.psikuvit.copperHeist.ui.Theme;
+import me.psikuvit.copperHeist.util.LocationUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -251,7 +253,7 @@ public final class CopperHeistCommand {
             Msg.err(sender, "setup.in-game-only");
             return 0;
         }
-        plugin.getHubSpawn().set(player.getLocation());
+        plugin.getHubSpawn().set(LocationUtil.center(player.getLocation()));
         Msg.ok(player, "hub.set");
         return Command.SINGLE_SUCCESS;
     }
@@ -345,7 +347,7 @@ public final class CopperHeistCommand {
         List<TopEntry> rows = boards.top(stat);
         if (rows.isEmpty()) Msg.info(sender, "leaderboard.empty");
         for (TopEntry row : rows) {
-            Msg.info(sender, "leaderboard.line", "rank", row.rank(), "player", row.name(), "value", row.value());
+            Msg.info(sender, LeaderboardService.lineKey(row.rank()), "rank", row.rank(), "player", row.name(), "value", row.value());
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -389,7 +391,7 @@ public final class CopperHeistCommand {
             return 0;
         }
         String id = StringArgumentType.getString(ctx, "id");
-        boards.create(id, stat, player.getLocation().add(0, 1.5, 0));
+        boards.create(id, stat, LocationUtil.center(player.getLocation()).add(0, 1.5, 0));
         Msg.ok(sender, "leaderboard.created", "id", id, "stat", stat.key());
         return Command.SINGLE_SUCCESS;
     }
@@ -517,6 +519,7 @@ public final class CopperHeistCommand {
         plugin.getShopService().load();
         plugin.getLobbyKitService().load();
         Team.configure(plugin.getConfig().getConfigurationSection("teams"));
+        Theme.load(plugin.getConfig().getConfigurationSection("theme"));
         plugin.getRoleRegistry().load();
         plugin.getLootTiers().load();
         plugin.getPresets().load();
@@ -634,15 +637,15 @@ public final class CopperHeistCommand {
                         .then(argument("name", StringArgumentType.word())
                                 .executes(this::executeCreate)))
                 .then(arenaOnly("setlobby", (player, arena) -> {
-                    arena.setLobby(player.getLocation());
+                    arena.setLobby(LocationUtil.center(player.getLocation()));
                     Msg.ok(player, "setup.lobby-set", "arena", arena.getName());
                 }))
                 .then(arenaOnly("setspectator", (player, arena) -> {
-                    arena.setSpectator(player.getLocation());
+                    arena.setSpectator(LocationUtil.center(player.getLocation()));
                     Msg.ok(player, "setup.spectator-set", "arena", arena.getName());
                 }))
                 .then(arenaTeam("setspawn", (player, arena, team) -> {
-                    arena.site(team).spawn = player.getLocation();
+                    arena.site(team).spawn = LocationUtil.center(player.getLocation());
                     Msg.ok(player, "setup.spawn-set", "team", team.displayName(), "arena", arena.getName());
                 }))
                 .then(arenaTeam("adddock", (player, arena, team) -> {
@@ -673,16 +676,16 @@ public final class CopperHeistCommand {
                     Msg.ok(player, "setup.vault-door-set", "team", team.displayName(), "arena", arena.getName());
                 }))
                 .then(arenaTeam("setgolemidle", (player, arena, team) -> {
-                    arena.site(team).golemIdle = player.getLocation();
+                    arena.site(team).golemIdle = LocationUtil.center(player.getLocation());
                     Msg.ok(player, "setup.golem-idle-set", "team", team.displayName());
                 }))
                 .then(arenaTeam("addwaypoint", (player, arena, team) -> {
-                    arena.site(team).waypoints.add(player.getLocation());
+                    arena.site(team).waypoints.add(LocationUtil.center(player.getLocation()));
                     Msg.ok(player, "setup.waypoint-added", "team", team.displayName(), "number", arena.site(team).waypoints.size());
                 }))
                 .then(addLootCommand())
                 .then(arenaOnly("addrelic", (player, arena) -> {
-                    arena.getRelicPoints().add(player.getLocation());
+                    arena.getRelicPoints().add(LocationUtil.center(player.getLocation()));
                     Msg.ok(player, "setup.relic-added", "count", arena.getRelicPoints().size());
                 }))
                 .then(arenaOnly("setbounds1", (player, arena) -> {
@@ -705,7 +708,7 @@ public final class CopperHeistCommand {
                     if (arena.validate().isEmpty()) Msg.ok(player, "setup.ready", "arena", arena.getName());
                 }))
                 .then(arenaTeam("setshop", (player, arena, team) -> {
-                    arena.site(team).shop = player.getLocation();
+                    arena.site(team).shop = LocationUtil.center(player.getLocation());
                     Msg.ok(player, "setup.shop-set", "team", team.displayName(), "arena", arena.getName());
                 }))
                 .then(arenaTeam("setbase1", (player, arena, team) -> {
@@ -901,7 +904,7 @@ public final class CopperHeistCommand {
     }
 
     private void addLootPoint(Player player, Arena arena, Arena.LootZone zone) {
-        arena.getLootPoints(zone).add(player.getLocation());
+        arena.getLootPoints(zone).add(LocationUtil.center(player.getLocation()));
         Msg.ok(player, "setup.loot-added", "zone", zone.name().toLowerCase(Locale.ROOT), "count", arena.getLootPoints(zone).size());
     }
 

@@ -3,8 +3,8 @@
 # pieces first, so buying is a real trade-off against delivering it.
 #
 # menu:
-#   title, rows (0 = size to fit, max 6), filler (a material, or empty for none),
-#   cost-format (appended to every entry name in the menu; {cost})
+#   title, border (a material for the frame). The menu sizes itself to fit the entries; prices, locks and
+#   the player's balance are shown automatically in each item's lore.
 #
 # items.<id>:
 #   action          give-item (default), spawn-golem or command (plugins can add more)
@@ -16,79 +16,77 @@
 #   command:        commands: ["give {player} diamond 1"]   ({player} and {team} are replaced)
 
 menu:
-  title: "<gold><bold>Copper Heist Shop"
-  rows: 0
-  filler: ""
-  cost-format: " - {cost} value"
+  title: "<primary><bold>Copper Heist</bold></primary> <dim>»</dim> <text>Shop"
+  border: GRAY_STAINED_GLASS_PANE   # the frame around the menu (any material; the size grows with the number of items)
 
 items:
   honeycomb:
     material: HONEYCOMB
     tag: true
     cost: 3
-    name: "<gold>Honeycomb"
+    name: "<primary>Honeycomb"
     lore:
-      - "<gray>Right-click a golem to wax"
-      - "<gray>it - freezes its oxidation"
-      - "<gray>stage for a while."
+      - "<muted>Right-click a golem to wax"
+      - "<muted>it - freezes its oxidation"
+      - "<muted>stage for a while."
   wind_charges:
     material: WIND_CHARGE
     amount: 3
     cost: 4
-    name: "<gold>Wind Charge x3"
+    name: "<primary>Wind Charge x3"
     lore:
-      - "<gray>Knockback projectiles."
+      - "<muted>Knockback projectiles."
   healing_potion:
     material: POTION
     potion: strong_healing
     cost: 4
-    name: "<gold>Healing Potion"
+    name: "<primary>Healing Potion"
     lore:
-      - "<gray>Instant Health II."
+      - "<muted>Instant Health II."
   oxidizer_splash:
     material: SPLASH_POTION
     potion: water
     color: "#8B4513"
     tag: true
     cost: 6
-    name: "<gold>Oxidizer Splash"
+    name: "<primary>Oxidizer Splash"
     lore:
-      - "<gray>Ages enemy golems caught"
-      - "<gray>in the splash by one stage."
+      - "<muted>Ages enemy golems caught"
+      - "<muted>in the splash by one stage."
   new_golem:
     action: spawn-golem
     material: COPPER_INGOT
     cost: 10
-    name: "<gold>New Golem"
+    name: "<primary>New Golem"
     lore:
-      - "<gray>Builds a golem at your dock,"
-      - "<gray>up to your team's cap."
+      - "<muted>Builds a golem at your dock,"
+      - "<muted>up to your team's cap."
   storm_rod:
     material: BLAZE_ROD
     tag: true
     cost: 15
-    name: "<gold>Storm Rod"
+    name: "<primary>Storm Rod"
     lore:
-      - "<gray>Resets your golems near the"
-      - "<gray>dock to Fresh. Zaps anyone"
-      - "<gray>nearby, allies included."
+      - "<muted>Resets your golems near the"
+      - "<muted>dock to Fresh. Zaps anyone"
+      - "<muted>nearby, allies included."
   alarm:
     material: TRIPWIRE_HOOK
     tag: true
     cost: 5
-    name: "<gold>Alarm"
+    name: "<primary>Alarm"
     lore:
-      - "<gray>Right-click a block near your"
-      - "<gray>spawn to place it. Alerts your"
-      - "<gray>team when an enemy walks by."
+      - "<muted>Right-click a block near your"
+      - "<muted>spawn to place it. Alerts your"
+      - "<muted>team when an enemy walks by."
   vault_drill:
     material: IRON_PICKAXE
     tag: true
     min-phase: heist
     cost: 20
-    name: "<gold>Vault Drill"
+    name: "<primary>Vault Drill"
     lore:
-      - "<gray>Right-click the enemy vault"
-      - "<gray>door to start a breach."
-      - "<gray>Defenders can break it."
-      - "<dark_gray>Unlocks in the Heist phase."
+      - "<muted>Right-click the enemy vault"
+      - "<muted>door to start a breach."
+      - "<muted>Defenders can break it."
+      - "<dim>Unlocks in the Heist phase."

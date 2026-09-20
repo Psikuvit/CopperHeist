@@ -32,7 +32,7 @@ import java.util.List;
 public class LobbyKitService {
 
     private final CopperHeist plugin;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final MiniMessage miniMessage = Theme.mini();
     private FileConfiguration guide;
 
     public LobbyKitService(CopperHeist plugin) {

@@ -139,7 +139,7 @@ public class GameEventListener implements Listener {
     public void onVaultDrillCompleted(VaultDrillCompletedEvent event) {
         broadcast(event.getGame(), "drill.completed", "target", event.getDrill().getDefender().displayName(),
                 "seconds", event.getBreachSeconds());
-        broadcastTeamTitle(event.getGame(), event.getDrill().getDefender(), "drill.breached.title", "drill.breached.subtitle");
+        broadcastTeamTitle(event.getGame(), event.getDrill().getDefender(), "drill.breached.subtitle");
     }
 
     @EventHandler
@@ -150,7 +150,8 @@ public class GameEventListener implements Listener {
     // ---- helpers ----
 
     private String colorName(Team team) {
-        return team.color().toString();
+        // "copper" / "iron" are theme tags, so the team's announcements use the configured team colors.
+        return team.name().toLowerCase(Locale.ROOT);
     }
 
     private void broadcast(Game game, String key, Object... placeholders) {
@@ -164,12 +165,12 @@ public class GameEventListener implements Listener {
         }
     }
 
-    private void broadcastTeamTitle(Game game, Team team, String titleKey, String subtitleKey) {
+    private void broadcastTeamTitle(Game game, Team team, String subtitleKey) {
         var messages = plugin.getMessageService();
         for (Player player : game.onlinePlayers()) {
             GamePlayer gp = game.getGamePlayer(player.getUniqueId());
             if (gp == null || gp.getTeam() != team) continue;
-            player.showTitle(Title.title(messages.get(player, titleKey), messages.get(player, subtitleKey)));
+            player.showTitle(Title.title(messages.get(player, "drill.breached.title"), messages.get(player, subtitleKey)));
         }
     }
 

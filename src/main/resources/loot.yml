@@ -16,29 +16,29 @@ tiers:
     value: 1
     weight: 50
     zones: [common, cache]
-    name: "<yellow>Copper ({value})"
+    name: "<accent>Copper ({value})"
   gold:
     material: GOLD_INGOT
     value: 3
     weight: 25
     zones: [common, cache]
-    name: "<yellow>Gold ({value})"
+    name: "<accent>Gold ({value})"
   emerald:
     material: EMERALD
     value: 5
     weight: 15
     zones: [common, rare]
-    name: "<yellow>Emerald ({value})"
+    name: "<accent>Emerald ({value})"
   diamond:
     material: DIAMOND
     value: 10
     weight: 8
     zones: [rare]
-    name: "<yellow>Diamond ({value})"
+    name: "<accent>Diamond ({value})"
   relic:
     material: NETHER_STAR
     value: 25
     weight: 0
     relic: true
     glint: true
-    name: "<light_purple><bold>Ancient Idol"
+    name: "<special><bold>Ancient Idol"

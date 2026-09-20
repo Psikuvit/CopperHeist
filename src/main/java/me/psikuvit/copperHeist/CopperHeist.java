@@ -49,6 +49,7 @@ import me.psikuvit.copperHeist.ui.HubSpawn;
 import me.psikuvit.copperHeist.ui.LobbyKitService;
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.SidebarService;
+import me.psikuvit.copperHeist.ui.Theme;
 import me.psikuvit.copperHeist.util.HeistEntities;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.plugin.ServicePriority;
@@ -90,6 +91,7 @@ public final class CopperHeist extends JavaPlugin {
         ConfigMigrator.migrate(this);
         settings = Settings.of(this::getConfig);
         Team.configure(getConfig().getConfigurationSection("teams"));
+        Theme.load(getConfig().getConfigurationSection("theme"));
 
         PdcKeys.init(this);
         HeistEntities.init(UUID.randomUUID().toString());

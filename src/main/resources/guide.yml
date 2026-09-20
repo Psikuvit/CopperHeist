@@ -32,7 +32,7 @@ pages:
   - |-
     <bold>GOLEMS</bold>
 
-    <color:#b87333>Golems</color> take loot from
+    <secondary>Golems</secondary> take loot from
     your Dock and walk it
     down the corridor to
     your Vault.
@@ -44,7 +44,7 @@ pages:
   - |-
     <bold>OXIDATION</bold>
 
-    <color:#b87333>Golems</color> slowly oxidize
+    <secondary>Golems</secondary> slowly oxidize
     and get slower over
     time. A fully oxidized
     golem stops completely.
@@ -56,15 +56,15 @@ pages:
   - |-
     <bold>ROLES</bold>
 
-    <color:#b87333>Runner</color>: half loot-weight
+    <secondary>Runner</secondary>: half loot-weight
     slowdown.
-    <color:#b87333>Thief</color>: F to turn
+    <secondary>Thief</secondary>: F to turn
     invisible 5s.
-    <color:#b87333>Mechanic</color>: cheap scrapes,
+    <secondary>Mechanic</secondary>: cheap scrapes,
     instant golem un-stun.
-    <color:#b87333>Guard</color>: bonus damage near
+    <secondary>Guard</secondary>: bonus damage near
     your spawn.
-    <color:#b87333>Saboteur</color>: F to reveal
+    <secondary>Saboteur</secondary>: F to reveal
     enemy golems 10s.
 
     /ch role <name> to pick
@@ -104,11 +104,11 @@ pages:
   - |-
     <bold>COMMANDS</bold>
 
-    <green>/ch join <arena>
-    <green>/ch leave
-    <green>/ch list
-    <green>/ch role <name>
-    <green>/ch shop
+    <ok>/ch join <arena>
+    <ok>/ch leave
+    <ok>/ch list
+    <ok>/ch role <name>
+    <ok>/ch shop
 
     Or just use the compass
     in your hotbar!

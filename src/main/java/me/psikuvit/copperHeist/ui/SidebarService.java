@@ -47,7 +47,7 @@ public class SidebarService {
     private static final String OBJECTIVE_NAME = "ch_sidebar";
 
     private final CopperHeist plugin;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final MiniMessage miniMessage = Theme.mini();
     private final Map<UUID, Scoreboard> boards = new HashMap<>();
     private FileConfiguration config;
     private BukkitTask hubTask;

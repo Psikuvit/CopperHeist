@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.npc;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import me.psikuvit.copperHeist.config.Settings;
+import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Mannequin;
@@ -35,7 +36,7 @@ public class MannequinNpcProvider implements NpcProvider {
                 entity.setImmovable(immovable);
             entity.customName(spec.name());
             entity.setCustomNameVisible(showName);
-            entity.setDescription(description.isBlank() ? Component.empty() : MiniMessage.miniMessage().deserialize(description));
+            entity.setDescription(description.isBlank() ? Component.empty() : Theme.mini().deserialize(description));
             if (pose != null && Mannequin.validPoses().contains(pose)) entity.setPose(pose);
             if (profile != null) entity.setProfile(profile);
 

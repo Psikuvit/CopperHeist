@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.shop.action;
 import me.psikuvit.copperHeist.shop.ShopEntry;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
+import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Color;
@@ -22,7 +23,7 @@ import java.util.Locale;
  */
 public class GiveItemAction implements ShopAction {
 
-    private static final MiniMessage MINI = MiniMessage.miniMessage();
+    private static final MiniMessage MINI = Theme.mini();
 
     @Override
     public void perform(ShopPurchase purchase) {
