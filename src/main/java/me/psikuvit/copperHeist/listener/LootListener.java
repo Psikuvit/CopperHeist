@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.listener;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.event.LootStolenEvent;
+import me.psikuvit.copperHeist.cosmetics.CosmeticCategory;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
@@ -88,6 +89,10 @@ public class LootListener implements Listener {
         if (killer != null) {
             GamePlayer killerGp = game.getGamePlayer(killer.getUniqueId());
             if (killerGp != null && game.isActive()) killerGp.addKill();
+            if (game.isActive()) {
+                var cosmetics = plugin.getCosmetics();
+                cosmetics.play(killer, CosmeticCategory.KILL_EFFECT, player.getLocation(), null, cosmetics.viewers(game));
+            }
         }
 
         event.setKeepInventory(true);

@@ -15,6 +15,7 @@ import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.cosmetics.CosmeticRegistry;
 import me.psikuvit.copperHeist.cosmetics.CosmeticService;
 import me.psikuvit.copperHeist.cosmetics.EffectRegistry;
+import me.psikuvit.copperHeist.cosmetics.effect.CosmeticEffects;
 import me.psikuvit.copperHeist.database.Database;
 import me.psikuvit.copperHeist.database.MysqlDatabase;
 import me.psikuvit.copperHeist.database.SqliteDatabase;
@@ -22,6 +23,7 @@ import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.golem.GolemDebug;
 import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StaleEntityListener;
+import me.psikuvit.copperHeist.listener.CosmeticListener;
 import me.psikuvit.copperHeist.listener.ProgressListener;
 import me.psikuvit.copperHeist.listener.StatsListener;
 import me.psikuvit.copperHeist.profile.ProfileRepository;
@@ -145,6 +147,7 @@ public final class CopperHeist extends JavaPlugin {
         if (profiles != null) profiles.start(); // needs the network (player hand-off), so it starts after it
 
         cosmeticEffects = new EffectRegistry();
+        CosmeticEffects.registerAll(this, cosmeticEffects);
         cosmeticRegistry = new CosmeticRegistry(this, cosmeticEffects);
         cosmetics = new CosmeticService(this, cosmeticRegistry, cosmeticEffects);
         // Other plugins register their own effects in their onEnable, so cosmetics.yml is read once every plugin is up.
@@ -168,6 +171,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new VaultRegionListener(this), this);
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
         getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
+        getServer().getPluginManager().registerEvents(new CosmeticListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbySafetyListener(this), this);
         getServer().getPluginManager().registerEvents(new StaleEntityListener(this), this);
         int stale = HeistEntities.sweepStaleEverywhere(gameManager::isMatchRunning);

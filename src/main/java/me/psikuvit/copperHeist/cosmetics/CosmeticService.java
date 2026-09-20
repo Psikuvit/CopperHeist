@@ -3,8 +3,14 @@ package me.psikuvit.copperHeist.cosmetics;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.event.CosmeticEquipEvent;
 import me.psikuvit.copperHeist.event.CosmeticUnlockedEvent;
+import me.psikuvit.copperHeist.game.Game;
+import me.psikuvit.copperHeist.game.GamePlayer;
+import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.profile.PlayerProfile;
 import me.psikuvit.copperHeist.progress.ProgressService;
+import me.psikuvit.copperHeist.ui.Theme;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -15,7 +21,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
@@ -43,6 +52,7 @@ public class CosmeticService {
     private final CopperHeist plugin;
     private final CosmeticRegistry registry;
     private final EffectRegistry effects;
+    private final Map<UUID, Component> prefixes = new ConcurrentHashMap<>();
 
     public CosmeticService(CopperHeist plugin, CosmeticRegistry registry, EffectRegistry effects) {
         this.plugin = plugin;
@@ -203,6 +213,7 @@ public class CosmeticService {
         if (profile == null) return Outcome.NOT_LOADED;
         if (!profile.revoke(cosmetic.id())) return Outcome.NOT_AVAILABLE;
         plugin.getProfiles().save(profile);
+        refreshPrefix(player);
         return Outcome.OK;
     }
 
@@ -220,6 +231,7 @@ public class CosmeticService {
         profile.unlock(cosmetic.id()); // free and permission-granted ones are recorded the first time they are used
         profile.equip(cosmetic.category().id(), cosmetic.id());
         plugin.getProfiles().save(profile);
+        refreshPrefix(player);
         return Outcome.OK;
     }
 
@@ -228,6 +240,7 @@ public class CosmeticService {
         if (profile == null) return;
         profile.unequip(category.id());
         plugin.getProfiles().save(profile);
+        refreshPrefix(player);
     }
 
     // ---- the player's own switch ----
@@ -270,9 +283,101 @@ public class CosmeticService {
         }
     }
 
+    /** Everyone who should see effects in a match: its players and spectators. */
+    public List<Player> viewers(Game game) {
+        List<Player> viewers = new ArrayList<>(game.onlinePlayers());
+        viewers.addAll(game.spectatorPlayers());
+        return viewers;
+    }
+
+    // ---- team-wide cosmetics (golem skins, shop NPC skins) ----
+
+    /** A team cosmetic and the player whose it is. */
+    public record Pick(Player owner, CosmeticDefinition cosmetic) {
+    }
+
+    /**
+     * The cosmetic of this category that the team shows: the rarest one equipped by any online teammate (the first found on a tie).
+     * Golems and the shop NPC belong to the whole team, so they wear the best thing someone on it brought.
+     */
+    public Pick bestForTeam(Game game, Team team, CosmeticCategory category) {
+        if (!enabled()) return null;
+        Pick best = null;
+        for (Player player : game.onlinePlayers()) {
+            GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+            if (gp == null || gp.getTeam() != team || !effectsEnabled(player)) continue;
+            CosmeticDefinition cosmetic = equipped(player, category);
+            if (cosmetic != null && (best == null || cosmetic.rarity().ordinal() > best.cosmetic().rarity().ordinal())) {
+                best = new Pick(player, cosmetic);
+            }
+        }
+        return best;
+    }
+
+    /** Plays a team pick (see {@link #bestForTeam}) to the given viewers; a broken effect is logged, never thrown. */
+    public void playPick(Pick pick, Location location, Entity entity, Collection<Player> viewers) {
+        if (pick == null || pick.cosmetic().effect() == null) return;
+        EffectProvider provider = effects.get(pick.cosmetic().effect());
+        if (provider == null) return;
+        List<Player> audience = new ArrayList<>();
+        for (Player viewer : viewers) {
+            if (effectsEnabled(viewer)) audience.add(viewer);
+        }
+        if (audience.isEmpty()) return;
+        try {
+            provider.play(new EffectContext(pick.cosmetic(), pick.owner(), location, entity, audience));
+        } catch (RuntimeException ex) {
+            plugin.getLogger().log(Level.WARNING, "Cosmetic effect '" + pick.cosmetic().effect() + "' failed for " + pick.cosmetic().id(), ex);
+        }
+    }
+
+    // ---- titles and the chat prefix ----
+
     /** The equipped title's MiniMessage text (for chat and the scoreboard), or null. */
     public String title(Player player) {
         CosmeticDefinition cosmetic = equipped(player, CosmeticCategory.TITLE);
         return cosmetic == null ? null : cosmetic.name();
+    }
+
+    /** The equipped title as plain text without colours (for placeholders read by other plugins), or "". */
+    public String plainTitle(Player player) {
+        String title = title(player);
+        return title == null ? "" : PlainTextComponentSerializer.plainText().serialize(Theme.mini().deserialize(title));
+    }
+
+    /**
+     * The text put in front of a player's name in chat: their level and their title. Chat is rendered off the main thread, so this is
+     * built here (main thread) whenever it can change - profile loaded, equip, unequip, level-up - and only read from chat.
+     */
+    public void refreshPrefix(Player player) {
+        if (!plugin.settings().getBoolean("chat.enabled", false)) return;
+        Component prefix = Component.empty();
+        if (plugin.settings().getBoolean("chat.show-level", true) && plugin.getProgress() != null && plugin.getProgress().enabled()) {
+            int level = level(player);
+            prefix = prefix.append(Theme.mini().deserialize("<dim>[</dim><accent>" + level + "</accent><dim>]</dim> "));
+        }
+        String title = plugin.settings().getBoolean("chat.show-title", true) ? title(player) : null;
+        if (title != null) prefix = prefix.append(Theme.mini().deserialize(title)).append(Component.space());
+        prefixes.put(player.getUniqueId(), prefix);
+    }
+
+    /** The prefix built by {@link #refreshPrefix}; safe to call from any thread. Empty until the player's data has loaded. */
+    public Component prefix(UUID uuid) {
+        return prefixes.getOrDefault(uuid, Component.empty());
+    }
+
+    public void forget(UUID uuid) {
+        prefixes.remove(uuid);
+    }
+
+    /** Called when a player's profile has just loaded: builds their chat prefix and plays their join effect. */
+    public void onProfileLoaded(Player player) {
+        if (!enabled()) return;
+        refreshPrefix(player);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline() && plugin.getGameManager().getGame(player) == null) {
+                play(player, CosmeticCategory.JOIN, player.getLocation(), null, new ArrayList<>(Bukkit.getOnlinePlayers()));
+            }
+        }, 20L);
     }
 }

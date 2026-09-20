@@ -82,6 +82,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
         }
 
         // After the level placeholders above: "level" is also accepted as a stat key (it means XP) and must not shadow them.
+        if (key.equals("title")) return player instanceof Player online ? plugin.getCosmetics().plainTitle(online) : "";
         if (key.equals("level")) return "1"; // progression is off (otherwise handled above)
         Stat stat = Stat.fromKey(key);
         if (stat != null) return stat(player, stat);

@@ -16,6 +16,8 @@ public final class PdcKeys {
     public static PdcKey<String, String> SHOP_ITEM;
     public static PdcKey<String, String> LOOT_TIER;
     public static PdcKey<String, String> SESSION;
+    /** Marks an entity spawned only for a cosmetic (a firework burst) so it can be kept harmless. */
+    public static PdcKey<String, String> COSMETIC;
 
     private PdcKeys() {
     }
@@ -31,5 +33,6 @@ public final class PdcKeys {
         SHOP_ITEM = PdcKey.of(plugin, "shop_item", PersistentDataType.STRING);
         LOOT_TIER = PdcKey.of(plugin, "loot_tier", PersistentDataType.STRING);
         SESSION = PdcKey.of(plugin, "session", PersistentDataType.STRING);
+        COSMETIC = PdcKey.of(plugin, "cosmetic", PersistentDataType.STRING);
     }
 }

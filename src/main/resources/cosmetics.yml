@@ -17,25 +17,328 @@
 #   hidden        not listed until the player has it
 #   params        settings for the effect; each effect documents its own
 #
-# Example (remove the # to try it once an effect with that id exists):
-#
-# cosmetics:
-#   flame_trail:
-#     category: trail
-#     effect: particle-trail
-#     name: "<accent>Flame Trail"
-#     description: ["<muted>Your arrows leave a trail of fire."]
-#     icon: BLAZE_POWDER
-#     rarity: rare
-#     price: 500
-#     level: 5
-#     params:
-#       particle: FLAME
-#   thief_title:
-#     category: title
-#     name: "<info>[Thief]"
-#     rarity: common
-#     free: true
-#     level: 10
+# The list below is a starter set - edit, remove or add to it freely. This file is not updated automatically when the plugin updates
+# (removing a cosmetic here should stay removed), so new ones added by an update arrive with a fresh copy of the file.
 
-cosmetics: {}
+# ---------------------------------------------------------------------------------------------------------------------
+# Effects that ship with the plugin (effect: ...) and their params:
+#   particle-trail   trail          particle, count, spread, speed, color, size, material - a trail behind arrows and other projectiles
+#   particle-burst   kill-effect, victory, join, golem
+#                                   the same params plus shape (burst | ring | sphere | rain | spiral), radius, height
+#   firework         kill-effect, victory, join     colors, fade, type (BALL | BALL_LARGE | STAR | BURST | CREEPER), trail, flicker
+#   lightning        kill-effect, victory           no params (looks like lightning but does no damage)
+#   golem-hat        golem          material, scale, lift - an item worn on the team's golems
+#   npc-skin         npc            type (player-name | uuid | texture), value, signature - a skin for the team's shop NPC (Mannequin NPC type)
+# Titles need no effect. Golem and shop-skin cosmetics belong to the whole team: the rarest one equipped by anyone on the team is shown.
+# ---------------------------------------------------------------------------------------------------------------------
+
+cosmetics:
+
+  # ---- arrow and projectile trails ----
+  copper_dust_trail:
+    category: trail
+    effect: particle-trail
+    name: "<copper>Copper Dust Trail"
+    description: ["<muted>A warm copper glow behind your arrows."]
+    icon: COPPER_INGOT
+    rarity: common
+    free: true                    # everyone starts with this one
+    params: { particle: DUST, color: "#B87333", size: 1.0 }
+  smoke_trail:
+    category: trail
+    effect: particle-trail
+    name: "<muted>Smoke Trail"
+    description: ["<muted>A wisp of smoke."]
+    icon: CAMPFIRE
+    rarity: common
+    price: 150
+    params: { particle: SMOKE, spread: 0.02 }
+  flame_trail:
+    category: trail
+    effect: particle-trail
+    name: "<accent>Flame Trail"
+    description: ["<muted>Your arrows leave a trail of fire."]
+    icon: BLAZE_POWDER
+    rarity: rare
+    price: 400
+    level: 3
+    params: { particle: FLAME, spread: 0.03 }
+  heart_trail:
+    category: trail
+    effect: particle-trail
+    name: "<bad>Heart Trail"
+    description: ["<muted>Spread the love."]
+    icon: RED_DYE
+    rarity: rare
+    price: 300
+    level: 5
+    params: { particle: HEART, spread: 0.1 }
+  note_trail:
+    category: trail
+    effect: particle-trail
+    name: "<ok>Music Trail"
+    description: ["<muted>Your shots make music."]
+    icon: NOTE_BLOCK
+    rarity: rare
+    price: 300
+    level: 5
+    params: { particle: NOTE }
+  end_rod_trail:
+    category: trail
+    effect: particle-trail
+    name: "<info>Starlight Trail"
+    description: ["<muted>A streak of stars."]
+    icon: END_ROD
+    rarity: epic
+    price: 800
+    level: 10
+    params: { particle: END_ROD, spread: 0.02 }
+  soul_trail:
+    category: trail
+    effect: particle-trail
+    name: "<special>Soul Fire Trail"
+    description: ["<muted>Cold blue flames."]
+    icon: SOUL_TORCH
+    rarity: epic
+    price: 900
+    level: 12
+    params: { particle: SOUL_FIRE_FLAME, spread: 0.03 }
+  rainbow_trail:
+    category: trail
+    effect: particle-trail
+    name: "<accent>Rainbow Trail"
+    description: ["<muted>Every colour, one shot."]
+    icon: FIREWORK_STAR
+    rarity: legendary
+    price: 2000
+    level: 20
+    params: { particle: DUST, color: rainbow, size: 1.3 }
+
+  # ---- kill effects ----
+  firework_kill:
+    category: kill-effect
+    effect: firework
+    name: "<accent>Firework Finish"
+    description: ["<muted>A burst of colour where they fell."]
+    icon: FIREWORK_ROCKET
+    rarity: common
+    price: 200
+    level: 2
+    params: { colors: ["#B87333", "#FFFFFF"], type: BALL }
+  heart_pop:
+    category: kill-effect
+    effect: particle-burst
+    name: "<bad>Heart Pop"
+    description: ["<muted>No hard feelings."]
+    icon: RED_DYE
+    rarity: common
+    price: 150
+    params: { particle: HEART, shape: sphere, radius: 1.0 }
+  soul_burst:
+    category: kill-effect
+    effect: particle-burst
+    name: "<special>Soul Burst"
+    description: ["<muted>Their soul rises."]
+    icon: SOUL_LANTERN
+    rarity: rare
+    price: 350
+    level: 5
+    params: { particle: SOUL, shape: sphere, radius: 1.2 }
+  lightning_strike:
+    category: kill-effect
+    effect: lightning
+    name: "<info>Lightning Strike"
+    description: ["<muted>Thunder answers every kill.", "<dim>Looks real, harms no one."]
+    icon: LIGHTNING_ROD
+    rarity: rare
+    price: 500
+    level: 8
+  coin_rain:
+    category: kill-effect
+    effect: particle-burst
+    name: "<accent>Coin Rain"
+    description: ["<muted>Gold falls where they fell."]
+    icon: GOLD_NUGGET
+    rarity: epic
+    price: 900
+    level: 12
+    params: { particle: ITEM, material: GOLD_NUGGET, shape: rain, radius: 1.5, height: 2.5 }
+
+  # ---- victory effects (played for the winning team at the end of a match) ----
+  victory_fireworks:
+    category: victory
+    effect: firework
+    name: "<accent>Victory Fireworks"
+    description: ["<muted>Celebrate with a show."]
+    icon: FIREWORK_ROCKET
+    rarity: rare
+    price: 600
+    level: 5
+    params: { colors: ["#FFD700", "#FFFFFF"], fade: ["#B87333"], type: STAR, trail: true }
+  victory_confetti:
+    category: victory
+    effect: particle-burst
+    name: "<special>Confetti"
+    description: ["<muted>A ring of rainbow confetti."]
+    icon: PAPER
+    rarity: epic
+    price: 1000
+    level: 10
+    params: { particle: DUST, color: rainbow, shape: ring, radius: 2.0, count: 1 }
+  victory_spiral:
+    category: victory
+    effect: particle-burst
+    name: "<info>Starlight Spiral"
+    description: ["<muted>A spiral of stars climbs into the sky."]
+    icon: END_ROD
+    rarity: epic
+    price: 1200
+    level: 15
+    params: { particle: END_ROD, shape: spiral, radius: 1.0, height: 3.5 }
+  victory_lightning:
+    category: victory
+    effect: lightning
+    name: "<accent>Thunder Crown"
+    description: ["<muted>The sky roars for the winners."]
+    icon: TRIDENT
+    rarity: legendary
+    price: 2500
+    level: 25
+
+  # ---- golem skins (worn by your team's golems) ----
+  golem_hard_hat:
+    category: golem
+    effect: golem-hat
+    name: "<accent>Hard Hat"
+    description: ["<muted>Safety first."]
+    icon: GOLDEN_HELMET
+    rarity: common
+    price: 250
+    level: 3
+    params: { material: GOLDEN_HELMET, scale: 0.6, lift: 0.25 }
+  golem_flame_aura:
+    category: golem
+    effect: particle-burst
+    name: "<accent>Ember Aura"
+    description: ["<muted>Embers drift around your golems."]
+    icon: MAGMA_CREAM
+    rarity: rare
+    price: 500
+    level: 8
+    params: { particle: FLAME, shape: ring, radius: 0.7 }
+  golem_crown:
+    category: golem
+    effect: golem-hat
+    name: "<accent>Golden Crown"
+    description: ["<muted>Fit for a copper king."]
+    icon: GOLD_BLOCK
+    rarity: epic
+    price: 900
+    level: 12
+    params: { material: GOLD_BLOCK, scale: 0.4, lift: 0.3 }
+  golem_sparkle:
+    category: golem
+    effect: particle-burst
+    name: "<info>Stardust"
+    description: ["<muted>Your golems sparkle."]
+    icon: AMETHYST_SHARD
+    rarity: epic
+    price: 800
+    level: 10
+    params: { particle: END_ROD, shape: sphere, radius: 0.8 }
+
+  # ---- shop skins (the team's shop NPC; needs npc.type: mannequin) ----
+  shop_villager:
+    category: npc
+    effect: npc-skin
+    name: "<ok>Friendly Villager"
+    description: ["<muted>Your shop, run by a villager."]
+    icon: VILLAGER_SPAWN_EGG
+    rarity: common
+    price: 200
+    level: 2
+    params: { type: player-name, value: MHF_Villager }
+  shop_golem:
+    category: npc
+    effect: npc-skin
+    name: "<iron>Iron Shopkeeper"
+    description: ["<muted>Sturdy service."]
+    icon: IRON_BLOCK
+    rarity: rare
+    price: 500
+    level: 6
+    params: { type: player-name, value: MHF_Golem }
+  shop_creeper:
+    category: npc
+    effect: npc-skin
+    name: "<ok>Sssuspicious Seller"
+    description: ["<muted>Nothing to worry about."]
+    icon: CREEPER_HEAD
+    rarity: epic
+    price: 800
+    level: 10
+    params: { type: player-name, value: MHF_Creeper }
+
+  # ---- titles (shown in chat when chat.enabled is on, and as %copperheist_title%) ----
+  title_pickpocket:
+    category: title
+    name: "<ok>[Pickpocket]"
+    description: ["<muted>Unlocks for free at level 5."]
+    icon: NAME_TAG
+    rarity: common
+    free: true
+    level: 5
+  title_thief:
+    category: title
+    name: "<info>[Thief]"
+    description: ["<muted>Unlocks for free at level 10."]
+    icon: NAME_TAG
+    rarity: common
+    free: true
+    level: 10
+  title_heister:
+    category: title
+    name: "<accent>[Heister]"
+    description: ["<muted>For those who mean business."]
+    icon: NAME_TAG
+    rarity: rare
+    price: 300
+    level: 3
+  title_golem_whisperer:
+    category: title
+    name: "<special>[Golem Whisperer]"
+    description: ["<muted>They listen to you."]
+    icon: NAME_TAG
+    rarity: epic
+    price: 700
+    level: 10
+  title_copper_king:
+    category: title
+    name: "<copper>[Copper King]"
+    description: ["<muted>All the copper is yours."]
+    icon: NAME_TAG
+    rarity: legendary
+    price: 3000
+    level: 25
+
+  # ---- join effects (played when you join the server) ----
+  join_sparkle:
+    category: join
+    effect: particle-burst
+    name: "<info>Sparkle Entrance"
+    description: ["<muted>Arrive in a shower of stars."]
+    icon: END_ROD
+    rarity: common
+    price: 200
+    level: 2
+    params: { particle: END_ROD, shape: sphere, radius: 1.0 }
+  join_fireworks:
+    category: join
+    effect: firework
+    name: "<accent>Grand Entrance"
+    description: ["<muted>A firework announces you."]
+    icon: FIREWORK_ROCKET
+    rarity: rare
+    price: 600
+    level: 8
+    params: { colors: ["#B87333", "#FFD700"], type: BALL_LARGE }

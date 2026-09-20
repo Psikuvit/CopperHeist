@@ -4,6 +4,7 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.arena.Region;
 import me.psikuvit.copperHeist.config.Settings;
+import me.psikuvit.copperHeist.cosmetics.CosmeticCategory;
 import me.psikuvit.copperHeist.event.MatchEndEvent;
 import me.psikuvit.copperHeist.event.PhaseChangeEvent;
 import me.psikuvit.copperHeist.golem.GolemManager;
@@ -337,8 +338,9 @@ public class Game {
             Component name = Theme.mini().deserialize(format.replace("{team}", team.displayName()))
                     .colorIfAbsent(team.color());
             NpcHandle handle;
+            var skin = plugin.getCosmetics().bestForTeam(this, team, CosmeticCategory.NPC);
             try {
-                handle = provider.spawn(new NpcSpec(loc, name, team, settings()));
+                handle = provider.spawn(new NpcSpec(loc, name, team, settings(), skin == null ? null : skin.cosmetic().params()));
             } catch (LinkageError | RuntimeException ex) {
                 plugin.getLogger().warning("NPC type '" + settings().getString("npc.type", "villager")
                         + "' failed (" + ex + ") - falling back to a villager.");

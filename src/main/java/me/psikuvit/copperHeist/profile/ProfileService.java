@@ -94,6 +94,7 @@ public class ProfileService {
             profile.setField(PlayerProfile.LAST_LOGIN, now);
             profiles.put(uuid, profile);
             save(profile);
+            if (plugin.getCosmetics() != null) plugin.getCosmetics().onProfileLoaded(player);
         }));
     }
 

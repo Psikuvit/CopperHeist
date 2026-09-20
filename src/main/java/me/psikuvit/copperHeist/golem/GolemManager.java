@@ -7,6 +7,7 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.arena.Region;
 import me.psikuvit.copperHeist.config.Settings;
+import me.psikuvit.copperHeist.cosmetics.CosmeticCategory;
 import me.psikuvit.copperHeist.event.LootDeliveredEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
@@ -28,6 +29,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.entity.CopperGolem;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
@@ -236,6 +238,31 @@ public class GolemManager {
 
     // ---- the per-tick watch ----
 
+    /**
+     * Golem skins: each team's golems wear the rarest golem cosmetic equipped by anyone on that team (an aura, a hat ...), played every half
+     * second by the cosmetics service, which skips anything that is off, missing or broken.
+     */
+    private void playGolemCosmetics() {
+        var cosmetics = plugin.getCosmetics();
+        if (!cosmetics.enabled()) return;
+        var viewers = cosmetics.viewers(game);
+        for (Team team : Team.values()) {
+            var pick = cosmetics.bestForTeam(game, team, CosmeticCategory.GOLEM);
+            if (pick == null) continue;
+            for (HeistGolem golem : golems.values()) {
+                if (golem.getTeam() != team || golem.getEntity().isDead()) continue;
+                cosmetics.playPick(pick, golem.getEntity().getLocation(), golem.getEntity(), viewers);
+            }
+        }
+    }
+
+    /** Removes what cosmetics attached to a golem (a hat rides it as a passenger, like the label). */
+    private void removeCosmeticPassengers(HeistGolem golem) {
+        for (Entity passenger : new ArrayList<>(golem.getEntity().getPassengers())) {
+            if (Pdc.has(passenger, PdcKeys.COSMETIC)) passenger.remove();
+        }
+    }
+
     private void startTicking() {
         if (tickTask != null) return;
         tickTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 1L, 1L);
@@ -252,6 +279,7 @@ public class GolemManager {
                 plugin.getLogger().log(Level.WARNING, "Golem " + golem.debugName() + " failed its watch", ex);
             }
         }
+        if (tickCount % 10 == 0 && game.isActive()) playGolemCosmetics();
         if (tickCount % 5 == 0 && game.isActive()) {
             try {
                 watchChests(now);
@@ -581,6 +609,7 @@ public class GolemManager {
         plugin.getGameManager().unregisterGolem(golem.getEntity().getUniqueId());
         game.getTeam(golem.getTeam()).getGolems().remove(golem);
         if (golem.getLabel() != null) golem.getLabel().remove();
+        removeCosmeticPassengers(golem);
         debug().log(golem, Category.STATE, "died");
 
         int respawnSeconds = game.settings().getInt("golems.auto-respawn-seconds", 60);
@@ -694,6 +723,7 @@ public class GolemManager {
         }
         for (HeistGolem golem : new ArrayList<>(golems.values())) {
             if (golem.getLabel() != null) golem.getLabel().remove();
+            removeCosmeticPassengers(golem);
             golem.getEntity().remove();
             plugin.getGameManager().unregisterGolem(golem.getEntity().getUniqueId());
         }

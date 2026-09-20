@@ -10,6 +10,7 @@ import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Pose;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -23,7 +24,7 @@ public class MannequinNpcProvider implements NpcProvider {
     @Override
     public NpcHandle spawn(NpcSpec spec) {
         Settings s = spec.settings();
-        ResolvableProfile profile = buildProfile(s);
+        ResolvableProfile profile = buildProfile(s, spec.skin());
         Pose pose = parsePose(s.getString("npc.mannequin.pose", "STANDING"));
         String description = s.getString("npc.mannequin.description", "");
         boolean showName = s.getBoolean("npc.mannequin.show-name", true);
@@ -54,9 +55,12 @@ public class MannequinNpcProvider implements NpcProvider {
     }
 
     /** Null means "leave the default skin" - a bad skin config must never stop the NPC from spawning. */
-    private ResolvableProfile buildProfile(Settings s) {
-        String type = s.getString("npc.mannequin.skin.type", "player-name").toLowerCase(Locale.ROOT);
-        String value = s.getString("npc.mannequin.skin.value", "");
+    private ResolvableProfile buildProfile(Settings s, Map<String, Object> override) {
+        // An equipped shop-skin cosmetic wins over the skin set in config.yml.
+        String type = (override != null ? String.valueOf(override.getOrDefault("type", "player-name"))
+                : s.getString("npc.mannequin.skin.type", "player-name")).toLowerCase(Locale.ROOT);
+        String value = override != null ? String.valueOf(override.getOrDefault("value", "")) : s.getString("npc.mannequin.skin.value", "");
+        String signatureValue = override != null ? String.valueOf(override.getOrDefault("signature", "")) : s.getString("npc.mannequin.skin.signature", "");
         if (value.isBlank()) return null;
         try {
             var builder = ResolvableProfile.resolvableProfile();
@@ -64,8 +68,7 @@ public class MannequinNpcProvider implements NpcProvider {
                 case "uuid" -> builder.uuid(UUID.fromString(value));
                 case "texture" -> {
                     builder.name("CopperHeist");
-                    String signature = s.getString("npc.mannequin.skin.signature", "");
-                    builder.addProperty(new ProfileProperty("textures", value, signature.isBlank() ? null : signature));
+                    builder.addProperty(new ProfileProperty("textures", value, signatureValue.isBlank() ? null : signatureValue));
                 }
                 default -> builder.name(value);
             }

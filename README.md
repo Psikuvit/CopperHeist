@@ -162,7 +162,21 @@ giving the permission `copperheist.cosmetic.<id>` from a store plugin. Other plu
 The **cosmetics menu** (hub Ender Chest item, `/ch cosmetics`, or the chest button in the shop) has a tile per category showing how
 many you own and what is equipped, plus three **featured** picks that change every day at midnight UTC. Each category is a paged grid in
 rarity colours; click to equip or unequip, click something you can afford to buy it (after a confirm screen), right-click to preview
-it just for you. One button switches all cosmetic effects off for you. The built-in effects (trails, kill effects, ...) come next.
+it just for you. One button switches all cosmetic effects off for you.
+
+**What ships** (about 35 starter cosmetics in `cosmetics.yml`, all editable):
+
+| Category | Effect | Plays |
+|---|---|---|
+| Arrow trails | `particle-trail` | behind arrows, wind charges, tridents and thrown potions (capped server-wide so busy matches stay smooth) |
+| Kill effects | `particle-burst`, `firework`, `lightning` | where you killed someone |
+| Victory effects | the same, plus spirals and confetti | for the winning team at the end of a match |
+| Golem skins | `golem-hat`, `particle-burst` | on your team's golems - the rarest one anyone on the team has equipped |
+| Shop skins | `npc-skin` | the team's shop NPC wears a Mannequin skin (needs `npc.type: mannequin`) |
+| Titles | - | in chat with `chat.enabled: true`, and as `%copperheist_title%` for other chat plugins |
+| Join effects | the same as kill effects | when you join the server |
+
+Everything is visual only: cosmetic fireworks and lightning can never hurt anyone. Each player can switch effects off for themselves.
 
 ## Stats, leaderboards and rewards
 

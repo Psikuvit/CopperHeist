@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.listener;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.cosmetics.CosmeticCategory;
 import me.psikuvit.copperHeist.event.AlarmDestroyedEvent;
 import me.psikuvit.copperHeist.event.AlarmTriggeredEvent;
 import me.psikuvit.copperHeist.event.LootDeliveredEvent;
@@ -25,6 +26,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Locale;
 
@@ -106,7 +108,33 @@ public class GameEventListener implements Listener {
             }
         }
         broadcastHighlights(game);
-        if (winner != null) launchFireworks(game, winner);
+        if (winner != null) {
+            launchFireworks(game, winner);
+            playVictoryEffects(game, winner);
+        }
+    }
+
+    /** Each winner's equipped victory cosmetic plays at their feet once a second for cosmetics.victory-seconds. */
+    private void playVictoryEffects(Game game, Team winner) {
+        var cosmetics = plugin.getCosmetics();
+        if (!cosmetics.enabled()) return;
+        int rounds = plugin.settings().getInt("cosmetics.victory-seconds", 5);
+        new BukkitRunnable() {
+            private int round;
+
+            @Override
+            public void run() {
+                if (round++ >= rounds) {
+                    cancel();
+                    return;
+                }
+                for (Player player : game.onlinePlayers()) {
+                    GamePlayer gp = game.getGamePlayer(player.getUniqueId());
+                    if (gp == null || gp.getTeam() != winner) continue;
+                    cosmetics.play(player, CosmeticCategory.VICTORY, player.getLocation(), null, cosmetics.viewers(game));
+                }
+            }
+        }.runTaskTimer(plugin, 10L, 20L);
     }
 
     @EventHandler
