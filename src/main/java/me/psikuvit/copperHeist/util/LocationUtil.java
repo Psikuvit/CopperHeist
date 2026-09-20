@@ -12,6 +12,15 @@ public final class LocationUtil {
     private LocationUtil() {
     }
 
+    /** The middle of the block column: x.5 / z.5. Y, yaw and pitch are kept; the input isn't modified. */
+    public static Location center(Location loc) {
+        if (loc == null) return null;
+        Location out = loc.clone();
+        out.setX(loc.getBlockX() + 0.5);
+        out.setZ(loc.getBlockZ() + 0.5);
+        return out;
+    }
+
     public static List<Double> serialize(Location loc) {
         List<Double> list = new ArrayList<>();
         list.add(loc.getX());
@@ -49,6 +58,17 @@ public final class LocationUtil {
                 if (loc != null) out.add(loc);
             }
         }
+        return out;
+    }
+
+    /** Like {@link #deserialize} but snapped to the block centre (x.5 / z.5), for points things spawn at. */
+    public static Location deserializeCentered(String worldName, List<?> list) {
+        return center(deserialize(worldName, list));
+    }
+
+    public static List<Location> deserializeCenteredList(String worldName, List<?> raw) {
+        List<Location> out = new ArrayList<>();
+        for (Location loc : deserializeList(worldName, raw)) out.add(center(loc));
         return out;
     }
 }

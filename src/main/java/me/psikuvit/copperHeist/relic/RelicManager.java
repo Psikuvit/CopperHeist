@@ -140,7 +140,7 @@ public class RelicManager {
         LootTierDefinition relicTier = LootItem.tiers().relicTier();
         if (relicTier == null) return;
         ItemStack stack = LootItem.create(relicTier, game.getMatchId());
-        Item entity = point.getWorld().dropItem(point.clone().add(0.5, 0.5, 0.5), stack);
+        Item entity = point.getWorld().dropItem(point.clone().add(0, 0.5, 0), stack);
         entity.setUnlimitedLifetime(true);
         entity.setGlowing(true);
         groundEntity = entity;

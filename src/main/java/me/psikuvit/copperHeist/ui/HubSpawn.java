@@ -25,7 +25,7 @@ public class HubSpawn {
         location = null;
         if (!file.exists()) return;
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        location = LocationUtil.deserialize(yaml.getString("world"), yaml.getList("spawn"));
+        location = LocationUtil.deserializeCentered(yaml.getString("world"), yaml.getList("spawn"));
         if (location == null) plugin.getLogger().warning("lobby.yml has a spawn in a world that isn't loaded - the hub spawn is ignored.");
     }
 

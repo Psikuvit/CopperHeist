@@ -135,14 +135,14 @@ public class ArenaManager {
                 if (!(option.getValue() instanceof ConfigurationSection)) arena.getOverrides().set(option.getKey(), option.getValue());
             }
         }
-        if (yaml.contains("lobby")) arena.setLobby(LocationUtil.deserialize(world, yaml.getList("lobby")));
-        if (yaml.contains("spectator")) arena.setSpectator(LocationUtil.deserialize(world, yaml.getList("spectator")));
+        if (yaml.contains("lobby")) arena.setLobby(LocationUtil.deserializeCentered(world, yaml.getList("lobby")));
+        if (yaml.contains("spectator")) arena.setSpectator(LocationUtil.deserializeCentered(world, yaml.getList("spectator")));
         if (yaml.contains("bound1")) arena.setBound1(LocationUtil.deserialize(world, yaml.getList("bound1")));
         if (yaml.contains("bound2")) arena.setBound2(LocationUtil.deserialize(world, yaml.getList("bound2")));
-        arena.getLootPoints().addAll(LocationUtil.deserializeList(world, yaml.getList("loot-points")));
-        arena.getLootPoints(Arena.LootZone.RARE).addAll(LocationUtil.deserializeList(world, yaml.getList("rare-points")));
-        arena.getLootPoints(Arena.LootZone.CACHE).addAll(LocationUtil.deserializeList(world, yaml.getList("cache-points")));
-        arena.getRelicPoints().addAll(LocationUtil.deserializeList(world, yaml.getList("relic-points")));
+        arena.getLootPoints().addAll(LocationUtil.deserializeCenteredList(world, yaml.getList("loot-points")));
+        arena.getLootPoints(Arena.LootZone.RARE).addAll(LocationUtil.deserializeCenteredList(world, yaml.getList("rare-points")));
+        arena.getLootPoints(Arena.LootZone.CACHE).addAll(LocationUtil.deserializeCenteredList(world, yaml.getList("cache-points")));
+        arena.getRelicPoints().addAll(LocationUtil.deserializeCenteredList(world, yaml.getList("relic-points")));
         for (Map<?, ?> entry : yaml.getMapList("gust-pads")) {
             Location loc = LocationUtil.deserialize(world, entry.get("loc") instanceof List<?> l ? l : null);
             double power = entry.get("power") instanceof Number n ? n.doubleValue() : 1.4;
@@ -151,9 +151,9 @@ public class ArenaManager {
         for (Team team : Team.values()) {
             Arena.TeamSite site = arena.site(team);
             String base = "teams." + team.name().toLowerCase();
-            if (yaml.contains(base + ".spawn")) site.spawn = LocationUtil.deserialize(world, yaml.getList(base + ".spawn"));
-            if (yaml.contains(base + ".golem-idle")) site.golemIdle = LocationUtil.deserialize(world, yaml.getList(base + ".golem-idle"));
-            if (yaml.contains(base + ".shop")) site.shop = LocationUtil.deserialize(world, yaml.getList(base + ".shop"));
+            if (yaml.contains(base + ".spawn")) site.spawn = LocationUtil.deserializeCentered(world, yaml.getList(base + ".spawn"));
+            if (yaml.contains(base + ".golem-idle")) site.golemIdle = LocationUtil.deserializeCentered(world, yaml.getList(base + ".golem-idle"));
+            if (yaml.contains(base + ".shop")) site.shop = LocationUtil.deserializeCentered(world, yaml.getList(base + ".shop"));
             if (yaml.contains(base + ".base-corner-1")) site.baseCorner1 = LocationUtil.deserialize(world, yaml.getList(base + ".base-corner-1"));
             if (yaml.contains(base + ".base-corner-2")) site.baseCorner2 = LocationUtil.deserialize(world, yaml.getList(base + ".base-corner-2"));
             if (yaml.contains(base + ".vault-corner-1")) site.vaultCorner1 = LocationUtil.deserialize(world, yaml.getList(base + ".vault-corner-1"));
@@ -161,7 +161,7 @@ public class ArenaManager {
             if (yaml.contains(base + ".vault-door")) site.vaultDoor = LocationUtil.deserialize(world, yaml.getList(base + ".vault-door"));
             site.dockChests.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".dock-chests")));
             site.vaultChests.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".vault-chests")));
-            site.waypoints.addAll(LocationUtil.deserializeList(world, yaml.getList(base + ".waypoints")));
+            site.waypoints.addAll(LocationUtil.deserializeCenteredList(world, yaml.getList(base + ".waypoints")));
         }
         return arena;
     }

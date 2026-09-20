@@ -108,7 +108,7 @@ public class LootSpawner {
         LootTierDefinition tier = LootItem.tiers().roll(ThreadLocalRandom.current(), zone);
         if (tier == null) return;
         ItemStack stack = LootItem.create(tier, game.getMatchId());
-        Item item = point.getWorld().dropItem(point.clone().add(0.5, 0.5, 0.5), stack);
+        Item item = point.getWorld().dropItem(point.clone().add(0, 0.5, 0), stack);
         item.setUnlimitedLifetime(true);
         item.setVelocity(new Vector(0, 0, 0));
         active.put(point, item);
