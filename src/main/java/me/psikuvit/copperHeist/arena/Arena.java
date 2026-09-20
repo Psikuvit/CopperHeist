@@ -217,8 +217,7 @@ public class Arena {
                     Text.of("arena.check.vault-door-fail", "team", name));
             check(checks, site.golemIdle != null, Text.of("arena.check.golem-idle-ok", "team", name),
                     Text.of("arena.check.golem-idle-fail", "team", name));
-            check(checks, !site.waypoints.isEmpty(), Text.of("arena.check.waypoints-ok", "team", name, "count", site.waypoints.size()),
-                    Text.of("arena.check.waypoints-fail", "team", name));
+            // Vanilla golems find their own way between chests; waypoints are optional and unused.
             if (site.shop == null) checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.shop-warn", "team", name)));
             if (site.base() == null) checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.base-warn", "team", name)));
             if (site.vaultRegion() == null) {

@@ -44,7 +44,6 @@ public final class SetupWizard {
             steps.add(new Step("wizard.step.vault-chest", a -> !a.site(team).vaultChests.isEmpty(), "/ch arena addvaultchest" + suffix, label));
             steps.add(new Step("wizard.step.vault-door", a -> a.site(team).vaultDoor != null, "/ch arena setvaultdoor" + suffix, label));
             steps.add(new Step("wizard.step.golem-idle", a -> a.site(team).golemIdle != null, "/ch arena setgolemidle" + suffix, label));
-            steps.add(new Step("wizard.step.waypoint", a -> !a.site(team).waypoints.isEmpty(), "/ch arena addwaypoint" + suffix, label));
             steps.add(new Step("wizard.step.shop", a -> a.site(team).shop != null, "/ch arena setshop" + suffix, label));
             steps.add(new Step("wizard.step.base", a -> a.site(team).base() != null, "/ch arena setbase1" + suffix, label));
             steps.add(new Step("wizard.step.vault-region", a -> a.site(team).vaultRegion() != null, "/ch arena setvaultregion1" + suffix, label));

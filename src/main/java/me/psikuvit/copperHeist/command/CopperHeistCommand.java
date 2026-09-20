@@ -30,7 +30,7 @@ import me.psikuvit.copperHeist.stats.TopEntry;
 import me.psikuvit.copperHeist.task.SnapshotRestoreTask;
 import me.psikuvit.copperHeist.ui.Text;
 import org.bukkit.Location;
-import org.bukkit.block.Chest;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
@@ -646,7 +646,7 @@ public final class CopperHeistCommand {
                     Msg.ok(player, "setup.spawn-set", "team", team.displayName(), "arena", arena.getName());
                 }))
                 .then(arenaTeam("adddock", (player, arena, team) -> {
-                    Location loc = targetedChest(player);
+                    Location loc = targetedChest(player, true);
                     if (loc == null) {
                         Msg.err(player, "setup.dock-look");
                         return;
@@ -655,7 +655,7 @@ public final class CopperHeistCommand {
                     Msg.ok(player, "setup.dock-added", "team", team.displayName(), "count", arena.site(team).dockChests.size());
                 }))
                 .then(arenaTeam("addvaultchest", (player, arena, team) -> {
-                    Location loc = targetedChest(player);
+                    Location loc = targetedChest(player, false);
                     if (loc == null) {
                         Msg.err(player, "setup.vault-chest-look");
                         return;
@@ -987,10 +987,17 @@ public final class CopperHeistCommand {
         return arena;
     }
 
-    private Location targetedChest(Player player) {
+    /**
+     * The chest the player is looking at. Docks must be copper chests (vanilla golems take items out of copper chests) and vaults
+     * must be normal or trapped chests (vanilla golems put items into those).
+     */
+    private Location targetedChest(Player player, boolean copperChest) {
         RayTraceResult result = player.rayTraceBlocks(6);
         if (result == null || result.getHitBlock() == null) return null;
-        if (!(result.getHitBlock().getState() instanceof Chest)) return null;
+        Material type = result.getHitBlock().getType();
+        boolean isCopper = type.name().endsWith("COPPER_CHEST");
+        boolean isWooden = type == Material.CHEST || type == Material.TRAPPED_CHEST;
+        if (copperChest ? !isCopper : !isWooden) return null;
         return result.getHitBlock().getLocation();
     }
 

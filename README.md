@@ -42,13 +42,18 @@ common, rare and cache points. Carrying loot slows you down, and there is a carr
 a **loot bag** that anyone can pick up. Unclaimed loot slowly gains bonus value. **Relics** appear on a schedule and are
 worth a lot; carry one and your carry limit changes, drop it and it respawns.
 
-**Docks and vaults.** Drop loot into your dock chest and your golems collect it, walk it along a waypoint route and deposit
-it in the vault chests, which scores it. Enemy dock chests need a **lockpick** channel before they open.
+**Docks and vaults.** Your dock is a **copper chest** and your vault is made of normal **chests**. Drop loot into the dock and
+your golems do what vanilla Copper Golems do: find the copper chest, take an item out, carry it in their hand and put it into a
+chest that is empty or already holds that item. Loot that arrives in your vault chests is scored. Enemy dock chests need a
+**lockpick** channel before they open.
 
 **Golems.** Each team starts with a few and can buy more. They oxidize through four stages (fresh, exposed, weathered,
 oxidized), getting slower each time until they freeze as a statue. Scrape them back with an axe, wax them with honeycomb, or
-reset the whole dock area with a Storm Rod. Hitting an enemy golem stuns it and makes it drop what it carries. They play
-arm animations when picking up and dropping off, hold the item they carry, and recover when stuck or knocked off route.
+reset the whole dock area with a Storm Rod. Hitting an enemy golem stuns it and makes it drop what it carries. They run
+on vanilla golem AI (pathfinding, chest opening, arm animations, held item), so the plugin only adds safety guards: loot taken
+from the enemy dock or put into the enemy vault is put back, a golem in the enemy base is sent home, anything that isn't loot in a
+golem's hand goes back to its dock, and a golem holding loot that no chest will accept has it placed in its vault. Stunned and fully
+oxidized golems stand still, and oxidation lowers their speed.
 
 **Roles** (chosen from the shop NPC or `/ch role`): Runner (default), Thief (temporary invisibility), Mechanic (better
 scraping), Guard (defensive bonus near your base), Saboteur (reveals enemy golems). Roles have loadouts, passives and an
@@ -108,8 +113,8 @@ The Mannequin NPC supports a skin from a player name, a UUID or a raw texture va
 ## Arena setup
 
 - `/ch setup <arena>` prints a clickable checklist: what is done, what is missing, and a `[set]` button for every step.
-- The steps behind it are `/ch arena ...` commands: lobby, spectator point, bounds, spawns, dock and vault chests, vault door,
-  golem idle point and waypoints, shop NPC point, base and vault regions, loot points (common/rare/cache), relic points and gust pads.
+- The steps behind it are `/ch arena ...` commands: lobby, spectator point, bounds, spawns, copper-chest docks, chest vaults, vault door,
+  golem idle point, shop NPC point, base and vault regions, loot points (common/rare/cache), relic points and gust pads.
 - `/ch arena validate <arena>` explains what blocks enabling; `/ch arena enable <arena>` turns it on.
 - **Snapshots:** `/ch arena snapshot <arena>` saves every block in the arena's bounds; with `reset.method: snapshot` they
   are restored after each match, spread over several ticks. `/ch arena paste <arena>` builds a snapshot into the world.

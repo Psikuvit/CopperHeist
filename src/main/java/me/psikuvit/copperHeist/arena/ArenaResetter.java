@@ -6,7 +6,7 @@ import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.Chest;
+import org.bukkit.block.Container;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -14,7 +14,6 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 
 import java.util.List;
 
@@ -57,10 +56,7 @@ public class ArenaResetter implements ArenaResetStrategy {
         for (Location loc : chests) {
             if (loc == null || loc.getWorld() == null) continue;
             BlockState state = loc.getBlock().getState();
-            if (state instanceof Chest chest) {
-                Inventory inv = chest.getInventory();
-                inv.clear();
-            }
+            if (state instanceof Container container) container.getInventory().clear();
         }
     }
 }

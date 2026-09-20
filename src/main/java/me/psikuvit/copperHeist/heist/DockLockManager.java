@@ -6,7 +6,7 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.task.LockpickTask;
 import org.bukkit.Location;
-import org.bukkit.block.Chest;
+import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -55,6 +55,6 @@ public class DockLockManager {
         if (!success) return;
         long window = game.settings().getLong("dock.unlock-window-seconds", 15) * 1000L;
         unlockedUntilMillis.put(player.getUniqueId(), System.currentTimeMillis() + window);
-        if (chestLocation.getBlock().getState() instanceof Chest chest) player.openInventory(chest.getInventory());
+        if (chestLocation.getBlock().getState() instanceof Container container) player.openInventory(container.getInventory());
     }
 }

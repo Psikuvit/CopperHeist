@@ -16,13 +16,13 @@ import me.psikuvit.copperHeist.database.Database;
 import me.psikuvit.copperHeist.database.MysqlDatabase;
 import me.psikuvit.copperHeist.database.SqliteDatabase;
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.golem.GolemDebug;
 import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StaleEntityListener;
 import me.psikuvit.copperHeist.listener.StatsListener;
 import me.psikuvit.copperHeist.role.RoleRegistry;
 import me.psikuvit.copperHeist.role.ability.AbilityRegistry;
 import me.psikuvit.copperHeist.game.GameManager;
-import me.psikuvit.copperHeist.golem.DeliveryGoal;
 import me.psikuvit.copperHeist.listener.ArenaProtectionListener;
 import me.psikuvit.copperHeist.listener.CombatListener;
 import me.psikuvit.copperHeist.listener.GameEventListener;
@@ -71,6 +71,7 @@ public final class CopperHeist extends JavaPlugin {
     private LobbyKitService lobbyKitService;
     private HubSpawn hubSpawn;
     private ActionBarService actionBar;
+    private GolemDebug golemDebug;
     private ShopService shopService;
     private Settings settings;
     private PresetRegistry presets;
@@ -92,7 +93,6 @@ public final class CopperHeist extends JavaPlugin {
 
         PdcKeys.init(this);
         HeistEntities.init(UUID.randomUUID().toString());
-        DeliveryGoal.init(this);
 
         presets = new PresetRegistry(this);
         presets.load();
@@ -109,6 +109,7 @@ public final class CopperHeist extends JavaPlugin {
         lootWeightService = new LootWeightService(this);
         lobbyKitService = new LobbyKitService(this);
         lobbyKitService.load();
+        golemDebug = new GolemDebug(this);
         actionBar = new ActionBarService(this);
         actionBar.start();
         hubSpawn = new HubSpawn(this);
@@ -160,6 +161,7 @@ public final class CopperHeist extends JavaPlugin {
         if (gameManager != null) gameManager.shutdownAll();
         HeistEntities.removeCurrentSession();
         if (actionBar != null) actionBar.stop();
+        if (golemDebug != null) golemDebug.stop();
         if (network != null) network.shutdown();
         if (leaderboards != null) leaderboards.stop();
         if (statsService != null) statsService.shutdown();
@@ -205,6 +207,10 @@ public final class CopperHeist extends JavaPlugin {
     }
 
     /** The stats service, or null if stats are disabled or the database couldn't be opened. */
+    public GolemDebug getGolemDebug() {
+        return golemDebug;
+    }
+
     public ActionBarService getActionBar() {
         return actionBar;
     }

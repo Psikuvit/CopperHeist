@@ -228,40 +228,38 @@ teams:
     prefix: "[I] "
     armor-color: SILVER
 
+# Golems use vanilla Copper Golem AI: they find copper chests, take an item out, carry it and put it into a normal chest that is
+# empty or already holds that item. The dock is therefore a COPPER chest and the vault a normal chest. The plugin only adds
+# guards (below), stun, oxidation and scoring.
 golems:
   label-height: 0.7              # how far above the golem's head its label floats
-  ai:
-    arrive-distance: 1.5
-    stuck-seconds: 8
-    off-path-distance: 4
-    off-path-seconds: 2
-    corner-cut-distance: 1.5        # extra distance at which a middle waypoint counts as reached, so golems flow round corners
-    repath-seconds: 0.5             # minimum time between path re-issues when a path ends early
-    max-path-failures: 3            # a waypoint that can't be pathed to this many times in a row is skipped
-  animation:
-    enabled: true                   # arm animations, the held item, and the effects below
-    pause-seconds: 1.0              # how long a golem stands still while picking up or dropping off
-    sounds: true
-    particles: true
-  storm-rod:
-    radius: 8
-    damage: 6.0
   starting: 2
   cap: 4
-  health: 30.0
-  base-speed: 0.3
+  health: 12.0                      # vanilla copper golem health
+  base-speed: 0.2                   # vanilla movement speed; oxidation multiplies it (speed-multipliers below)
   speed-multipliers:
     fresh: 1.0
     exposed: 0.8
     weathered: 0.55
-    oxidized: 0.0
+    oxidized: 0.0                   # fully oxidized golems stand still until scraped
   aging-seconds: 210
   aging-jitter-seconds: 20
   scrape-cooldown-seconds: 20
   wax-duration-seconds: 180
-  stun-seconds: 3
+  stun-seconds: 3                   # a stunned golem stops (AI off) and drops what it holds
   stun-immunity-seconds: 5
   auto-respawn-seconds: 60
+  storm-rod:
+    radius: 8
+    damage: 6.0
+  guards:                           # keep vanilla golems inside the rules of the game
+    enemy-base: true                # a golem that walks into the enemy base region is sent home (its item goes back to its dock)
+    only-loot: true                 # anything a golem holds that isn't loot goes back to its dock
+    hold-timeout-seconds: 45        # a golem that has held loot this long (vanilla has no chest that will take it) has it placed in its vault; 0 = never
+  animation:
+    enabled: true
+    sounds: true
+    particles: true
 
 alarms:
   base-per-team: 4

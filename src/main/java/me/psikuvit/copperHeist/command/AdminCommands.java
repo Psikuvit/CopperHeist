@@ -13,6 +13,7 @@ import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
+import me.psikuvit.copperHeist.golem.GolemDebug;
 import me.psikuvit.copperHeist.network.NetworkService;
 import me.psikuvit.copperHeist.network.RemoteArena;
 import me.psikuvit.copperHeist.stats.Stat;
@@ -24,6 +25,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -86,6 +89,18 @@ public final class AdminCommands {
                         .then(argument("message", StringArgumentType.greedyString()).executes(this::broadcast)))
                 .then(literal("servers").executes(this::servers))
                 .then(literal("clean").executes(this::clean))
+                .then(literal("debug")
+                        .then(literal("golems")
+                                .executes(ctx -> debugGolems(ctx, null))
+                                .then(literal("on").executes(ctx -> debugGolems(ctx, true)))
+                                .then(literal("off").executes(ctx -> debugGolems(ctx, false))))
+                        .then(literal("verbose")
+                                .then(literal("on").executes(ctx -> debugFlag(ctx, "verbose", true)))
+                                .then(literal("off").executes(ctx -> debugFlag(ctx, "verbose", false))))
+                        .then(literal("visuals")
+                                .then(literal("on").executes(ctx -> debugFlag(ctx, "visuals", true)))
+                                .then(literal("off").executes(ctx -> debugFlag(ctx, "visuals", false))))
+                        .then(literal("dump").executes(this::debugDump)))
                 .then(literal("stats")
                         .then(literal("set").then(statArgs(true)))
                         .then(literal("add").then(statArgs(false)))
@@ -222,6 +237,45 @@ public final class AdminCommands {
                 ? HeistEntities.sweepStaleEverywhere(plugin.getGameManager()::isMatchRunning)
                 : HeistEntities.removeAllTagged();
         Msg.ok(sender, running ? "admin.clean-stale" : "admin.clean-all", "count", removed);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** Subscribes (or unsubscribes) the sender to the golem debug log; with no argument it toggles. */
+    private int debugGolems(CommandContext<CommandSourceStack> ctx, Boolean on) {
+        CommandSender sender = ctx.getSource().getSender();
+        GolemDebug debug = plugin.getGolemDebug();
+        boolean enable = on != null ? on : !debug.subscribed(sender);
+        debug.subscribe(sender, enable);
+        Msg.ok(sender, enable ? "admin.debug-on" : "admin.debug-off");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int debugFlag(CommandContext<CommandSourceStack> ctx, String flag, boolean on) {
+        CommandSender sender = ctx.getSource().getSender();
+        GolemDebug debug = plugin.getGolemDebug();
+        if (flag.equals("verbose")) debug.setVerbose(on);
+        else debug.setVisuals(on);
+        Msg.ok(sender, "admin.debug-flag", "flag", flag, "state", Msg.word(sender, on ? "status.enabled" : "status.disabled"));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** Full snapshot of every golem in the sender's match (or in every match, if they aren't in one). */
+    private int debugDump(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        List<Game> games = new ArrayList<>();
+        if (sender instanceof Player player && plugin.getGameManager().getGame(player) != null) {
+            games.add(plugin.getGameManager().getGame(player));
+        } else {
+            games.addAll(plugin.getGameManager().all());
+        }
+        boolean any = false;
+        for (Game game : games) {
+            if (game.getGolemManager().all().isEmpty()) continue;
+            any = true;
+            Msg.info(sender, "admin.debug-dump-header", "arena", game.getArena().getName(), "state", game.getState().name());
+            for (String line : game.getGolemManager().describeAll()) Msg.info(sender, "admin.debug-line", "text", line);
+        }
+        if (!any) Msg.info(sender, "admin.debug-none");
         return Command.SINGLE_SUCCESS;
     }
 

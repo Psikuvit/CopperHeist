@@ -7,7 +7,6 @@ import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.loot.LootItem;
 import org.bukkit.GameMode;
-import org.bukkit.block.Chest;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,6 +25,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.InventoryHolder;
 
 import java.util.Locale;
@@ -58,12 +58,12 @@ public class ArenaProtectionListener implements Listener {
     public void onInventoryOpen(InventoryOpenEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
         InventoryHolder holder = event.getInventory().getHolder();
-        if (!(holder instanceof Chest chest)) return;
+        if (!(holder instanceof BlockInventoryHolder blockHolder)) return;
 
         Game game = plugin.getGameManager().getGame(player);
         if (game == null) return;
         Arena arena = game.getArena();
-        var loc = chest.getLocation();
+        var loc = blockHolder.getBlock().getLocation();
         Team vaultTeam = arena.site(Team.COPPER).vaultChests.contains(loc) ? Team.COPPER
                 : arena.site(Team.IRON).vaultChests.contains(loc) ? Team.IRON : null;
         GamePlayer gp = game.getGamePlayer(player.getUniqueId());
