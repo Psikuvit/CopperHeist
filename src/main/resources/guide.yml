@@ -32,7 +32,7 @@ pages:
   - |-
     <bold>GOLEMS</bold>
 
-    Golems take loot from
+    <color:#b87333>Golems</color> take loot from
     your Dock and walk it
     down the corridor to
     your Vault.
@@ -44,7 +44,7 @@ pages:
   - |-
     <bold>OXIDATION</bold>
 
-    Golems slowly oxidize
+    <color:#b87333>Golems</color> slowly oxidize
     and get slower over
     time. A fully oxidized
     golem stops completely.
@@ -56,15 +56,15 @@ pages:
   - |-
     <bold>ROLES</bold>
 
-    Runner: half loot-weight
+    <color:#b87333>Runner</color>: half loot-weight
     slowdown.
-    Thief: F to turn
+    <color:#b87333>Thief</color>: F to turn
     invisible 5s.
-    Mechanic: cheap scrapes,
+    <color:#b87333>Mechanic</color>: cheap scrapes,
     instant golem un-stun.
-    Guard: bonus damage near
+    <color:#b87333>Guard</color>: bonus damage near
     your spawn.
-    Saboteur: F to reveal
+    <color:#b87333>Saboteur</color>: F to reveal
     enemy golems 10s.
 
     /ch role <name> to pick
@@ -84,7 +84,7 @@ pages:
     <bold>THE RELIC</bold>
 
     Every few minutes an
-    Ancient Idol surfaces
+    <dark_purple>Ancient Idol</dark_purple> surfaces
     at a random spot - worth
     25, way more than normal
     loot.
@@ -104,11 +104,11 @@ pages:
   - |-
     <bold>COMMANDS</bold>
 
-    /ch join <arena>
-    /ch leave
-    /ch list
-    /ch role <name>
-    /ch shop
+    <green>/ch join <arena>
+    <green>/ch leave
+    <green>/ch list
+    <green>/ch role <name>
+    <green>/ch shop
 
     Or just use the compass
     in your hotbar!
