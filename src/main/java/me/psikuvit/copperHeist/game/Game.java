@@ -271,6 +271,14 @@ public class Game {
     }
 
     public void removePlayer(Player player, boolean online) {
+        removePlayer(player, online, false);
+    }
+
+    /**
+     * @param toHub true when the match is over: the player is sanitized and sent to the hub with the hub kit, instead of getting
+     *              their pre-match inventory and location back (that is what leaving mid-match does)
+     */
+    public void removePlayer(Player player, boolean online, boolean toHub) {
         GamePlayer gamePlayer = players.remove(player.getUniqueId());
         if (gamePlayer == null) return;
         teams.get(gamePlayer.getTeam()).getMembers().remove(player.getUniqueId());
@@ -279,7 +287,8 @@ public class Game {
         if (isActive()) dropCarriedLoot(player);
 
         disconnectedUntil.remove(player.getUniqueId());
-        if (online && gamePlayer.getSavedState() != null) restoreState(player, gamePlayer.getSavedState());
+        if (online && toHub) sendToHub(player, gamePlayer.getSavedState());
+        else if (online && gamePlayer.getSavedState() != null) restoreState(player, gamePlayer.getSavedState());
         else if (!online && gamePlayer.getSavedState() != null) plugin.getGameManager().stashRestore(player.getUniqueId(), gamePlayer.getSavedState());
         if (online) {
             if (phaseBar != null) player.hideBossBar(phaseBar);
@@ -287,6 +296,21 @@ public class Game {
             plugin.getSidebarService().clearMatchDecor(player);
             plugin.getSidebarService().showHub(player);
         }
+    }
+
+    /**
+     * End of a match: everything the match gave the player is wiped (items, armor, offhand, effects, glow, speed, flight, vitals),
+     * they go back to the hub spawn - or to where they were before joining if no hub is set - and get the hub kit. Their game
+     * mode goes back to what it was before the match (never spectator) so nobody is stuck in adventure or spectator.
+     */
+    private void sendToHub(Player player, GamePlayer.SavedState saved) {
+        PlayerSanitizer.reset(player);
+        GameMode mode = saved == null || saved.gameMode() == GameMode.SPECTATOR ? Bukkit.getDefaultGameMode() : saved.gameMode();
+        player.setGameMode(mode);
+        Location hub = plugin.getHubSpawn().get();
+        if (hub != null) player.teleport(hub);
+        else if (saved != null) player.teleport(saved.location());
+        plugin.getLobbyKitService().giveHubKit(player);
     }
 
     public static void restoreState(Player player, GamePlayer.SavedState saved) {
@@ -458,9 +482,14 @@ public class Game {
     }
 
     public void removeSpectator(Player player, boolean online) {
+        removeSpectator(player, online, false);
+    }
+
+    public void removeSpectator(Player player, boolean online, boolean toHub) {
         GamePlayer.SavedState saved = spectators.remove(player.getUniqueId());
         if (saved == null || !online) return;
-        restoreState(player, saved);
+        if (toHub) sendToHub(player, saved);
+        else restoreState(player, saved);
         plugin.getSidebarService().clearMatchDecor(player);
         plugin.getSidebarService().showHub(player);
     }
@@ -775,13 +804,13 @@ public class Game {
 
         for (UUID uuid : new ArrayList<>(players.keySet())) {
             Player player = Bukkit.getPlayer(uuid);
-            if (player != null) removePlayer(player, true);
+            if (player != null) removePlayer(player, true, true);
             else removeOffline(uuid);
         }
 
         for (UUID uuid : new ArrayList<>(spectators.keySet())) {
             Player spectator = Bukkit.getPlayer(uuid);
-            if (spectator != null) removeSpectator(spectator, true);
+            if (spectator != null) removeSpectator(spectator, true, true);
             else spectators.remove(uuid);
         }
 
