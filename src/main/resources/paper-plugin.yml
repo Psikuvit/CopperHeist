@@ -31,6 +31,9 @@ permissions:
   copperheist.spectate:
     description: Spectate running matches
     default: true
+  copperheist.cosmetics:
+    description: Open the cosmetics menu (/ch cosmetics)
+    default: true
   copperheist.cosmetic.*:
     description: Own every cosmetic (individual ones are copperheist.cosmetic.<id>) - ops have it by default
     default: op
@@ -65,5 +68,6 @@ permissions:
       copperheist.play: true
       copperheist.stats: true
       copperheist.spectate: true
+      copperheist.cosmetics: true
       copperheist.cosmetic.*: true
       copperheist.admin.*: true

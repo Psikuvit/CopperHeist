@@ -22,6 +22,7 @@ import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootTierDefinition;
 import me.psikuvit.copperHeist.network.RemoteArena;
 import me.psikuvit.copperHeist.role.RoleDefinition;
+import me.psikuvit.copperHeist.menu.CosmeticsMenu;
 import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.PlayerStats;
 import me.psikuvit.copperHeist.stats.Stat;
@@ -50,6 +51,7 @@ import static io.papermc.paper.command.brigadier.Commands.literal;
 public final class CopperHeistCommand {
 
     private static final String STATS = "copperheist.stats";
+    private static final String COSMETICS = "copperheist.cosmetics";
     private static final String ADMIN_ARENA ="copperheist.admin.arena";
     private static final String ADMIN_DEBUG = "copperheist.admin.debug";
     private static final String ADMIN_RELOAD = "copperheist.admin.reload";
@@ -120,6 +122,9 @@ public final class CopperHeistCommand {
                     .then(literal("level")
                             .requires(src -> src.getSender().hasPermission(STATS))
                             .executes(commands::executeLevel))
+                    .then(literal("cosmetics")
+                            .requires(src -> src.getSender().hasPermission(COSMETICS))
+                            .executes(commands::executeCosmetics))
                     .then(literal("role")
                             .executes(commands::executeRoleMenu)
                             .then(argument("role", StringArgumentType.word())
@@ -309,6 +314,21 @@ public final class CopperHeistCommand {
             if (error != null || found == null) Msg.err(sender, "stats.unknown-player", "player", requested);
             else sendStats(sender, found);
         });
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** Opens the cosmetics menu. */
+    private int executeCosmetics(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "stats.console-needs-player");
+            return 0;
+        }
+        if (!plugin.getCosmetics().enabled()) {
+            Msg.err(sender, "cosmetics.outcome.disabled");
+            return 0;
+        }
+        plugin.getMenus().open(player, new CosmeticsMenu(plugin, player));
         return Command.SINGLE_SUCCESS;
     }
 

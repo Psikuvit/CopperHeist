@@ -234,6 +234,9 @@ features:
   unclaimed-bonus: true
   cosmetics: true       # unlockable cosmetics (needs stats/database and progression to be on)
 
+cosmetics:
+  featured-count: 3     # how many "featured today" picks the cosmetics menu shows (0-3); they change at midnight UTC
+
 teams:
   copper:
     name: Copper

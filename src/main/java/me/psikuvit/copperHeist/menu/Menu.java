@@ -93,6 +93,16 @@ public abstract class Menu implements InventoryHolder {
         });
     }
 
+    /** A back arrow in the given slot - only drawn when this menu was opened from another one (see {@link #openChild}). */
+    protected final void backButton(int slot) {
+        if (parent == null) return;
+        String name = plugin.getMessageService().rawFor(viewer, "gui.back");
+        set(slot, Gui.item(Material.ARROW, name, List.of()), click -> {
+            Gui.click(click.player());
+            back();
+        });
+    }
+
     protected final int size() {
         return inventory.getSize();
     }

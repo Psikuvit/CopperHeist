@@ -19,6 +19,10 @@ public interface EffectProvider {
     default void validate(CosmeticDefinition cosmetic) {
     }
 
-    /** Plays the effect once (or, for a trail, starts following {@code context.entity()}). Called on the main thread. */
+    /**
+     * Plays the effect once (or, for a trail, starts following {@code context.entity()}). Called on the main thread. In a menu preview
+     * {@code context.entity()} is null and only the previewing player is a viewer: play something short at {@code context.location()}
+     * (a trail can draw a brief line in front of the player).
+     */
     void play(EffectContext context);
 }

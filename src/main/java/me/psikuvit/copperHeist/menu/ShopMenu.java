@@ -69,6 +69,13 @@ public class ShopMenu extends Menu {
         var messages = plugin.getMessageService();
         set(footer + 4, Gui.item(Material.GOLD_INGOT, messages.rawFor(viewer, "gui.shop.balance-name"),
                 List.of(messages.rawFor(viewer, "gui.shop.balance-lore", "value", have), messages.rawFor(viewer, "gui.shop.balance-hint"))));
+        if (plugin.getCosmetics().enabled()) {
+            set(footer + 2, Gui.item(Material.ENDER_CHEST, messages.rawFor(viewer, "cosmetics.menu.shop-button-name"),
+                    List.of(messages.rawFor(viewer, "cosmetics.menu.shop-button-lore"))), click -> {
+                Gui.click(click.player());
+                openChild(new CosmeticsMenu(plugin, viewer));
+            });
+        }
         closeButton();
     }
 

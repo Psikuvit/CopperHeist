@@ -46,6 +46,19 @@ public class LobbyKitService {
     public void giveHubKit(Player player) {
         player.getInventory().setItem(0, createJoinCompass(player));
         player.getInventory().setItem(1, createGuideBook(player));
+        if (plugin.getCosmetics() != null && plugin.getCosmetics().enabled()) player.getInventory().setItem(2, createCosmeticsChest(player));
+    }
+
+    private ItemStack createCosmeticsChest(Player viewer) {
+        var messages = plugin.getMessageService();
+        ItemStack item = new ItemStack(Material.ENDER_CHEST);
+        Pdc.set(item, PdcKeys.LOBBY_ITEM, "cosmetics");
+
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(messages.get(viewer, "lobby.cosmetics-name").decoration(TextDecoration.ITALIC, false));
+        meta.lore(List.of(messages.get(viewer, "lobby.cosmetics-lore").decoration(TextDecoration.ITALIC, false)));
+        item.setItemMeta(meta);
+        return item;
     }
 
     public void giveLeaveItem(Player player) {

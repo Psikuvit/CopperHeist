@@ -157,7 +157,12 @@ Mastermind, Legend) and the level curve are configurable, and `/ch admin booster
 **Cosmetics** (framework only so far): `cosmetics.yml` defines cosmetics by category (arrow trail, kill effect, victory, golem, shop
 skin, title, join effect), rarity, coin price, level and permission. Players buy or earn them; server owners can also sell any of them by
 giving the permission `copperheist.cosmetic.<id>` from a store plugin. Other plugins add effects through the API
-(`registerCosmeticEffect`). `/ch admin cosmetic give|take <player> <id>` manages them. The built-in effects and the menu come next.
+(`registerCosmeticEffect`). `/ch admin cosmetic give|take <player> <id>` manages them.
+
+The **cosmetics menu** (hub Ender Chest item, `/ch cosmetics`, or the chest button in the shop) has a tile per category showing how
+many you own and what is equipped, plus three **featured** picks that change every day at midnight UTC. Each category is a paged grid in
+rarity colours; click to equip or unequip, click something you can afford to buy it (after a confirm screen), right-click to preview
+it just for you. One button switches all cosmetic effects off for you. The built-in effects (trails, kill effects, ...) come next.
 
 ## Stats, leaderboards and rewards
 

@@ -12,7 +12,10 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 
 /**
@@ -99,6 +102,53 @@ public class CosmeticService {
         if (profile == null || !enabled()) return null;
         CosmeticDefinition cosmetic = registry.get(profile.equipped(category.id()));
         return cosmetic != null && hasAccess(player, cosmetic) ? cosmetic : null;
+    }
+
+    /** The cosmetic's name as MiniMessage, in its rarity colour (a colour set in the name itself still wins). */
+    public String displayName(CosmeticDefinition cosmetic) {
+        String tag = cosmetic.rarity().tag();
+        return "<" + tag + ">" + cosmetic.name() + "</" + tag + ">";
+    }
+
+    /**
+     * Today's featured items: a few things the player doesn't have yet and can buy, picked the same way for everyone and changing
+     * at midnight UTC. Nothing is stored - the day number seeds the pick.
+     */
+    public List<CosmeticDefinition> featured(Player player, int count) {
+        List<CosmeticDefinition> candidates = new ArrayList<>();
+        for (CosmeticDefinition cosmetic : registry.all()) {
+            if (cosmetic.purchasable() && !cosmetic.hidden() && !hasAccess(player, cosmetic)) candidates.add(cosmetic);
+        }
+        return pickFeatured(candidates, count, Math.floorDiv(System.currentTimeMillis(), 86_400_000L));
+    }
+
+    /** The day's pick from a list: the same list and day always give the same result, whoever asks. */
+    public static List<CosmeticDefinition> pickFeatured(List<CosmeticDefinition> candidates, int count, long day) {
+        List<CosmeticDefinition> shuffled = new ArrayList<>(candidates);
+        shuffled.sort(Comparator.comparing(CosmeticDefinition::id)); // a fixed order first, so the seed alone decides
+        Collections.shuffle(shuffled, new Random(day));
+        return shuffled.subList(0, Math.clamp(count, 0, shuffled.size()));
+    }
+
+    /**
+     * Shows the player what a cosmetic looks like, without owning or equipping it and to nobody else: plays its effect for them, or for a
+     * title sends a sample chat line. Returns false when there is nothing to show (its effect or category has no preview).
+     */
+    public boolean showPreview(Player player, CosmeticDefinition cosmetic) {
+        if (!enabled()) return false;
+        if (cosmetic.category() == CosmeticCategory.TITLE) {
+            player.sendMessage(plugin.getMessageService().get(player, "cosmetics.preview-title", "title", cosmetic.name(), "player", player.getName()));
+            return true;
+        }
+        EffectProvider provider = cosmetic.effect() == null ? null : effects.get(cosmetic.effect());
+        if (provider == null) return false;
+        try {
+            provider.play(new EffectContext(cosmetic, player, player.getLocation(), null, List.of(player)));
+            return true;
+        } catch (RuntimeException ex) {
+            plugin.getLogger().log(Level.WARNING, "Preview of cosmetic '" + cosmetic.id() + "' failed", ex);
+            return false;
+        }
     }
 
     // ---- buying, granting, equipping ----
