@@ -19,11 +19,16 @@
 title: "<primary><bold>COPPER HEIST"
 
 # Shown to any online player not currently in a match (before /ch join, or
-# after leaving one). {arenas_enabled} {arenas_total} {players_online}
+# after leaving one). {arenas_enabled} {arenas_total} {players_online}, and per player: {level} {rank} {xp_bar} {coins}
+# (the board holds 15 lines at most - remove some lines here if you add more)
 hub:
   title: "<primary><bold>COPPER HEIST"
   lines:
     - "<muted>Welcome!"
+    - ""
+    - "<primary>Level</primary> <dim><bar></dim> <accent>{level}</accent> {rank}"
+    - "{xp_bar}"
+    - "<primary>Coins</primary> <dim><bar></dim> <accent>{coins}"
     - ""
     - "<primary>Arenas</primary> <dim><bar></dim> <text>{arenas_enabled}/{arenas_total} open"
     - "<primary>Online</primary> <dim><bar></dim> <text>{players_online}"

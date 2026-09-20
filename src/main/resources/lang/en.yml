@@ -305,6 +305,21 @@ stat:
   drills_completed: "Drills completed"
   drills_destroyed: "Drills destroyed"
   mvps: "MVPs"
+  xp: "XP"
+  coins: "Coins"
+  coins_earned: "Coins earned"
+
+progress:
+  disabled: "Levels and coins are turned off on this server."
+  header: "<dim><line></dim> <primary><bold>{player}</bold></primary> <dim><line></dim>"
+  level-line: "<muted>Level</muted> <accent>{level}</accent> {rank} <dim><bar></dim> {bar} <muted>{into}/{need} XP"
+  coins-line: "<muted>Coins</muted> <dim><bar></dim> <accent>{coins}"
+  summary-header: "<dim><line></dim> <primary><bold>MATCH REWARDS</bold></primary> <dim><line></dim>"
+  summary-line: "<ok>+{xp} XP</ok> <dim><bar></dim> <accent>+{coins} coins</accent>{booster}"
+  booster-note: " <special>(x{multiplier} booster)"
+  level-up-title: "<accent><bold>LEVEL UP!"
+  level-up-subtitle: "<text>Level {level} <dim><bar></dim> {rank} <dim><bar></dim> <accent>+{coins} coins"
+  level-up-chat: "<ok><star></ok> <text>You reached level <accent>{level}</accent> {rank}<text>!"
 
 network:
   remote-line: "<muted>[{server}] <text>{arena} <muted>- {state}, {players}/{max} players <dim>(/ch join {server}.{arena})"
@@ -325,6 +340,10 @@ admin:
   maintenance-on: "Maintenance mode is on - only admins can join matches (network-wide when Redis is enabled)."
   maintenance-off: "Maintenance mode is off."
   broadcast-format: "<primary>[Announcement] <text>{message}"
+  booster-on: "XP and coin booster x{multiplier} is on for {minutes} minute(s)."
+  booster-off: "The XP and coin booster is off."
+  coins-given: "Gave {amount} coins to {player}."
+  player-offline: "{player} isn't online."
   network-header: "<primary>This server: <text>{server} <muted>- Redis: {redis}"
   stat-done: "Set {player}'s {stat} to {value} (or added, for add)."
   stat-reset: "Reset all stats of {player}."

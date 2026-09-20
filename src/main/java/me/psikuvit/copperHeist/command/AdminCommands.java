@@ -1,6 +1,8 @@
 package me.psikuvit.copperHeist.command;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -89,6 +91,14 @@ public final class AdminCommands {
                         .then(argument("message", StringArgumentType.greedyString()).executes(this::broadcast)))
                 .then(literal("servers").executes(this::servers))
                 .then(literal("clean").executes(this::clean))
+                .then(literal("booster")
+                        .then(argument("multiplier", DoubleArgumentType.doubleArg(1.0, 10.0))
+                                .then(argument("minutes", IntegerArgumentType.integer(1, 1440)).executes(this::booster)))
+                        .then(literal("off").executes(this::boosterOff)))
+                .then(literal("coins")
+                        .then(literal("give")
+                                .then(argument("player", StringArgumentType.word()).suggests(ONLINE_PLAYERS)
+                                        .then(argument("amount", IntegerArgumentType.integer(1)).executes(this::giveCoins)))))
                 .then(literal("debug")
                         .then(literal("golems")
                                 .executes(ctx -> debugGolems(ctx, null))
@@ -219,6 +229,47 @@ public final class AdminCommands {
         CommandSender sender = ctx.getSource().getSender();
         plugin.getNetwork().setMaintenance(on);
         Msg.ok(sender, on ? "admin.maintenance-on" : "admin.maintenance-off");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int booster(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (plugin.getProgress() == null) {
+            Msg.err(sender, "progress.disabled");
+            return 0;
+        }
+        double multiplier = DoubleArgumentType.getDouble(ctx, "multiplier");
+        int minutes = IntegerArgumentType.getInteger(ctx, "minutes");
+        plugin.getProgress().setBooster(multiplier, minutes);
+        Msg.ok(sender, "admin.booster-on", "multiplier", multiplier, "minutes", minutes);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int boosterOff(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (plugin.getProgress() == null) {
+            Msg.err(sender, "progress.disabled");
+            return 0;
+        }
+        plugin.getProgress().setBooster(1.0, 0);
+        Msg.ok(sender, "admin.booster-off");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int giveCoins(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (plugin.getProgress() == null) {
+            Msg.err(sender, "progress.disabled");
+            return 0;
+        }
+        Player target = Bukkit.getPlayerExact(StringArgumentType.getString(ctx, "player"));
+        if (target == null) {
+            Msg.err(sender, "admin.player-offline", "player", StringArgumentType.getString(ctx, "player"));
+            return 0;
+        }
+        int amount = IntegerArgumentType.getInteger(ctx, "amount");
+        plugin.getProgress().grantCoins(target.getUniqueId(), target.getName(), amount);
+        Msg.ok(sender, "admin.coins-given", "amount", amount, "player", target.getName());
         return Command.SINGLE_SUCCESS;
     }
 

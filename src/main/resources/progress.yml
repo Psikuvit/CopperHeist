@@ -1,0 +1,42 @@
+# Progression: every match earns XP (which sets your level) and coins (which are spent on cosmetics).
+# Needs stats to be enabled (database.type is not "none"), because XP and coins are stored with the player's stats.
+# /ch reload re-reads this file.
+
+enabled: true
+
+# XP and coins for taking part, paid to everyone in the match when it ends.
+rewards:
+  participation: { xp: 20, coins: 5 }   # just for playing to the end
+  win:           { xp: 40, coins: 15 }  # on the winning team
+  loss:          { xp: 10, coins: 3 }   # on the losing team (a draw pays neither win nor loss)
+  mvp:           { xp: 25, coins: 10 }  # the match MVP, on top of the above
+
+# Paid per action, multiplied by how much you did. Fractions are fine (they are rounded once, at the end of the match).
+per:
+  loot-value: { xp: 1.0, coins: 0.25 }  # per point of loot value delivered
+  steal:      { xp: 3.0, coins: 0.5 }
+  relic:      { xp: 20.0, coins: 8.0 }  # per relic delivered
+  scrape:     { xp: 1.0, coins: 0.0 }   # per golem scraped
+  kill:       { xp: 5.0, coins: 1.0 }
+  drill:      { xp: 15.0, coins: 5.0 }  # per vault drill completed
+
+# Level n -> n+1 costs base + step * (n - 1) XP, so early levels are quick and later ones stretch out.
+levels:
+  base-xp: 100
+  step-xp: 30
+  max-level: 100
+  coins-per-level: 10       # coins paid on every level-up (multiplied by the level, capped by max-coins)
+  max-coins: 200
+  bar-length: 10            # width of the XP progress bar in characters
+
+# The rank shown next to a level: the last entry whose "from" is at or below the level. color is a theme tag or a color name / #hex.
+brackets:
+  - { from: 1,  name: "Rookie",      color: "muted" }
+  - { from: 5,  name: "Pickpocket",  color: "ok" }
+  - { from: 10, name: "Thief",       color: "info" }
+  - { from: 20, name: "Safecracker", color: "special" }
+  - { from: 35, name: "Mastermind",  color: "accent" }
+  - { from: 50, name: "Legend",      color: "primary" }
+
+# A temporary boost to everything above. /ch admin booster <multiplier> <minutes> sets one at runtime; this is the permanent one.
+booster: 1.0

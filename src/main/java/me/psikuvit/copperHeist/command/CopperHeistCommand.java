@@ -117,6 +117,9 @@ public final class CopperHeistCommand {
                             .executes(commands::executeStats)
                             .then(argument("player", StringArgumentType.word())
                                     .executes(commands::executeStats)))
+                    .then(literal("level")
+                            .requires(src -> src.getSender().hasPermission(STATS))
+                            .executes(commands::executeLevel))
                     .then(literal("role")
                             .executes(commands::executeRoleMenu)
                             .then(argument("role", StringArgumentType.word())
@@ -306,6 +309,31 @@ public final class CopperHeistCommand {
             if (error != null || found == null) Msg.err(sender, "stats.unknown-player", "player", requested);
             else sendStats(sender, found);
         });
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** Your level, rank, XP bar and coin balance. */
+    private int executeLevel(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        var progress = plugin.getProgress();
+        if (progress == null || !progress.enabled()) {
+            Msg.err(sender, "progress.disabled");
+            return 0;
+        }
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "stats.console-needs-player");
+            return 0;
+        }
+        if (!plugin.getStats().isLoaded(player.getUniqueId())) {
+            Msg.err(sender, "stats.loading");
+            return 0;
+        }
+        long xp = progress.xp(player.getUniqueId(), player.getName());
+        int level = progress.curve().levelFor(xp);
+        Msg.info(player, "progress.header", "player", player.getName());
+        Msg.info(player, "progress.level-line", "level", level, "rank", progress.rank(level), "bar", progress.bar(xp),
+                "into", progress.curve().xpIntoLevel(xp), "need", level >= progress.curve().maxLevel() ? 0 : progress.curve().xpForNext(level));
+        Msg.info(player, "progress.coins-line", "coins", progress.coins(player.getUniqueId(), player.getName()));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -523,6 +551,7 @@ public final class CopperHeistCommand {
         plugin.getRoleRegistry().load();
         plugin.getLootTiers().load();
         plugin.getPresets().load();
+        if (plugin.getProgress() != null) plugin.getProgress().load();
         Msg.ok(sender, "command.reloaded");
         return Command.SINGLE_SUCCESS;
     }

@@ -19,7 +19,9 @@ import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.golem.GolemDebug;
 import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StaleEntityListener;
+import me.psikuvit.copperHeist.listener.ProgressListener;
 import me.psikuvit.copperHeist.listener.StatsListener;
+import me.psikuvit.copperHeist.progress.ProgressService;
 import me.psikuvit.copperHeist.role.RoleRegistry;
 import me.psikuvit.copperHeist.role.ability.AbilityRegistry;
 import me.psikuvit.copperHeist.game.GameManager;
@@ -85,6 +87,7 @@ public final class CopperHeist extends JavaPlugin {
     private LeaderboardService leaderboards;
     private NetworkService network;
     private MenuManager menus;
+    private ProgressService progress;
 
     @Override
     public void onEnable() {
@@ -130,7 +133,6 @@ public final class CopperHeist extends JavaPlugin {
 
         network = new NetworkService(this);
         network.start();
-
         arenaManager.loadAll();
         arenaManager.all().forEach(arena -> providers.reset().resolve(settings.getString("reset.method", "entities")).reset(arena));
 
@@ -148,6 +150,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GustPadListener(this), this);
         getServer().getPluginManager().registerEvents(new VaultRegionListener(this), this);
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
+        getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbySafetyListener(this), this);
         getServer().getPluginManager().registerEvents(new StaleEntityListener(this), this);
         int stale = HeistEntities.sweepStaleEverywhere(gameManager::isMatchRunning);
@@ -163,8 +166,7 @@ public final class CopperHeist extends JavaPlugin {
     @Override
     public void onDisable() {
         if (menus != null) menus.stop();
-        if (gameManager != null) gameManager.shutdownAll();
-        HeistEntities.removeCurrentSession();
+        if (gameManager != null) gameManager.shutdownAll();        HeistEntities.removeCurrentSession();
         if (actionBar != null) actionBar.stop();
         if (golemDebug != null) golemDebug.stop();
         if (network != null) network.shutdown();
@@ -193,6 +195,8 @@ public final class CopperHeist extends JavaPlugin {
         }
         statsService = new StatsService(this, new StatsRepository(database));
         statsService.start();
+        progress = new ProgressService(this);
+        progress.load();
         leaderboards = new LeaderboardService(this, statsService.repository());
         leaderboards.start();
         getLogger().info("Player stats connected (" + type.toLowerCase() + ").");
@@ -295,6 +299,11 @@ public final class CopperHeist extends JavaPlugin {
 
     public ShopActionRegistry getShopActions() {
         return shopActions;
+    }
+
+    /** Levels, XP and coins, or null when stats (where they are stored) are off. */
+    public ProgressService getProgress() {
+        return progress;
     }
 
     /** The single manager every chest GUI is opened through; see {@link MenuManager}. */

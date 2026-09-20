@@ -19,7 +19,10 @@ public enum Stat {
     GOLEMS_SCRAPED,
     DRILLS_COMPLETED,
     DRILLS_DESTROYED,
-    MVPS;
+    MVPS,
+    XP,
+    COINS,
+    COINS_EARNED;
 
     public String key() {
         return name().toLowerCase(Locale.ROOT);

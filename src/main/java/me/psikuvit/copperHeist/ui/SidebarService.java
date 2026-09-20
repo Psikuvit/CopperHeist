@@ -73,18 +73,18 @@ public class SidebarService {
     // ---- hub board ----
 
     public void showHub(Player player) {
-        render(player, buildHubContext());
+        render(player, buildHubContext(player));
     }
 
     public void updateHub() {
-        ScoreboardContext context = buildHubContext();
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (plugin.getGameManager().getGame(player) != null) continue;
-            render(player, context);
+            render(player, buildHubContext(player));
         }
     }
 
-    private ScoreboardContext buildHubContext() {
+    /** The hub board is built per player: level, rank and coins are theirs. */
+    private ScoreboardContext buildHubContext(Player player) {
         Component title = miniMessage.deserialize(config.getString("hub.title", config.getString("title", "<gold>COPPER HEIST")));
 
         int total = plugin.getArenaManager().all().size();
@@ -92,10 +92,18 @@ public class SidebarService {
         for (Arena arena : plugin.getArenaManager().all()) {
             if (arena.isEnabled()) enabled++;
         }
-        Map<String, String> placeholders = Map.of(
-                "{arenas_enabled}", String.valueOf(enabled),
-                "{arenas_total}", String.valueOf(total),
-                "{players_online}", String.valueOf(Bukkit.getOnlinePlayers().size()));
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("{arenas_enabled}", String.valueOf(enabled));
+        placeholders.put("{arenas_total}", String.valueOf(total));
+        placeholders.put("{players_online}", String.valueOf(Bukkit.getOnlinePlayers().size()));
+        var progress = plugin.getProgress();
+        boolean shown = progress != null && progress.enabled() && plugin.getStats().isLoaded(player.getUniqueId());
+        long xp = shown ? progress.xp(player.getUniqueId(), player.getName()) : 0;
+        int level = shown ? progress.curve().levelFor(xp) : 1;
+        placeholders.put("{level}", String.valueOf(level));
+        placeholders.put("{rank}", shown ? progress.rank(level) : "");
+        placeholders.put("{xp_bar}", shown ? progress.bar(xp) : "");
+        placeholders.put("{coins}", shown ? String.valueOf(progress.coins(player.getUniqueId(), player.getName())) : "0");
 
         List<Component> lines = new ArrayList<>();
         for (String template : config.getStringList("hub.lines")) {

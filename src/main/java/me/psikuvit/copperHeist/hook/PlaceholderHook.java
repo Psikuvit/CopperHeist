@@ -65,8 +65,27 @@ public class PlaceholderHook extends PlaceholderExpansion {
         Stat stat = Stat.fromKey(key);
         if (stat != null) return stat(player, stat);
 
+        var progress = plugin.getProgress();
+        if (progress != null && player != null && progress.enabled()) {
+            long xp = progress.xp(player.getUniqueId(), String.valueOf(player.getName()));
+            int level = progress.curve().levelFor(xp);
+            switch (key) {
+                case "level" -> {
+                    return String.valueOf(level);
+                }
+                case "rank" -> {
+                    return progress.rankName(level);
+                }
+                case "xp_next" -> {
+                    return String.valueOf(level >= progress.curve().maxLevel() ? 0 : progress.curve().xpForNext(level) - progress.curve().xpIntoLevel(xp));
+                }
+                default -> {
+                }
+            }
+        }
+
         Game game = player instanceof Player online ? plugin.getGameManager().getGame(online) : null;
-        GamePlayer gp = game == null || player == null ? null : game.getGamePlayer(player.getUniqueId());
+        GamePlayer gp = game == null ? null : game.getGamePlayer(player.getUniqueId());
         return switch (key) {
             case "arena" -> game == null ? "" : game.getArena().getName();
             case "state" -> game == null ? "" : game.getState().name();
