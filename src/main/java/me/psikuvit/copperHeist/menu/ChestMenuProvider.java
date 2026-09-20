@@ -5,7 +5,7 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import org.bukkit.entity.Player;
 
-/** The classic chest-inventory GUI. */
+/** The classic chest-inventory GUI, built on {@link Menu} and opened through the {@link MenuManager}. */
 public class ChestMenuProvider implements MenuProvider {
 
     private final CopperHeist plugin;
@@ -16,11 +16,11 @@ public class ChestMenuProvider implements MenuProvider {
 
     @Override
     public void openShop(Player player, Game game, GamePlayer gamePlayer) {
-        player.openInventory(plugin.getShopService().buildMenu(player));
+        plugin.getMenus().open(player, new ShopMenu(plugin, player));
     }
 
     @Override
     public void openRoles(Player player, Game game, GamePlayer gamePlayer) {
-        player.openInventory(game.getRoleService().buildRoleMenu(player));
+        plugin.getMenus().open(player, new RoleMenu(plugin, player));
     }
 }

@@ -16,7 +16,6 @@ public final class PdcKeys {
     public static PdcKey<String, String> SHOP_ITEM;
     public static PdcKey<String, String> LOOT_TIER;
     public static PdcKey<String, String> SESSION;
-    public static PdcKey<String, String> MENU_ID;
 
     private PdcKeys() {
     }
@@ -32,6 +31,5 @@ public final class PdcKeys {
         SHOP_ITEM = PdcKey.of(plugin, "shop_item", PersistentDataType.STRING);
         LOOT_TIER = PdcKey.of(plugin, "loot_tier", PersistentDataType.STRING);
         SESSION = PdcKey.of(plugin, "session", PersistentDataType.STRING);
-        MENU_ID = PdcKey.of(plugin, "menu_id", PersistentDataType.STRING);
     }
 }

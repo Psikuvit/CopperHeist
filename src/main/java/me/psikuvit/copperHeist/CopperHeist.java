@@ -33,8 +33,8 @@ import me.psikuvit.copperHeist.listener.LobbyListener;
 import me.psikuvit.copperHeist.listener.LootListener;
 import me.psikuvit.copperHeist.listener.PlayerConnectionListener;
 import me.psikuvit.copperHeist.listener.RoleListener;
-import me.psikuvit.copperHeist.listener.ShopListener;
 import me.psikuvit.copperHeist.listener.VaultRegionListener;
+import me.psikuvit.copperHeist.menu.MenuManager;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.provider.Providers;
 import me.psikuvit.copperHeist.loot.LootTierRegistry;
@@ -84,6 +84,7 @@ public final class CopperHeist extends JavaPlugin {
     private StatsService statsService;
     private LeaderboardService leaderboards;
     private NetworkService network;
+    private MenuManager menus;
 
     @Override
     public void onEnable() {
@@ -139,7 +140,8 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GolemInteractListener(this), this);
         getServer().getPluginManager().registerEvents(new ArenaProtectionListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
-        getServer().getPluginManager().registerEvents(new ShopListener(this), this);
+        menus = new MenuManager(this);
+        menus.start();
         getServer().getPluginManager().registerEvents(new RoleListener(this), this);
         getServer().getPluginManager().registerEvents(new GameEventListener(this), this);
         getServer().getPluginManager().registerEvents(new HeistListener(this), this);
@@ -160,6 +162,7 @@ public final class CopperHeist extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (menus != null) menus.stop();
         if (gameManager != null) gameManager.shutdownAll();
         HeistEntities.removeCurrentSession();
         if (actionBar != null) actionBar.stop();
@@ -292,6 +295,11 @@ public final class CopperHeist extends JavaPlugin {
 
     public ShopActionRegistry getShopActions() {
         return shopActions;
+    }
+
+    /** The single manager every chest GUI is opened through; see {@link MenuManager}. */
+    public MenuManager getMenus() {
+        return menus;
     }
 
     public ShopService getShopService() {

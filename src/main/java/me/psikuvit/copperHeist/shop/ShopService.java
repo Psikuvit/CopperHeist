@@ -6,24 +6,16 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.GameState;
 import me.psikuvit.copperHeist.loot.LootItem;
-import me.psikuvit.copperHeist.menu.Gui;
 import me.psikuvit.copperHeist.shop.action.GiveItemAction;
 import me.psikuvit.copperHeist.shop.action.ShopAction;
 import me.psikuvit.copperHeist.shop.action.ShopPurchase;
-import me.psikuvit.copperHeist.util.Pdc;
-import me.psikuvit.copperHeist.util.PdcKeys;
 import me.psikuvit.copperHeist.ui.Theme;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -117,67 +109,9 @@ public class ShopService {
         return entry == null ? null : GiveItemAction.createStack(entry);
     }
 
-    // ---- menu ----
-
-    /** A framed menu: entries laid out over the inside, your carried loot value at the bottom, a close button in the corner. */
-    public Inventory buildMenu(Player viewer) {
-        int rows = Gui.rowsFor(entries.size());
-        Inventory inventory = Bukkit.createInventory(new ShopHolder(), rows * 9, miniMessage.deserialize(menuTitle(viewer)));
-        fill(inventory, viewer);
-        return inventory;
-    }
-
-    /** (Re)draws the whole menu. Also used to refresh an open menu after a purchase so prices and locks stay current. */
-    public void fill(Inventory inventory, Player viewer) {
-        inventory.clear();
-        Material frame = Material.matchMaterial(config.getString("menu.border", "GRAY_STAINED_GLASS_PANE"));
-        Gui.border(inventory, frame == null ? Material.GRAY_STAINED_GLASS_PANE : frame);
-
-        Game game = plugin.getGameManager().getGame(viewer);
-        GamePlayer gp = game == null ? null : game.getGamePlayer(viewer.getUniqueId());
-        int have = plugin.getLootWeightService().getCarriedValue(viewer);
-        int footer = inventory.getSize() - 9;
-
-        int index = 0;
-        for (ShopEntry entry : entries.values()) {
-            int slot = entry.slot() >= 0 && entry.slot() < footer ? entry.slot() : Gui.slotFor(index++);
-            if (slot >= footer) continue; // more entries than the menu has room for
-            inventory.setItem(slot, buildDisplayItem(entry, viewer, game, gp, have));
-        }
-
-        var messages = plugin.getMessageService();
-        inventory.setItem(footer + 4, Gui.item(Material.GOLD_INGOT, messages.rawFor(viewer, "gui.shop.balance-name"),
-                List.of(messages.rawFor(viewer, "gui.shop.balance-lore", "value", have),
-                        messages.rawFor(viewer, "gui.shop.balance-hint")), "info"));
-        inventory.setItem(footer + 8, Gui.item(Material.BARRIER, messages.rawFor(viewer, "gui.close"), List.of(), "close"));
-    }
-
-    private ItemStack buildDisplayItem(ShopEntry entry, Player viewer, Game game, GamePlayer gp, int have) {
-        var messages = plugin.getMessageService();
-        ItemStack stack = "give-item".equals(entry.action()) ? GiveItemAction.createStack(entry)
-                : new ItemStack(entry.material(), Math.max(1, entry.amount()));
-        ItemMeta meta = stack.getItemMeta();
-        meta.displayName(Gui.text(entryName(entry, viewer)));
-
-        List<Component> lore = new ArrayList<>();
-        for (String line : entryLore(entry, viewer)) lore.add(Gui.text(line));
-        lore.add(Component.empty());
-        boolean affordable = have >= entry.cost();
-        lore.add(Gui.text(messages.rawFor(viewer, affordable ? "gui.shop.cost-ok" : "gui.shop.cost-bad", "cost", entry.cost(), "have", have)));
-
-        String blocked = null;
-        if (entry.minPhase() != null && (game == null || !(game.isActive() && game.getState().ordinal() >= entry.minPhase().ordinal()))) {
-            blocked = messages.rawFor(viewer, "gui.shop.locked", "phase", entry.minPhase().name().replace('_', ' '));
-        } else if (gp != null && entry.maxPerPlayer() > 0 && gp.purchaseCount(entry.id()) >= entry.maxPerPlayer()) {
-            blocked = messages.rawFor(viewer, "gui.shop.limit", "limit", entry.maxPerPlayer());
-        } else if (gp != null && gp.purchaseCooldownRemaining(entry.id()) > 0) {
-            blocked = messages.rawFor(viewer, "gui.shop.cooldown", "seconds", gp.purchaseCooldownRemaining(entry.id()));
-        }
-        lore.add(Gui.text(blocked != null ? blocked : messages.rawFor(viewer, affordable ? "gui.shop.click" : "gui.shop.need-more")));
-        meta.lore(lore);
-        stack.setItemMeta(meta);
-        Pdc.set(stack, PdcKeys.SHOP_ITEM, entry.id());
-        return stack;
+    /** The material name of the shop menu's frame (shop.yml menu.border); the menu falls back to grey panes if it isn't valid. */
+    public String menuBorder() {
+        return config.getString("menu.border", "GRAY_STAINED_GLASS_PANE");
     }
 
     // ---- buying ----
