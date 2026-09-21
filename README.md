@@ -168,7 +168,22 @@ Mastermind, Legend) and the level curve are configurable, and `/ch admin booster
   `%_xp_next%`, `%_coins%` and `%_xp%`.
 - XP and coins are stored with the player's stats (so they follow the player across the network) and need stats to be enabled.
 
-**Cosmetics** (framework only so far): `cosmetics.yml` defines cosmetics by category (arrow trail, kill effect, victory, golem, shop
+### Goals: quests, achievements and the daily reward
+
+- **Quests** (`quests.yml`): three daily quests and one weekly quest, picked from pools by the day or week number, so they are the same for
+  everyone and every server of a network. They change at midnight UTC (weekly: Monday) and count finished matches: matches, wins, MVPs,
+  loot delivered, steals, kills, scrapes, relics, vault drills. A quest pays XP, coins and optionally a cosmetic the moment it is done.
+- **Achievements** (`achievements.yml`): about 18 permanent goals on lifetime stats and level. Unlocking one shows a real **toast** with its
+  own icon, title and description (falling back to a title if the server can't show it), plus a chat line, and pays XP, coins and
+  optionally a cosmetic. Secret ones stay "???" until earned.
+- **Daily reward** (`daily.yml`): a login streak that grows every consecutive day (a missed day resets it) and a reward you claim once a day
+  with `/ch daily` or the clickable message on join. The list repeats every 7 days, and day 7 gives a cosmetic by default.
+- The **goals screen** (hub Writable Book, `/ch quests`) shows all of it, with the achievements one click away (`/ch achievements`).
+- **Vanilla advancements are switched off** so they don't compete: no "X has made the advancement" chat, and the vanilla advancements are
+  removed from the server (no toasts, an empty advancements screen; recipes are kept). Both are in the `advancements:` block of `config.yml`.
+  Datapack reloads bring the advancements back, so the plugin removes them again after every server load.
+
+**Cosmetics**: `cosmetics.yml` defines cosmetics by category (arrow trail, kill effect, victory, golem, shop
 skin, title, join effect), rarity, coin price, level and permission. Players buy or earn them; server owners can also sell any of them by
 giving the permission `copperheist.cosmetic.<id>` from a store plugin. Other plugins add effects through the API
 (`registerCosmeticEffect`). `/ch admin cosmetic give|take <player> <id>` manages them.
