@@ -190,6 +190,7 @@ public final class CopperHeistCommand {
                                         return Command.SINGLE_SUCCESS;
                                     })))
                     .then(new AdminCommands(plugin, commands.arenaSuggestions).root())
+                    .then(new NavigatorCommands(plugin).root(ADMIN_ARENA))
                     .then(commands.leaderboardRoot())
                     .then(commands.arenaRoot());
 
@@ -574,6 +575,8 @@ public final class CopperHeistCommand {
         plugin.getPresets().load();
         if (plugin.getProgress() != null) plugin.getProgress().load();
         plugin.getCosmeticRegistry().load();
+        plugin.getNpcLooks().load();
+        plugin.getNavigators().reload();
         Msg.ok(sender, "command.reloaded");
         return Command.SINGLE_SUCCESS;
     }
@@ -758,9 +761,11 @@ public final class CopperHeistCommand {
                     }
                     if (arena.validate().isEmpty()) Msg.ok(player, "setup.ready", "arena", arena.getName());
                 }))
-                .then(arenaTeam("setshop", (player, arena, team) -> {
-                    arena.site(team).shop = LocationUtil.center(player.getLocation());
-                    Msg.ok(player, "setup.shop-set", "team", team.displayName(), "arena", arena.getName());
+                .then(shopCommand("setshop", true))
+                .then(shopCommand("addshop", false))
+                .then(arenaTeam("clearshops", (player, arena, team) -> {
+                    arena.site(team).shops.clear();
+                    Msg.ok(player, "setup.shops-cleared", "team", team.displayName(), "arena", arena.getName());
                 }))
                 .then(arenaTeam("setbase1", (player, arena, team) -> {
                     arena.site(team).baseCorner1 = player.getLocation();
@@ -1000,6 +1005,42 @@ public final class CopperHeistCommand {
                         .then(argument("team", StringArgumentType.word())
                                 .suggests(TeamSuggestions.TEAMS)
                                 .executes(ctx -> runArenaTeam(ctx, action))));
+    }
+
+    /**
+     * setshop (one shop keeper, replacing any others) and addshop (another one): both take an optional npcs.yml look, so a team can have
+     * several keepers that each look different.
+     */
+    private LiteralArgumentBuilder<CommandSourceStack> shopCommand(String name, boolean replace) {
+        return literal(name)
+                .then(argument("name", StringArgumentType.word())
+                        .suggests(arenaSuggestions)
+                        .then(argument("team", StringArgumentType.word())
+                                .suggests(TeamSuggestions.TEAMS)
+                                .executes(ctx -> runArenaTeam(ctx, (player, arena, team) -> placeShop(player, arena, team, null, replace)))
+                                .then(argument("look", StringArgumentType.word())
+                                        .suggests(lookSuggestions())
+                                        .executes(ctx -> runArenaTeam(ctx, (player, arena, team) ->
+                                                placeShop(player, arena, team, StringArgumentType.getString(ctx, "look"), replace))))));
+    }
+
+    private void placeShop(Player player, Arena arena, Team team, String look, boolean replace) {
+        if (look != null && plugin.getNpcLooks().get(look) == null) {
+            Msg.err(player, "npc.unknown-look", "look", look, "looks", String.join(", ", plugin.getNpcLooks().ids()));
+            return;
+        }
+        Arena.TeamSite site = arena.site(team);
+        if (replace) site.shops.clear();
+        site.shops.add(new Arena.ShopPoint(LocationUtil.center(player.getLocation()), look == null ? null : look.toLowerCase(Locale.ROOT)));
+        Msg.ok(player, replace ? "setup.shop-set" : "setup.shop-added", "team", team.displayName(), "arena", arena.getName(),
+                "count", site.shops.size());
+    }
+
+    private SuggestionProvider<CommandSourceStack> lookSuggestions() {
+        return (ctx, builder) -> {
+            for (String id : plugin.getNpcLooks().ids()) builder.suggest(id);
+            return builder.buildFuture();
+        };
     }
 
     private int runArenaOnly(CommandContext<CommandSourceStack> ctx, ArenaAction action) {

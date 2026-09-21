@@ -105,7 +105,16 @@ public class ArenaManager {
             if (site.spawn != null) yaml.set(base + ".spawn", LocationUtil.serialize(site.spawn));
             if (site.golemIdle != null) yaml.set(base + ".golem-idle", LocationUtil.serialize(site.golemIdle));
             if (site.vaultDoor != null) yaml.set(base + ".vault-door", LocationUtil.serialize(site.vaultDoor));
-            if (site.shop != null) yaml.set(base + ".shop", LocationUtil.serialize(site.shop));
+            if (!site.shops.isEmpty()) {
+                List<Map<String, Object>> shops = new ArrayList<>();
+                for (Arena.ShopPoint point : site.shops) {
+                    Map<String, Object> entry = new LinkedHashMap<>();
+                    entry.put("loc", LocationUtil.serialize(point.location()));
+                    if (point.look() != null) entry.put("look", point.look());
+                    shops.add(entry);
+                }
+                yaml.set(base + ".shops", shops);
+            }
             if (site.baseCorner1 != null) yaml.set(base + ".base-corner-1", LocationUtil.serialize(site.baseCorner1));
             if (site.baseCorner2 != null) yaml.set(base + ".base-corner-2", LocationUtil.serialize(site.baseCorner2));
             if (site.vaultCorner1 != null) yaml.set(base + ".vault-corner-1", LocationUtil.serialize(site.vaultCorner1));
@@ -153,7 +162,15 @@ public class ArenaManager {
             String base = "teams." + team.name().toLowerCase();
             if (yaml.contains(base + ".spawn")) site.spawn = LocationUtil.deserializeCentered(world, yaml.getList(base + ".spawn"));
             if (yaml.contains(base + ".golem-idle")) site.golemIdle = LocationUtil.deserializeCentered(world, yaml.getList(base + ".golem-idle"));
-            if (yaml.contains(base + ".shop")) site.shop = LocationUtil.deserializeCentered(world, yaml.getList(base + ".shop"));
+            // "shops" is a list of {loc, look}; older files had a single "shop" point, which becomes the first shop keeper.
+            for (Map<?, ?> entry : yaml.getMapList(base + ".shops")) {
+                Location loc = LocationUtil.deserializeCentered(world, entry.get("loc") instanceof List<?> l ? l : null);
+                if (loc != null) site.shops.add(new Arena.ShopPoint(loc, entry.get("look") == null ? null : String.valueOf(entry.get("look"))));
+            }
+            if (site.shops.isEmpty() && yaml.contains(base + ".shop")) {
+                Location legacy = LocationUtil.deserializeCentered(world, yaml.getList(base + ".shop"));
+                if (legacy != null) site.shops.add(new Arena.ShopPoint(legacy, null));
+            }
             if (yaml.contains(base + ".base-corner-1")) site.baseCorner1 = LocationUtil.deserialize(world, yaml.getList(base + ".base-corner-1"));
             if (yaml.contains(base + ".base-corner-2")) site.baseCorner2 = LocationUtil.deserialize(world, yaml.getList(base + ".base-corner-2"));
             if (yaml.contains(base + ".vault-corner-1")) site.vaultCorner1 = LocationUtil.deserialize(world, yaml.getList(base + ".vault-corner-1"));

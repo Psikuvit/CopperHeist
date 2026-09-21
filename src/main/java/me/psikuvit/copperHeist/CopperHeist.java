@@ -24,6 +24,9 @@ import me.psikuvit.copperHeist.golem.GolemDebug;
 import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StaleEntityListener;
 import me.psikuvit.copperHeist.listener.CosmeticListener;
+import me.psikuvit.copperHeist.listener.NavigatorListener;
+import me.psikuvit.copperHeist.npc.NavigatorService;
+import me.psikuvit.copperHeist.npc.NpcLooks;
 import me.psikuvit.copperHeist.listener.ProgressListener;
 import me.psikuvit.copperHeist.listener.StatsListener;
 import me.psikuvit.copperHeist.profile.ProfileRepository;
@@ -96,6 +99,8 @@ public final class CopperHeist extends JavaPlugin {
     private MenuManager menus;
     private ProgressService progress;
     private ProfileService profiles;
+    private NpcLooks npcLooks;
+    private NavigatorService navigators;
     private EffectRegistry cosmeticEffects;
     private CosmeticRegistry cosmeticRegistry;
     private CosmeticService cosmetics;
@@ -153,6 +158,11 @@ public final class CopperHeist extends JavaPlugin {
         // Other plugins register their own effects in their onEnable, so cosmetics.yml is read once every plugin is up.
         getServer().getScheduler().runTask(this, cosmeticRegistry::load);
 
+        npcLooks = new NpcLooks(this);
+        npcLooks.load();
+        navigators = new NavigatorService(this);
+        navigators.start();
+
         arenaManager.loadAll();
         arenaManager.all().forEach(arena -> providers.reset().resolve(settings.getString("reset.method", "entities")).reset(arena));
 
@@ -172,6 +182,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
         getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
         getServer().getPluginManager().registerEvents(new CosmeticListener(this), this);
+        getServer().getPluginManager().registerEvents(new NavigatorListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbySafetyListener(this), this);
         getServer().getPluginManager().registerEvents(new StaleEntityListener(this), this);
         int stale = HeistEntities.sweepStaleEverywhere(gameManager::isMatchRunning);
@@ -187,6 +198,7 @@ public final class CopperHeist extends JavaPlugin {
     @Override
     public void onDisable() {
         if (menus != null) menus.stop();
+        if (navigators != null) navigators.stop();
         if (gameManager != null) gameManager.shutdownAll();
         if (profiles != null) profiles.shutdown(); // save everyone and release them for other servers before the network closes
         HeistEntities.removeCurrentSession();
@@ -323,6 +335,16 @@ public final class CopperHeist extends JavaPlugin {
 
     public ShopActionRegistry getShopActions() {
         return shopActions;
+    }
+
+    /** The named NPC appearances from npcs.yml (villager professions, Mannequin skins, armor stand gear). */
+    public NpcLooks getNpcLooks() {
+        return npcLooks;
+    }
+
+    /** The hub NPCs that open the arena picker. */
+    public NavigatorService getNavigators() {
+        return navigators;
     }
 
     /** Everything about owning, buying, equipping and playing cosmetics. */

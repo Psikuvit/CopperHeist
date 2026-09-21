@@ -15,6 +15,7 @@ import me.psikuvit.copperHeist.loot.LootBagManager;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootSpawner;
 import me.psikuvit.copperHeist.npc.NpcHandle;
+import me.psikuvit.copperHeist.npc.NpcLook;
 import me.psikuvit.copperHeist.npc.NpcSpec;
 import me.psikuvit.copperHeist.npc.VillagerNpcProvider;
 import me.psikuvit.copperHeist.relic.RelicManager;
@@ -329,28 +330,38 @@ public class Game {
 
     // ---- shop NPCs ----
 
+    /**
+     * One NPC per shop point of each team. A shop point can name an npcs.yml look (a villager profession, a Mannequin skin, an armor stand
+     * with a custom head and armor ...); without one the default shop look is used, and without that the plain npc.type from config.yml.
+     */
     private void spawnShopNpcs() {
-        var provider = plugin.providers().npc().resolve(settings().getString("npc.type", "villager"));
         String format = settings().getString("npc.name-format", "{team} Shop");
+        var looks = plugin.getNpcLooks();
         for (Team team : Team.values()) {
-            Location loc = arena.site(team).shop;
-            if (loc == null || loc.getWorld() == null) continue;
-            Component name = Theme.mini().deserialize(format.replace("{team}", team.displayName()))
-                    .colorIfAbsent(team.color());
-            NpcHandle handle;
             var skin = plugin.getCosmetics().bestForTeam(this, team, CosmeticCategory.NPC);
-            try {
-                handle = provider.spawn(new NpcSpec(loc, name, team, settings(), skin == null ? null : skin.cosmetic().params()));
-            } catch (LinkageError | RuntimeException ex) {
-                plugin.getLogger().warning("NPC type '" + settings().getString("npc.type", "villager")
-                        + "' failed (" + ex + ") - falling back to a villager.");
-                handle = new VillagerNpcProvider().spawn(new NpcSpec(loc, name, team, settings()));
+            for (Arena.ShopPoint point : arena.site(team).shops) {
+                Location loc = point.location();
+                if (loc == null || loc.getWorld() == null) continue;
+                NpcLook look = looks.get(point.look());
+                if (look == null) look = looks.defaultFor("shop");
+                String type = look != null && look.type() != null ? look.type() : settings().getString("npc.type", "villager");
+                String nameFormat = look != null && look.name() != null ? look.name() : format;
+                Component name = Theme.mini().deserialize(nameFormat.replace("{team}", team.displayName())).colorIfAbsent(team.color());
+
+                NpcSpec spec = new NpcSpec(loc, name, team, settings(), skin == null ? null : skin.cosmetic().params(), look);
+                NpcHandle handle;
+                try {
+                    handle = plugin.providers().npc().resolve(type).spawn(spec);
+                } catch (LinkageError | RuntimeException ex) {
+                    plugin.getLogger().warning("NPC type '" + type + "' failed (" + ex + ") - falling back to a villager.");
+                    handle = new VillagerNpcProvider().spawn(new NpcSpec(loc, name, team, settings()));
+                }
+                if (handle == null) continue;
+                for (Entity entity : allNpcEntities(handle)) Pdc.set(entity, PdcKeys.MATCH_ID, matchId);
+                shopNpcs.put(handle.clickable().getUniqueId(), team);
+                npcEntities.addAll(allNpcEntities(handle));
+                plugin.getGameManager().registerHeistEntity(this, handle.clickable().getUniqueId());
             }
-            if (handle == null) continue;
-            for (Entity entity : allNpcEntities(handle)) Pdc.set(entity, PdcKeys.MATCH_ID, matchId);
-            shopNpcs.put(handle.clickable().getUniqueId(), team);
-            npcEntities.addAll(allNpcEntities(handle));
-            plugin.getGameManager().registerHeistEntity(this, handle.clickable().getUniqueId());
         }
     }
 

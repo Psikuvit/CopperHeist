@@ -19,6 +19,10 @@ public class Arena {
         COMMON, RARE, CACHE
     }
 
+    /** One shop keeper's spot; {@code look} names an npcs.yml look for it (null = the default shop look). */
+    public record ShopPoint(Location location, String look) {
+    }
+
     public static class TeamSite {
         public Location spawn;
         public final List<Location> dockChests = new ArrayList<>();
@@ -26,7 +30,8 @@ public class Arena {
         public Location golemIdle;
         public final List<Location> waypoints = new ArrayList<>();
         public Location vaultDoor;
-        public Location shop;
+        /** Every shop keeper of the team - as many as the builder wants, each with its own look. */
+        public final List<ShopPoint> shops = new ArrayList<>();
         public Location baseCorner1;
         public Location baseCorner2;
         public Location vaultCorner1;
@@ -218,7 +223,7 @@ public class Arena {
             check(checks, site.golemIdle != null, Text.of("arena.check.golem-idle-ok", "team", name),
                     Text.of("arena.check.golem-idle-fail", "team", name));
             // Vanilla golems find their own way between chests; waypoints are optional and unused.
-            if (site.shop == null) checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.shop-warn", "team", name)));
+            if (site.shops.isEmpty()) checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.shop-warn", "team", name)));
             if (site.base() == null) checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.base-warn", "team", name)));
             if (site.vaultRegion() == null) {
                 checks.add(new ArenaCheck(ArenaCheck.Level.WARN, Text.of("arena.check.vault-region-warn", "team", name)));

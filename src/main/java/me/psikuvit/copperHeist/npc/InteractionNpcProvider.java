@@ -1,7 +1,6 @@
 package me.psikuvit.copperHeist.npc;
 
 import org.bukkit.entity.Display;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.TextDisplay;
 
@@ -26,6 +25,6 @@ public class InteractionNpcProvider implements NpcProvider {
             entity.setBillboard(Display.Billboard.CENTER);
             entity.text(spec.name());
             });
-        return new NpcHandle(hitbox, List.<Entity>of(label));
+        return new NpcHandle(hitbox, List.of(label));
     }
 }

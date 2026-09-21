@@ -18,6 +18,8 @@ public final class PdcKeys {
     public static PdcKey<String, String> SESSION;
     /** Marks an entity spawned only for a cosmetic (a firework burst) so it can be kept harmless. */
     public static PdcKey<String, String> COSMETIC;
+    /** Marks a hub navigator NPC (the value is its id). */
+    public static PdcKey<String, String> NAVIGATOR;
 
     private PdcKeys() {
     }
@@ -34,5 +36,6 @@ public final class PdcKeys {
         LOOT_TIER = PdcKey.of(plugin, "loot_tier", PersistentDataType.STRING);
         SESSION = PdcKey.of(plugin, "session", PersistentDataType.STRING);
         COSMETIC = PdcKey.of(plugin, "cosmetic", PersistentDataType.STRING);
+        NAVIGATOR = PdcKey.of(plugin, "navigator", PersistentDataType.STRING);
     }
 }

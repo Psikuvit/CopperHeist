@@ -1,81 +1,74 @@
 package me.psikuvit.copperHeist.npc;
 
-import com.destroystokyo.paper.profile.ProfileProperty;
+import com.destroystokyo.paper.SkinParts;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
-import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Pose;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 /**
- * A Mannequin - a player-shaped NPC with a real skin. All under npc.mannequin:
- * skin.type (player-name | uuid | texture), skin.value, skin.signature (texture only),
- * pose, immovable, show-name, description (MiniMessage line shown under the name)
- * and skin-parts.{cape,jacket,sleeves,pants,hat}.
+ * A Mannequin - a player-shaped NPC with a real skin - customised by skin and gear. Options (npcs.yml look, or npc.mannequin in
+ * config.yml): skin.type (player-name | uuid | texture), skin.value, skin.signature (texture only), pose, immovable, show-name,
+ * description (MiniMessage line under the name) and skin-parts.{cape,jacket,sleeves,pants,hat}; a look can also give it armor and held
+ * items (see {@link NpcGear}). A skin from an equipped shop-skin cosmetic wins over the look's and config.yml's.
  */
 public class MannequinNpcProvider implements NpcProvider {
 
     @Override
     public NpcHandle spawn(NpcSpec spec) {
-        Settings s = spec.settings();
-        ResolvableProfile profile = buildProfile(s, spec.skin());
-        Pose pose = parsePose(s.getString("npc.mannequin.pose", "STANDING"));
-        String description = s.getString("npc.mannequin.description", "");
-        boolean showName = s.getBoolean("npc.mannequin.show-name", true);
-        boolean immovable = s.getBoolean("npc.mannequin.immovable", true);
+        ResolvableProfile profile = profile(spec);
+        Pose pose = parsePose(spec.string("pose", "npc.mannequin.pose", "STANDING"));
+        String description = spec.string("description", "npc.mannequin.description", "");
+        boolean showName = spec.bool("show-name", "npc.mannequin.show-name", true);
+        boolean immovable = spec.bool("immovable", "npc.mannequin.immovable", true);
+        Map<EquipmentSlot, ItemStack> gear = NpcGear.items(spec);
 
         Mannequin mannequin = spec.location().getWorld().spawn(spec.location(), Mannequin.class, entity -> {
             entity.setAI(false);
             entity.setInvulnerable(true);
             entity.setSilent(true);
-                entity.setImmovable(immovable);
+            entity.setImmovable(immovable);
             entity.customName(spec.name());
             entity.setCustomNameVisible(showName);
             entity.setDescription(description.isBlank() ? Component.empty() : Theme.mini().deserialize(description));
             if (pose != null && Mannequin.validPoses().contains(pose)) entity.setPose(pose);
             if (profile != null) entity.setProfile(profile);
+            for (Map.Entry<EquipmentSlot, ItemStack> piece : gear.entrySet()) entity.getEquipment().setItem(piece.getKey(), piece.getValue());
 
-            var parts = entity.getSkinParts();
-            parts.setCapeEnabled(s.getBoolean("npc.mannequin.skin-parts.cape", true));
-            parts.setJacketEnabled(s.getBoolean("npc.mannequin.skin-parts.jacket", true));
-            parts.setLeftSleeveEnabled(s.getBoolean("npc.mannequin.skin-parts.sleeves", true));
-            parts.setRightSleeveEnabled(s.getBoolean("npc.mannequin.skin-parts.sleeves", true));
-            parts.setLeftPantsEnabled(s.getBoolean("npc.mannequin.skin-parts.pants", true));
-            parts.setRightPantsEnabled(s.getBoolean("npc.mannequin.skin-parts.pants", true));
-            parts.setHatsEnabled(s.getBoolean("npc.mannequin.skin-parts.hat", true));
+            var parts = getSkinParts(spec, entity);
             entity.setSkinParts(parts);
         });
         return NpcHandle.of(mannequin);
     }
 
-    /** Null means "leave the default skin" - a bad skin config must never stop the NPC from spawning. */
-    private ResolvableProfile buildProfile(Settings s, Map<String, Object> override) {
-        // An equipped shop-skin cosmetic wins over the skin set in config.yml.
-        String type = (override != null ? String.valueOf(override.getOrDefault("type", "player-name"))
-                : s.getString("npc.mannequin.skin.type", "player-name")).toLowerCase(Locale.ROOT);
-        String value = override != null ? String.valueOf(override.getOrDefault("value", "")) : s.getString("npc.mannequin.skin.value", "");
-        String signatureValue = override != null ? String.valueOf(override.getOrDefault("signature", "")) : s.getString("npc.mannequin.skin.signature", "");
-        if (value.isBlank()) return null;
-        try {
-            var builder = ResolvableProfile.resolvableProfile();
-            switch (type) {
-                case "uuid" -> builder.uuid(UUID.fromString(value));
-                case "texture" -> {
-                    builder.name("CopperHeist");
-                    builder.addProperty(new ProfileProperty("textures", value, signatureValue.isBlank() ? null : signatureValue));
-                }
-                default -> builder.name(value);
-            }
-            return builder.build();
-        } catch (RuntimeException ex) {
-            return null;
+    private static SkinParts.@NonNull Mutable getSkinParts(NpcSpec spec, Mannequin entity) {
+        var parts = entity.getSkinParts();
+        parts.setCapeEnabled(spec.bool("skin-parts.cape", "npc.mannequin.skin-parts.cape", true));
+        parts.setJacketEnabled(spec.bool("skin-parts.jacket", "npc.mannequin.skin-parts.jacket", true));
+        parts.setLeftSleeveEnabled(spec.bool("skin-parts.sleeves", "npc.mannequin.skin-parts.sleeves", true));
+        parts.setRightSleeveEnabled(spec.bool("skin-parts.sleeves", "npc.mannequin.skin-parts.sleeves", true));
+        parts.setLeftPantsEnabled(spec.bool("skin-parts.pants", "npc.mannequin.skin-parts.pants", true));
+        parts.setRightPantsEnabled(spec.bool("skin-parts.pants", "npc.mannequin.skin-parts.pants", true));
+        parts.setHatsEnabled(spec.bool("skin-parts.hat", "npc.mannequin.skin-parts.hat", true));
+        return parts;
+    }
+
+    /** Null means "leave the default skin". Priority: an equipped shop-skin cosmetic, then the look, then config.yml. */
+    private ResolvableProfile profile(NpcSpec spec) {
+        Map<String, Object> cosmetic = spec.skin();
+        if (cosmetic != null) {
+            return NpcSkins.profile(String.valueOf(cosmetic.getOrDefault("type", "player-name")), String.valueOf(cosmetic.getOrDefault("value", "")),
+                    String.valueOf(cosmetic.getOrDefault("signature", "")));
         }
+        return NpcSkins.profile(spec.string("skin.type", "npc.mannequin.skin.type", "player-name"),
+                spec.string("skin.value", "npc.mannequin.skin.value", ""), spec.string("skin.signature", "npc.mannequin.skin.signature", ""));
     }
 
     private Pose parsePose(String name) {

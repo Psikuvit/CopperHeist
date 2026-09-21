@@ -1,0 +1,121 @@
+# NPC looks: named appearances for shop keepers and hub navigators. A look picks the kind of NPC and how it is dressed, so a team can have
+# several shop keepers that each look different, and the hub can have navigators (the NPCs that open the arena picker) in any style.
+#
+# Use a look:
+#   shop keepers    /ch arena addshop <arena> <team> [look]   (add as many as you like; setshop replaces them with one)
+#   navigators      /ch navigator create <id> [look]          (see also: /ch navigator look|remove|list)
+#   defaults        the looks used when none is named are set under "defaults" below. Remove a default to fall back to the plain
+#                   npc.type and npc.* settings in config.yml.
+# /ch reload re-reads this file (navigators are rebuilt; shop keepers change at the next match).
+#
+# looks.<id>:
+#   type    villager | mannequin | armor-stand | interaction | none   (leave out to use npc.type from config.yml)
+#   name    MiniMessage name tag; {team} is the team's name (shop keepers). Leave out for the default.
+#
+#   villager      profession   librarian, armorer, toolsmith, weaponsmith, cartographer, cleric, farmer, butcher, fisherman, ...
+#                 biome        plains, desert, jungle, savanna, snow, swamp, taiga (the villager's clothing style)
+#                 level        1-5 (the badge on its outfit)          baby: true|false
+#   mannequin     skin: {type: player-name|uuid|texture, value: ..., signature: ...}     pose, description, show-name, immovable
+#                 plus any of the gear options below
+#   armor-stand   small, arms, base-plate, plus the gear options below
+#
+#   gear (armor stands and mannequins):
+#                 head         any material for the head, e.g. DIAMOND_HELMET, PUMPKIN
+#                 skull        {type: player-name|uuid|texture, value: ..., signature: ...} - a player head instead of head
+#                 armor        {chest: MATERIAL, legs: MATERIAL, feet: MATERIAL, color: "#RRGGBB"}  (color dyes leather armor)
+#                 main-hand, off-hand   what it holds
+#
+# A mannequin's skin can also come from a shop-skin cosmetic a player on the team has equipped (see cosmetics.yml).
+
+defaults:
+  shop: merchant
+  navigator: guide
+
+looks:
+
+  # ---- villagers, by profession ----
+  merchant:
+    type: villager
+    profession: librarian
+  armorer:
+    type: villager
+    profession: armorer
+    name: "{team} Armorer"
+  toolsmith:
+    type: villager
+    profession: toolsmith
+    name: "{team} Toolsmith"
+  weaponsmith:
+    type: villager
+    profession: weaponsmith
+    name: "{team} Weaponsmith"
+  cartographer:
+    type: villager
+    profession: cartographer
+    name: "{team} Scout"
+  cleric:
+    type: villager
+    profession: cleric
+    name: "{team} Healer"
+  butcher:
+    type: villager
+    profession: butcher
+    biome: desert
+    name: "{team} Provisions"
+
+  # ---- mannequins, by skin ----
+  mannequin_villager:
+    type: mannequin
+    skin: { type: player-name, value: MHF_Villager }
+  mannequin_golem:
+    type: mannequin
+    skin: { type: player-name, value: MHF_Golem }
+    name: "{team} Ironclad"
+  mannequin_creeper:
+    type: mannequin
+    skin: { type: player-name, value: MHF_Creeper }
+    name: "{team} Sssupplies"
+
+  # ---- armor stands, by head and armor ----
+  knight:
+    type: armor-stand
+    head: IRON_HELMET
+    armor: { chest: IRON_CHESTPLATE, legs: IRON_LEGGINGS, feet: IRON_BOOTS }
+    main-hand: IRON_SWORD
+    name: "{team} Quartermaster"
+  copper_guard:
+    type: armor-stand
+    head: LEATHER_HELMET
+    armor: { chest: LEATHER_CHESTPLATE, legs: LEATHER_LEGGINGS, feet: LEATHER_BOOTS, color: "#B87333" }
+    main-hand: COPPER_INGOT
+    name: "{team} Copper Guard"
+  treasure_keeper:
+    type: armor-stand
+    skull: { type: player-name, value: MHF_Chest }
+    armor: { chest: GOLDEN_CHESTPLATE }
+    main-hand: GOLD_INGOT
+    small: true
+    name: "{team} Treasurer"
+  golem_statue:
+    type: armor-stand
+    skull: { type: player-name, value: MHF_Golem }
+    armor: { chest: LEATHER_CHESTPLATE, color: "#B87333" }
+    arms: false
+    name: "{team} Golem Keeper"
+
+  # ---- hub navigators ----
+  guide:
+    type: villager
+    profession: cartographer
+    name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"
+  guide_knight:
+    type: armor-stand
+    head: DIAMOND_HELMET
+    armor: { chest: DIAMOND_CHESTPLATE, legs: DIAMOND_LEGGINGS, feet: DIAMOND_BOOTS }
+    main-hand: COMPASS
+    name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"
+  guide_mannequin:
+    type: mannequin
+    skin: { type: player-name, value: MHF_Villager }
+    main-hand: COMPASS
+    name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"

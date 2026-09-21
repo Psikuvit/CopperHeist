@@ -256,7 +256,9 @@ setup:
   bounds-1: "Set corner 1 of arena bounds."
   bounds-2: "Set corner 2 of arena bounds."
   ready: "{arena} is ready to enable."
-  shop-set: "Set {team} shop NPC point for {arena}."
+  shop-set: "Set {team}'s only shop keeper for {arena} here."
+  shop-added: "Added a {team} shop keeper to {arena} ({count} now)."
+  shops-cleared: "Removed every {team} shop keeper from {arena}."
   saved: "Saved {arena}."
   fix-before-enabling: "Fix these before enabling:"
   enabled: "{arena} is now enabled and joinable."
@@ -317,6 +319,16 @@ stat:
   xp: "XP"
   coins: "Coins"
   coins_earned: "Coins earned"
+
+npc:
+  navigator-name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"
+  unknown-look: "There is no NPC look called {look}. Available: {looks}"
+  no-such-navigator: "There is no navigator called {id}."
+  navigator-created: "Placed navigator {id} here."
+  navigator-look: "Navigator {id} now uses the look {look}."
+  navigator-removed: "Removed navigator {id}."
+  navigator-none: "<muted>No navigators placed yet - use /ch navigator create <id>."
+  navigator-line: "<muted>{id}: <text>{look} <muted>at {world} {x} {y} {z}"
 
 cosmetics:
   equipped: "<ok><check></ok> <text>Equipped {name}"

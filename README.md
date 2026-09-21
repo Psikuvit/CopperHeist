@@ -129,11 +129,25 @@ default. Other plugins can register more through the API.
 
 The Mannequin NPC supports a skin from a player name, a UUID or a raw texture value, plus pose, name and description options.
 
+### Shop keepers and navigators
+
+Shop keepers and the hub's game navigators are built by the same NPC providers, and each can have its own **look** from `npcs.yml`:
+
+- **Villagers** by profession (librarian, armorer, toolsmith, cartographer, cleric ...), clothing biome and level.
+- **Mannequins** by skin (player name, UUID or texture), plus armor and held items.
+- **Armor stands** by head (any block, or a player head with a skin), armor pieces (leather can be dyed) and held items. Players can't
+  take or change what they wear.
+
+About 20 looks ship, so a team can have several keepers that each look different: `/ch arena addshop <arena> <team> [look]` adds another
+(`setshop` replaces them with one, `clearshops` removes them all). **Navigators** are hub NPCs that open the arena picker:
+`/ch navigator create <id> [look]`, `look`, `remove` and `list`. They are saved in `navigators.yml` and re-created if they go missing.
+Existing arenas keep their single shop point; a look is optional everywhere, and without one the plain `npc.type` settings apply as before.
+
 ## Arena setup
 
 - `/ch setup <arena>` prints a clickable checklist: what is done, what is missing, and a `[set]` button for every step.
 - The steps behind it are `/ch arena ...` commands: lobby, spectator point, bounds, spawns, copper-chest docks, chest vaults, vault door,
-  golem idle point, shop NPC point, base and vault regions, loot points (common/rare/cache), relic points and gust pads.
+  golem idle point, shop keepers (as many as you like), base and vault regions, loot points (common/rare/cache), relic points and gust pads.
 - `/ch arena validate <arena>` explains what blocks enabling; `/ch arena enable <arena>` turns it on.
 - **Snapshots:** `/ch arena snapshot <arena>` saves every block in the arena's bounds; with `reset.method: snapshot` they
   are restored after each match, spread over several ticks. `/ch arena paste <arena>` builds a snapshot into the world.
