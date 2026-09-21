@@ -1,6 +1,8 @@
 package me.psikuvit.copperHeist.achievement;
 
+import com.google.gson.JsonParser;
 import me.psikuvit.copperHeist.stats.Stat;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,31 @@ class AchievementTest {
         assertEquals("victory_fireworks", a.cosmetic());
         assertEquals("ach.winner", a.profileId());
         assertFalse(a.isLevel());
+    }
+
+    @Test
+    void theToastLooksRightAndCarriesTheDisplay() throws Exception {
+        String json = AchievementDisplay.toastJson("minecraft:copper_ingot", "{\"text\":\"First Blood\",\"color\":\"gold\"}",
+                "{\"text\":\"Win a match.\"}", "challenge");
+        var root = JsonParser.parseString(json).getAsJsonObject();
+        var display = root.getAsJsonObject("display");
+        assertEquals("minecraft:copper_ingot", display.getAsJsonObject("icon").get("id").getAsString());
+        assertEquals("First Blood", display.getAsJsonObject("title").get("text").getAsString());
+        assertEquals("challenge", display.get("frame").getAsString());
+        assertTrue(display.get("show_toast").getAsBoolean());
+        assertFalse(display.get("announce_to_chat").getAsBoolean(), "the toast must not also announce in chat");
+        assertTrue(display.get("hidden").getAsBoolean(), "and must not linger in the advancements screen");
+        assertEquals("minecraft:impossible", root.getAsJsonObject("criteria").getAsJsonObject("done").get("trigger").getAsString());
+    }
+
+    @Test
+    void frameAndIconAreValidated() throws Exception {
+        AchievementDefinition ok = AchievementRegistry.parse("a", section("stat: wins\ntarget: 1\nicon: gold_ingot\nframe: Challenge"));
+        assertEquals("challenge", ok.frame());
+        assertEquals(Material.GOLD_INGOT, ok.icon());
+        assertEquals(Material.NETHER_STAR, AchievementRegistry.parse("b", section("stat: wins\ntarget: 1")).icon(), "a default icon");
+        assertThrows(IllegalArgumentException.class, () -> AchievementRegistry.parse("c", section("stat: wins\ntarget: 1\nicon: NOPE")));
+        assertThrows(IllegalArgumentException.class, () -> AchievementRegistry.parse("d", section("stat: wins\ntarget: 1\nframe: huge")));
     }
 
     @Test

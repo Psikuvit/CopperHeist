@@ -2,7 +2,6 @@ package me.psikuvit.copperHeist.achievement;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.profile.PlayerProfile;
-import net.kyori.adventure.title.Title;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
@@ -18,10 +17,12 @@ public class AchievementService {
 
     private final CopperHeist plugin;
     private final AchievementRegistry registry;
+    private final AchievementDisplay display;
 
     public AchievementService(CopperHeist plugin, AchievementRegistry registry) {
         this.plugin = plugin;
         this.registry = registry;
+        this.display = new AchievementDisplay(plugin);
     }
 
     public AchievementRegistry registry() {
@@ -79,8 +80,7 @@ public class AchievementService {
             if (cosmetic != null) plugin.getCosmetics().grant(player, cosmetic, "achievement");
         }
         var messages = plugin.getMessageService();
-        player.showTitle(Title.title(messages.get(player, "achievements.title"),
-                messages.get(player, "achievements.subtitle", "name", achievement.name())));
+        display.show(player, achievement);
         player.sendMessage(messages.get(player, "achievements.unlocked", "name", achievement.name(), "description", achievement.description(),
                 "xp", achievement.xp(), "coins", achievement.coins()));
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);

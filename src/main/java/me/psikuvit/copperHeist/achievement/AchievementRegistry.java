@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.achievement;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.config.ConfigFiles;
 import me.psikuvit.copperHeist.stats.Stat;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -11,9 +12,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Loads achievements.yml. An achievement with a mistake (unknown stat, no target) is skipped with a warning; the rest still load. */
 public class AchievementRegistry {
+
+    private static final Set<String> FRAMES = Set.of("task", "goal", "challenge");
 
     private final CopperHeist plugin;
     private final Map<String, AchievementDefinition> achievements = new LinkedHashMap<>();
@@ -60,9 +64,13 @@ public class AchievementRegistry {
         }
         long target = s.getLong("target", 0);
         if (target < 1) throw new IllegalArgumentException("target must be at least 1");
+        Material icon = Material.matchMaterial(s.getString("icon", "NETHER_STAR"));
+        if (icon == null) throw new IllegalArgumentException("unknown icon material '" + s.getString("icon") + "'");
+        String frame = s.getString("frame", "goal").toLowerCase(Locale.ROOT);
+        if (!FRAMES.contains(frame)) throw new IllegalArgumentException("frame must be task, goal or challenge");
         String cosmetic = s.getString("reward.cosmetic");
         return new AchievementDefinition(rawId.toLowerCase(Locale.ROOT), s.getString("name", rawId), s.getString("description", ""), stat, target,
-                s.getBoolean("secret", false), Math.max(0, s.getLong("reward.xp", 0)), Math.max(0, s.getLong("reward.coins", 0)),
+                s.getBoolean("secret", false), icon, frame, Math.max(0, s.getLong("reward.xp", 0)), Math.max(0, s.getLong("reward.coins", 0)),
                 cosmetic == null || cosmetic.isBlank() ? null : cosmetic);
     }
 }

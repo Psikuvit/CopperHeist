@@ -1,5 +1,6 @@
 # Achievements: permanent goals. Reach the target in a lifetime statistic (or in level) once and the achievement is yours for good; it pays
-# XP, coins and optionally a cosmetic. They are checked when a match ends and when a player levels up.
+# XP, coins and optionally a cosmetic, and pops up as a toast (see achievements.display in config.yml). They are checked when a match ends
+# and when a player levels up.
 # /ch reload re-reads this file. This file is not updated automatically when the plugin updates (removing an achievement here should stay
 # removed).
 #
@@ -9,6 +10,8 @@
 #   stat         what is counted: any stat name from /ch top (wins, kills, loot_delivered, steals, relics_delivered, golems_scraped,
 #                drills_completed, mvps, games_played, coins_earned ...), or "level"
 #   target       the number to reach
+#   icon         the item shown on the toast (any material; default NETHER_STAR)
+#   frame        the toast's border: task | goal | challenge (default goal)
 #   secret       true shows "???" in lists until it is unlocked
 #   reward       xp, coins and/or cosmetic (a cosmetic id from cosmetics.yml)
 
@@ -19,18 +22,24 @@ achievements:
     description: "Finish your first match."
     stat: games_played
     target: 1
+    icon: COPPER_INGOT
+    frame: task
     reward: { xp: 30, coins: 25 }
   regular:
     name: "<ok>Regular"
     description: "Finish 25 matches."
     stat: games_played
     target: 25
+    icon: CLOCK
+    frame: task
     reward: { xp: 150, coins: 100 }
   veteran:
     name: "<info>Veteran"
     description: "Finish 100 matches."
     stat: games_played
     target: 100
+    icon: SHIELD
+    frame: goal
     reward: { xp: 500, coins: 300 }
 
   first_win:
@@ -38,18 +47,24 @@ achievements:
     description: "Win a match."
     stat: wins
     target: 1
+    icon: GOLD_INGOT
+    frame: task
     reward: { xp: 60, coins: 40 }
   winner:
     name: "<accent>Winner"
     description: "Win 10 matches."
     stat: wins
     target: 10
+    icon: GOLDEN_HELMET
+    frame: goal
     reward: { xp: 250, coins: 150 }
   champion:
     name: "<primary>Champion"
     description: "Win 50 matches."
     stat: wins
     target: 50
+    icon: GOLDEN_APPLE
+    frame: challenge
     reward: { xp: 800, coins: 500, cosmetic: victory_fireworks }
 
   hauler:
@@ -57,12 +72,16 @@ achievements:
     description: "Deliver 500 loot value in total."
     stat: loot_delivered
     target: 500
+    icon: CHEST
+    frame: goal
     reward: { xp: 150, coins: 100 }
   tycoon:
     name: "<copper>Tycoon"
     description: "Deliver 5000 loot value in total."
     stat: loot_delivered
     target: 5000
+    icon: COPPER_BLOCK
+    frame: challenge
     reward: { xp: 600, coins: 400, cosmetic: title_copper_king }
 
   pickpocket:
@@ -70,12 +89,16 @@ achievements:
     description: "Steal 25 times."
     stat: steals
     target: 25
+    icon: TRIPWIRE_HOOK
+    frame: goal
     reward: { xp: 150, coins: 100 }
   brawler:
     name: "<bad>Brawler"
     description: "Defeat 50 players."
     stat: kills
     target: 50
+    icon: IRON_SWORD
+    frame: goal
     reward: { xp: 300, coins: 200, cosmetic: soul_burst }
 
   golem_keeper:
@@ -83,18 +106,24 @@ achievements:
     description: "Scrape 50 golems."
     stat: golems_scraped
     target: 50
+    icon: IRON_AXE
+    frame: goal
     reward: { xp: 200, coins: 120, cosmetic: title_golem_whisperer }
   safecracker:
     name: "<special>Safecracker"
     description: "Complete 10 vault drills."
     stat: drills_completed
     target: 10
+    icon: IRON_PICKAXE
+    frame: goal
     reward: { xp: 250, coins: 150 }
   relic_hunter:
     name: "<special>Relic Hunter"
     description: "Deliver 10 relics."
     stat: relics_delivered
     target: 10
+    icon: AMETHYST_SHARD
+    frame: challenge
     reward: { xp: 350, coins: 250 }
 
   mvp:
@@ -102,6 +131,8 @@ achievements:
     description: "Be the MVP of 5 matches."
     stat: mvps
     target: 5
+    icon: NETHER_STAR
+    frame: goal
     reward: { xp: 300, coins: 200 }
 
   level_10:
@@ -109,17 +140,23 @@ achievements:
     description: "Reach level 10."
     stat: level
     target: 10
+    icon: EXPERIENCE_BOTTLE
+    frame: task
     reward: { xp: 0, coins: 150 }
   level_25:
     name: "<special>Seasoned"
     description: "Reach level 25."
     stat: level
     target: 25
+    icon: EXPERIENCE_BOTTLE
+    frame: goal
     reward: { xp: 0, coins: 400 }
   level_50:
     name: "<primary>Legend"
     description: "Reach level 50."
     stat: level
     target: 50
+    icon: DRAGON_HEAD
+    frame: challenge
     secret: true
     reward: { xp: 0, coins: 1000 }

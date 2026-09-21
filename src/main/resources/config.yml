@@ -243,6 +243,14 @@ cosmetics:
   trail-max-ticks: 160  # a trail stops after this long even if the projectile is still flying
   victory-seconds: 5    # how long the winners' victory effects keep playing at the end of a match
 
+# Minecraft's own advancements would compete with this plugin's achievements, so they are switched off by default.
+advancements:
+  hide-chat: true         # no "X has made the advancement Y" messages (also turns the announce_advancements game rule off in every world)
+  remove-vanilla: true    # removes the vanilla advancements from the server: no toasts, and an empty advancements screen (recipes are kept)
+
+achievements:
+  display: toast          # toast = a real advancement toast with the achievement's icon (falls back to a title if the server can't show it) | title
+
 # Put the player's level and equipped title in front of their name in chat. Off by default because other chat plugins also format chat -
 # turn it on if this plugin does your chat, or use %copperheist_title% / %copperheist_level% in your chat plugin instead.
 chat:

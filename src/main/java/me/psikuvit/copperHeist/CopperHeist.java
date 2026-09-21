@@ -27,6 +27,7 @@ import me.psikuvit.copperHeist.listener.CosmeticListener;
 import me.psikuvit.copperHeist.listener.NavigatorListener;
 import me.psikuvit.copperHeist.daily.DailyRewardService;
 import me.psikuvit.copperHeist.listener.AchievementListener;
+import me.psikuvit.copperHeist.listener.VanillaAdvancementListener;
 import me.psikuvit.copperHeist.listener.QuestListener;
 import me.psikuvit.copperHeist.achievement.AchievementRegistry;
 import me.psikuvit.copperHeist.achievement.AchievementService;
@@ -207,6 +208,9 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CosmeticListener(this), this);
         getServer().getPluginManager().registerEvents(new QuestListener(this), this);
         getServer().getPluginManager().registerEvents(new AchievementListener(this), this);
+        VanillaAdvancementListener vanillaAdvancements = new VanillaAdvancementListener(this);
+        getServer().getPluginManager().registerEvents(vanillaAdvancements, this);
+        getServer().getScheduler().runTask(this, vanillaAdvancements::apply); // covers a plugin enabled after the server already loaded
         getServer().getPluginManager().registerEvents(new NavigatorListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbySafetyListener(this), this);
         getServer().getPluginManager().registerEvents(new StaleEntityListener(this), this);
