@@ -22,6 +22,7 @@ import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootTierDefinition;
 import me.psikuvit.copperHeist.network.RemoteArena;
 import me.psikuvit.copperHeist.role.RoleDefinition;
+import me.psikuvit.copperHeist.achievement.AchievementDefinition;
 import me.psikuvit.copperHeist.menu.CosmeticsMenu;
 import me.psikuvit.copperHeist.quest.QuestDefinition;
 import me.psikuvit.copperHeist.quest.QuestPeriod;
@@ -124,6 +125,9 @@ public final class CopperHeistCommand {
                     .then(literal("level")
                             .requires(src -> src.getSender().hasPermission(STATS))
                             .executes(commands::executeLevel))
+                    .then(literal("achievements")
+                            .requires(src -> src.getSender().hasPermission(STATS))
+                            .executes(commands::executeAchievements))
                     .then(literal("quests")
                             .requires(src -> src.getSender().hasPermission(STATS))
                             .executes(commands::executeQuests))
@@ -320,6 +324,38 @@ public final class CopperHeistCommand {
             if (error != null || found == null) Msg.err(sender, "stats.unknown-player", "player", requested);
             else sendStats(sender, found);
         });
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** Lists every achievement with the player's progress; secret ones stay hidden until unlocked. */
+    private int executeAchievements(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "stats.console-needs-player");
+            return 0;
+        }
+        var achievements = plugin.getAchievements();
+        if (!achievements.enabled()) {
+            Msg.err(sender, "achievements.disabled");
+            return 0;
+        }
+        var profile = achievements.profile(player);
+        if (profile == null) {
+            Msg.err(sender, "stats.loading");
+            return 0;
+        }
+        Msg.info(player, "achievements.header", "player", player.getName(), "done", achievements.unlockedCount(profile),
+                "total", achievements.registry().all().size());
+        for (AchievementDefinition achievement : achievements.registry().all()) {
+            if (achievements.isUnlocked(profile, achievement)) {
+                Msg.info(player, "achievements.line-done", "name", achievement.name(), "description", achievement.description());
+            } else if (achievement.secret()) {
+                Msg.info(player, "achievements.line-secret");
+            } else {
+                Msg.info(player, "achievements.line", "name", achievement.name(), "description", achievement.description(),
+                        "progress", Math.min(achievement.target(), achievements.value(player, achievement)), "target", achievement.target());
+            }
+        }
         return Command.SINGLE_SUCCESS;
     }
 
@@ -614,6 +650,7 @@ public final class CopperHeistCommand {
         if (plugin.getProgress() != null) plugin.getProgress().load();
         plugin.getCosmeticRegistry().load();
         plugin.getQuestRegistry().load();
+        plugin.getAchievementRegistry().load();
         plugin.getNpcLooks().load();
         plugin.getNavigators().reload();
         Msg.ok(sender, "command.reloaded");

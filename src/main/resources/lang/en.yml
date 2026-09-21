@@ -320,6 +320,17 @@ stat:
   coins: "Coins"
   coins_earned: "Coins earned"
 
+achievements:
+  disabled: "Achievements are turned off on this server."
+  level: "Level"
+  title: "<accent><bold>ACHIEVEMENT"
+  subtitle: "<text>{name}"
+  unlocked: "<accent><star></accent> <text>Achievement unlocked: {name} <dim><bar></dim> <muted>{description} <dim>(+{xp} XP, +{coins} coins)"
+  header: "<dim><line></dim> <primary><bold>Achievements</bold></primary> <muted>{done}/{total}</muted> <dim><line></dim>"
+  line-done: "<ok><check></ok> {name} <dim><bar></dim> <muted>{description}"
+  line: "<dim><dot></dim> {name} <dim><bar></dim> <accent>{progress}</accent><dim>/</dim><text>{target}</text> <muted>{description}"
+  line-secret: "<dim><dot> ??? <bar> a secret achievement"
+
 quests:
   disabled: "Quests are turned off on this server."
   period:

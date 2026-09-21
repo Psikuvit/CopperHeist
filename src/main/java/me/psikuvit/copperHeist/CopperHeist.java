@@ -25,7 +25,10 @@ import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StaleEntityListener;
 import me.psikuvit.copperHeist.listener.CosmeticListener;
 import me.psikuvit.copperHeist.listener.NavigatorListener;
+import me.psikuvit.copperHeist.listener.AchievementListener;
 import me.psikuvit.copperHeist.listener.QuestListener;
+import me.psikuvit.copperHeist.achievement.AchievementRegistry;
+import me.psikuvit.copperHeist.achievement.AchievementService;
 import me.psikuvit.copperHeist.quest.QuestRegistry;
 import me.psikuvit.copperHeist.quest.QuestService;
 import me.psikuvit.copperHeist.npc.NavigatorService;
@@ -109,6 +112,8 @@ public final class CopperHeist extends JavaPlugin {
     private CosmeticService cosmetics;
     private QuestRegistry questRegistry;
     private QuestService quests;
+    private AchievementRegistry achievementRegistry;
+    private AchievementService achievements;
 
     @Override
     public void onEnable() {
@@ -167,6 +172,10 @@ public final class CopperHeist extends JavaPlugin {
         questRegistry.load();
         quests = new QuestService(this, questRegistry);
 
+        achievementRegistry = new AchievementRegistry(this);
+        achievementRegistry.load();
+        achievements = new AchievementService(this, achievementRegistry);
+
         npcLooks = new NpcLooks(this);
         npcLooks.load();
         navigators = new NavigatorService(this);
@@ -192,6 +201,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
         getServer().getPluginManager().registerEvents(new CosmeticListener(this), this);
         getServer().getPluginManager().registerEvents(new QuestListener(this), this);
+        getServer().getPluginManager().registerEvents(new AchievementListener(this), this);
         getServer().getPluginManager().registerEvents(new NavigatorListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbySafetyListener(this), this);
         getServer().getPluginManager().registerEvents(new StaleEntityListener(this), this);
@@ -345,6 +355,15 @@ public final class CopperHeist extends JavaPlugin {
 
     public ShopActionRegistry getShopActions() {
         return shopActions;
+    }
+
+    /** Permanent achievements. */
+    public AchievementService getAchievements() {
+        return achievements;
+    }
+
+    public AchievementRegistry getAchievementRegistry() {
+        return achievementRegistry;
     }
 
     /** Daily and weekly quests. */
