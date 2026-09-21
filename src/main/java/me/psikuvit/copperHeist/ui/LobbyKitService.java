@@ -47,6 +47,20 @@ public class LobbyKitService {
         player.getInventory().setItem(0, createJoinCompass(player));
         player.getInventory().setItem(1, createGuideBook(player));
         if (plugin.getCosmetics() != null && plugin.getCosmetics().enabled()) player.getInventory().setItem(2, createCosmeticsChest(player));
+        boolean goals = plugin.getQuests().enabled() || plugin.getAchievements().enabled() || plugin.getDaily().enabled();
+        if (goals) player.getInventory().setItem(3, createGoalsBook(player));
+    }
+
+    private ItemStack createGoalsBook(Player viewer) {
+        var messages = plugin.getMessageService();
+        ItemStack item = new ItemStack(Material.WRITABLE_BOOK);
+        Pdc.set(item, PdcKeys.LOBBY_ITEM, "goals");
+
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(messages.get(viewer, "lobby.goals-name").decoration(TextDecoration.ITALIC, false));
+        meta.lore(List.of(messages.get(viewer, "lobby.goals-lore").decoration(TextDecoration.ITALIC, false)));
+        item.setItemMeta(meta);
+        return item;
     }
 
     private ItemStack createCosmeticsChest(Player viewer) {

@@ -65,6 +65,12 @@ public final class Gui {
         return Math.clamp(inner + 2, 3, 6);
     }
 
+    /** A progress bar as MiniMessage, e.g. {@code <ok>██████</ok><dim>░░░░</dim>}; {@code fraction} is clamped to 0..1. */
+    public static String bar(double fraction, int length) {
+        int filled = (int) Math.round(Math.max(0, Math.min(1, fraction)) * length);
+        return "<ok>" + "█".repeat(filled) + "</ok><dim>" + "░".repeat(length - filled) + "</dim>";
+    }
+
     public static void glow(ItemStack stack) {
         ItemMeta meta = stack.getItemMeta();
         meta.setEnchantmentGlintOverride(true);

@@ -121,6 +121,8 @@ lobby:
   compass-name: "<primary><bold>Play</bold> <dim><bar></dim> <text>Choose an arena"
   compass-lore: "<muted>Right-click to open the arena list"
   leave-name: "<bad><bold>Leave</bold> <dim><bar></dim> <text>Back to the lobby"
+  goals-name: "<accent><bold>Goals</bold> <dim><bar></dim> <text>Quests, achievements, daily reward"
+  goals-lore: "<muted>Right-click to see what to do next"
   cosmetics-name: "<special><bold>Cosmetics</bold> <dim><bar></dim> <text>Trails, effects and titles"
   cosmetics-lore: "<muted>Right-click to open your cosmetics"
 
@@ -321,6 +323,13 @@ stat:
   coins_earned: "Coins earned"
 
 daily:
+  menu:
+    ready: "<special><bold>Daily reward ready!"
+    claimed: "<muted><bold>Daily reward claimed"
+    streak: "<muted>Login streak</muted> <dim><bar></dim> <accent>{streak}</accent> <muted>day(s)"
+    reward: "<muted>Today's reward</muted> <dim><bar></dim> <accent>+{coins} coins</accent><dim>,</dim> <ok>+{xp} XP"
+    click: "<accent><arrow> Click to claim"
+    next: "<muted>Next reward in <text>{hours}h {minutes}m"
   disabled: "The daily reward is turned off on this server."
   already: "You already claimed today's reward - the next one is in {hours}h {minutes}m."
   available: "<special><star></special> <text>Your daily reward is ready! <dim>(day {streak}: +{coins} coins, +{xp} XP)</dim> <accent>[Click to claim]"
@@ -328,6 +337,14 @@ daily:
   claimed: "<ok><check></ok> <text>Daily reward claimed <dim><bar></dim> <accent>day {streak}: +{coins} coins, +{xp} XP</accent> <muted>- come back tomorrow to keep your streak."
 
 achievements:
+  menu:
+    title: "<primary><bold>Achievements <dim>({done}/{total})"
+    button-name: "<accent><bold>Achievements"
+    button-lore: "<muted>Permanent goals with their own rewards."
+    unlocked: "<ok><check> Unlocked"
+    reward: "<muted>Reward</muted> <dim><bar></dim> <ok>+{xp} XP</ok><dim>,</dim> <accent>+{coins} coins"
+    secret-name: "<dim><bold>???"
+    secret-lore: "<muted>A secret achievement - keep playing to find it."
   disabled: "Achievements are turned off on this server."
   level: "Level"
   title: "<accent><bold>ACHIEVEMENT"
@@ -339,6 +356,12 @@ achievements:
   line-secret: "<dim><dot> ??? <bar> a secret achievement"
 
 quests:
+  menu:
+    title: "<primary><bold>Goals"
+    none: "<bad>Quests are off"
+    done: "<ok><check> Done"
+    reward: "<muted>Reward</muted> <dim><bar></dim> <ok>+{xp} XP</ok><dim>,</dim> <accent>+{coins} coins"
+    resets: "<dim>{period} - resets in {hours}h {minutes}m"
   disabled: "Quests are turned off on this server."
   period:
     daily: "Daily quests"
