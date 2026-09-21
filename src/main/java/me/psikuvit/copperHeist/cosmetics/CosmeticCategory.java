@@ -15,7 +15,8 @@ public enum CosmeticCategory {
     GOLEM("golem", Material.COPPER_BLOCK),
     NPC("npc", Material.VILLAGER_SPAWN_EGG),
     TITLE("title", Material.NAME_TAG),
-    JOIN("join", Material.LIME_DYE);
+    JOIN("join", Material.LIME_DYE),
+    DEATH_MESSAGE("death-message", Material.SKELETON_SKULL);
 
     private final String id;
     private final Material icon;

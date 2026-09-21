@@ -204,6 +204,7 @@ it just for you. One button switches all cosmetic effects off for you.
 | Shop skins | `npc-skin` | the team's shop NPC wears a Mannequin skin (needs `npc.type: mannequin`) |
 | Titles | - | in chat with `chat.enabled: true`, and as `%copperheist_title%` for other chat plugins |
 | Join effects | the same as kill effects | when you join the server |
+| Death messages | `death-message` | your own line announced to the match when you defeat someone, replacing the plain death message (`{killer}` and `{victim}` are filled in) |
 
 Everything is visual only: cosmetic fireworks and lightning can never hurt anyone. Each player can switch effects off for themselves.
 

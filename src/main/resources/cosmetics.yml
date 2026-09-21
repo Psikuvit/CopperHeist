@@ -3,7 +3,7 @@
 # /ch reload re-reads this file. A cosmetic with a mistake is skipped with a warning in the console; the rest still load.
 #
 # cosmetics.<id>:
-#   category      trail | kill-effect | victory | golem | npc | title | join
+#   category      trail | kill-effect | victory | golem | npc | title | join | death-message
 #   effect        which effect plays it (not needed for titles). Effects come with the plugin or from other plugins.
 #   name          MiniMessage; theme tags like <primary> work
 #   description   lore lines shown in the menu
@@ -29,6 +29,7 @@
 #   lightning        kill-effect, victory           no params (looks like lightning but does no damage)
 #   golem-hat        golem          material, scale, lift - an item worn on the team's golems
 #   npc-skin         npc            type (player-name | uuid | texture), value, signature - a skin for the team's shop NPC (Mannequin NPC type)
+#   death-message    death-message  message - MiniMessage announced to the match when you defeat someone; {killer} and {victim} are the names
 # Titles need no effect. Golem and shop-skin cosmetics belong to the whole team: the rarest one equipped by anyone on the team is shown.
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -342,3 +343,64 @@ cosmetics:
     price: 600
     level: 8
     params: { colors: ["#B87333", "#FFD700"], type: BALL_LARGE }
+
+  # ---- death messages (announced to the match when YOU defeat someone; the plain death message is replaced) ----
+  death_outplayed:
+    category: death-message
+    effect: death-message
+    name: "<muted>Outplayed"
+    description: ["<muted>The plain classic. Right-click to preview."]
+    icon: SKELETON_SKULL
+    rarity: common
+    free: true                    # everyone starts with this one
+    params: { message: "<bad>{victim}</bad> <muted>was outplayed by</muted> <accent>{killer}</accent>" }
+  death_escorted:
+    category: death-message
+    effect: death-message
+    name: "<ok>Polite Escort"
+    description: ["<muted>You show them the door."]
+    icon: OAK_DOOR
+    rarity: common
+    price: 150
+    level: 2
+    params: { message: "<accent>{killer}</accent> <muted>politely escorted</muted> <text>{victim}</text> <muted>out of the building</muted>" }
+  death_heist:
+    category: death-message
+    effect: death-message
+    name: "<copper>Heist!"
+    description: ["<muted>Nothing personal - just business."]
+    icon: COPPER_INGOT
+    rarity: rare
+    price: 400
+    level: 5
+    params: { message: "<copper>{killer}</copper> <muted>pulled a heist on</muted> <text>{victim}</text>" }
+  death_oxidized:
+    category: death-message
+    effect: death-message
+    name: "<info>Oxidized"
+    description: ["<muted>They rust away."]
+    icon: WEATHERED_COPPER
+    rarity: rare
+    price: 400
+    level: 8
+    params: { message: "<info>{victim}</info> <muted>oxidised right in front of</muted> <accent>{killer}</accent>" }
+  death_thunder:
+    category: death-message
+    effect: death-message
+    name: "<special>Thunderstruck"
+    description: ["<muted>A message worth a lightning bolt."]
+    icon: LIGHTNING_ROD
+    rarity: epic
+    price: 900
+    level: 12
+    params: { message: "<special><star></special> <accent>{killer}</accent> <muted>struck down</muted> <bad>{victim}</bad> <special><star>" }
+  death_legend:
+    category: death-message
+    effect: death-message
+    name: "<accent>Legendary Finish"
+    description: ["<muted>Make it a moment nobody forgets."]
+    icon: DRAGON_HEAD
+    rarity: legendary
+    price: 2000
+    level: 20
+    params: { message: "<accent><bold>{killer}</bold></accent> <muted>ended</muted> <bad>{victim}</bad><muted>'s run in style</muted> <accent><star>" }

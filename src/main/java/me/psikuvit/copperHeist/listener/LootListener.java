@@ -92,6 +92,11 @@ public class LootListener implements Listener {
             if (game.isActive()) {
                 var cosmetics = plugin.getCosmetics();
                 cosmetics.play(killer, CosmeticCategory.KILL_EFFECT, player.getLocation(), null, cosmetics.viewers(game));
+                // The killer's own death message replaces the plain one, and is told to the match instead of the whole server.
+                if (cosmetics.willPlay(killer, CosmeticCategory.DEATH_MESSAGE)) {
+                    event.deathMessage(null);
+                    cosmetics.play(killer, CosmeticCategory.DEATH_MESSAGE, player.getLocation(), player, cosmetics.viewers(game));
+                }
             }
         }
 

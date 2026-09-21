@@ -456,6 +456,7 @@ cosmetics:
     npc: "Shop Skins"
     title: "Titles"
     join: "Join Effects"
+    death-message: "Death Messages"
   outcome:
     ok: "Done."
     already_have: "You already have that."

@@ -114,6 +114,11 @@ public class CosmeticService {
         return cosmetic != null && hasAccess(player, cosmetic) ? cosmetic : null;
     }
 
+    /** True if the player has something equipped in the category and hasn't turned effects off - so the caller knows the cosmetic will speak. */
+    public boolean willPlay(Player player, CosmeticCategory category) {
+        return enabled() && effectsEnabled(player) && equipped(player, category) != null;
+    }
+
     /** The cosmetic's name as MiniMessage, in its rarity colour (a colour set in the name itself still wins). */
     public String displayName(CosmeticDefinition cosmetic) {
         String tag = cosmetic.rarity().tag();
