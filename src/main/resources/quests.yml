@@ -1,0 +1,100 @@
+# Quests: short goals that pay XP, coins and sometimes a cosmetic. Each day a few daily quests are picked from the daily pool, and each week
+# a weekly one from the weekly pool; the pick is the same for every player (and every server of a network) and changes at midnight UTC
+# (weekly: midnight UTC on Monday). Progress counts finished matches, and a quest pays out the moment it is completed.
+# /ch reload re-reads this file. This file is not updated automatically when the plugin updates (removing a quest here should stay removed).
+#
+# quests.<id>:
+#   period       daily | weekly
+#   name         MiniMessage title
+#   description  one line explaining it
+#   trigger      what is counted, from each finished match:
+#                  matches, wins, mvps, loot-delivered, steals, kills, scrapes, relics, drills
+#   target       how much to count
+#   reward       xp, coins and/or cosmetic (a cosmetic id from cosmetics.yml)
+
+settings:
+  daily-count: 3       # daily quests running at a time
+  weekly-count: 1      # weekly quests running at a time
+
+quests:
+
+  # ---- daily ----
+  play_a_match:
+    period: daily
+    name: "<ok>Show Up"
+    description: "Finish a match."
+    trigger: matches
+    target: 1
+    reward: { xp: 40, coins: 20 }
+  play_three:
+    period: daily
+    name: "<ok>Regular"
+    description: "Finish 3 matches."
+    trigger: matches
+    target: 3
+    reward: { xp: 90, coins: 45 }
+  win_a_match:
+    period: daily
+    name: "<accent>Victory Lap"
+    description: "Win a match."
+    trigger: wins
+    target: 1
+    reward: { xp: 60, coins: 30 }
+  deliver_loot:
+    period: daily
+    name: "<copper>Loot Runner"
+    description: "Deliver 60 loot value."
+    trigger: loot-delivered
+    target: 60
+    reward: { xp: 60, coins: 30 }
+  steal_loot:
+    period: daily
+    name: "<bad>Sticky Fingers"
+    description: "Steal 3 times."
+    trigger: steals
+    target: 3
+    reward: { xp: 60, coins: 30 }
+  scrape_golems:
+    period: daily
+    name: "<info>Golem Care"
+    description: "Scrape 4 golems."
+    trigger: scrapes
+    target: 4
+    reward: { xp: 50, coins: 25 }
+  get_kills:
+    period: daily
+    name: "<bad>Enforcer"
+    description: "Defeat 3 players."
+    trigger: kills
+    target: 3
+    reward: { xp: 60, coins: 30 }
+
+  # ---- weekly ----
+  weekly_regular:
+    period: weekly
+    name: "<primary>Dedicated"
+    description: "Finish 15 matches this week."
+    trigger: matches
+    target: 15
+    reward: { xp: 400, coins: 200 }
+  weekly_winner:
+    period: weekly
+    name: "<accent>Winning Streak"
+    description: "Win 6 matches this week."
+    trigger: wins
+    target: 6
+    reward: { xp: 500, coins: 250 }
+  weekly_hauler:
+    period: weekly
+    name: "<copper>Master Hauler"
+    description: "Deliver 500 loot value this week."
+    trigger: loot-delivered
+    target: 500
+    reward: { xp: 450, coins: 220 }
+  weekly_relic:
+    period: weekly
+    name: "<special>Relic Hunter"
+    description: "Deliver 2 relics this week."
+    trigger: relics
+    target: 2
+    reward: { xp: 500, coins: 300 }

@@ -75,6 +75,11 @@ public final class PlayerProfile {
         setField(name, String.valueOf(value));
     }
 
+    /** Removes every field whose name starts with the prefix (a whole group, e.g. one period's quest progress). */
+    public void removeFields(String prefix) {
+        if (fields.keySet().removeIf(name -> name.startsWith(prefix))) dirty = true;
+    }
+
     public boolean flag(String name) {
         return "1".equals(fields.get("flag." + name));
     }

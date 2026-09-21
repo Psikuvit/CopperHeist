@@ -62,6 +62,22 @@ class PlayerProfileTest {
     }
 
     @Test
+    void aGroupOfFieldsCanBeRemovedByPrefix() {
+        PlayerProfile profile = fresh();
+        profile.setField("q.daily.period", 5);
+        profile.setField("q.daily.win", 1);
+        profile.setField("q.weekly.period", 2);
+        profile.snapshot();
+        profile.removeFields("q.daily.");
+        assertTrue(profile.isDirty());
+        assertNull(profile.field("q.daily.win"));
+        assertEquals(2, profile.longField("q.weekly.period", 0), "other groups stay");
+        profile.snapshot();
+        profile.removeFields("q.daily.");
+        assertFalse(profile.isDirty(), "removing nothing is not a change");
+    }
+
+    @Test
     void youCanOnlyEquipWhatYouOwn() {
         PlayerProfile profile = fresh();
         assertFalse(profile.equip("trail", "flame"));

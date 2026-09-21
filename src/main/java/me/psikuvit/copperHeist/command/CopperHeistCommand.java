@@ -23,6 +23,8 @@ import me.psikuvit.copperHeist.loot.LootTierDefinition;
 import me.psikuvit.copperHeist.network.RemoteArena;
 import me.psikuvit.copperHeist.role.RoleDefinition;
 import me.psikuvit.copperHeist.menu.CosmeticsMenu;
+import me.psikuvit.copperHeist.quest.QuestDefinition;
+import me.psikuvit.copperHeist.quest.QuestPeriod;
 import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.PlayerStats;
 import me.psikuvit.copperHeist.stats.Stat;
@@ -122,6 +124,9 @@ public final class CopperHeistCommand {
                     .then(literal("level")
                             .requires(src -> src.getSender().hasPermission(STATS))
                             .executes(commands::executeLevel))
+                    .then(literal("quests")
+                            .requires(src -> src.getSender().hasPermission(STATS))
+                            .executes(commands::executeQuests))
                     .then(literal("cosmetics")
                             .requires(src -> src.getSender().hasPermission(COSMETICS))
                             .executes(commands::executeCosmetics))
@@ -315,6 +320,39 @@ public final class CopperHeistCommand {
             if (error != null || found == null) Msg.err(sender, "stats.unknown-player", "player", requested);
             else sendStats(sender, found);
         });
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** Lists today's and this week's quests with progress and what they pay. */
+    private int executeQuests(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "stats.console-needs-player");
+            return 0;
+        }
+        var quests = plugin.getQuests();
+        if (!quests.enabled()) {
+            Msg.err(sender, "quests.disabled");
+            return 0;
+        }
+        var profile = quests.profile(player);
+        if (profile == null) {
+            Msg.err(sender, "stats.loading");
+            return 0;
+        }
+        long now = System.currentTimeMillis();
+        for (QuestPeriod period : QuestPeriod.values()) {
+            var active = quests.current(player, period);
+            if (active.isEmpty()) continue;
+            long minutes = period.millisLeft(now) / 60_000;
+            Msg.info(player, "quests.header", "period", Msg.word(player, "quests.period." + period.key()),
+                    "hours", minutes / 60, "minutes", minutes % 60);
+            for (QuestDefinition quest : active) {
+                boolean done = quests.isDone(profile, quest);
+                Msg.info(player, done ? "quests.line-done" : "quests.line", "name", quest.name(), "description", quest.description(),
+                        "progress", quests.progress(profile, quest), "target", quest.target(), "xp", quest.xp(), "coins", quest.coins());
+            }
+        }
         return Command.SINGLE_SUCCESS;
     }
 
@@ -575,6 +613,7 @@ public final class CopperHeistCommand {
         plugin.getPresets().load();
         if (plugin.getProgress() != null) plugin.getProgress().load();
         plugin.getCosmeticRegistry().load();
+        plugin.getQuestRegistry().load();
         plugin.getNpcLooks().load();
         plugin.getNavigators().reload();
         Msg.ok(sender, "command.reloaded");

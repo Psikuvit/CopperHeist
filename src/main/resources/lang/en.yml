@@ -320,6 +320,26 @@ stat:
   coins: "Coins"
   coins_earned: "Coins earned"
 
+quests:
+  disabled: "Quests are turned off on this server."
+  period:
+    daily: "Daily quests"
+    weekly: "Weekly quests"
+  trigger:
+    matches: "matches finished"
+    wins: "wins"
+    mvps: "MVPs"
+    loot-delivered: "loot delivered"
+    steals: "steals"
+    kills: "kills"
+    scrapes: "golems scraped"
+    relics: "relics delivered"
+    drills: "vault drills completed"
+  header: "<dim><line></dim> <primary><bold>{period}</bold></primary> <dim>- resets in {hours}h {minutes}m <line></dim>"
+  line: "<dim><dot></dim> {name} <dim><bar></dim> <accent>{progress}</accent><dim>/</dim><text>{target}</text> <muted>{description} <dim>(+{xp} XP, +{coins} coins)"
+  line-done: "<ok><check></ok> {name} <dim><bar></dim> <ok>done</ok>"
+  completed: "<ok><star></ok> <text>Quest complete: {name} <dim><bar></dim> <accent>+{xp} XP, +{coins} coins"
+
 npc:
   navigator-name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"
   unknown-look: "There is no NPC look called {look}. Available: {looks}"

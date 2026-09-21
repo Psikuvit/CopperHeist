@@ -25,6 +25,9 @@ import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StaleEntityListener;
 import me.psikuvit.copperHeist.listener.CosmeticListener;
 import me.psikuvit.copperHeist.listener.NavigatorListener;
+import me.psikuvit.copperHeist.listener.QuestListener;
+import me.psikuvit.copperHeist.quest.QuestRegistry;
+import me.psikuvit.copperHeist.quest.QuestService;
 import me.psikuvit.copperHeist.npc.NavigatorService;
 import me.psikuvit.copperHeist.npc.NpcLooks;
 import me.psikuvit.copperHeist.listener.ProgressListener;
@@ -104,6 +107,8 @@ public final class CopperHeist extends JavaPlugin {
     private EffectRegistry cosmeticEffects;
     private CosmeticRegistry cosmeticRegistry;
     private CosmeticService cosmetics;
+    private QuestRegistry questRegistry;
+    private QuestService quests;
 
     @Override
     public void onEnable() {
@@ -158,6 +163,10 @@ public final class CopperHeist extends JavaPlugin {
         // Other plugins register their own effects in their onEnable, so cosmetics.yml is read once every plugin is up.
         getServer().getScheduler().runTask(this, cosmeticRegistry::load);
 
+        questRegistry = new QuestRegistry(this);
+        questRegistry.load();
+        quests = new QuestService(this, questRegistry);
+
         npcLooks = new NpcLooks(this);
         npcLooks.load();
         navigators = new NavigatorService(this);
@@ -182,6 +191,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
         getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
         getServer().getPluginManager().registerEvents(new CosmeticListener(this), this);
+        getServer().getPluginManager().registerEvents(new QuestListener(this), this);
         getServer().getPluginManager().registerEvents(new NavigatorListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbySafetyListener(this), this);
         getServer().getPluginManager().registerEvents(new StaleEntityListener(this), this);
@@ -335,6 +345,15 @@ public final class CopperHeist extends JavaPlugin {
 
     public ShopActionRegistry getShopActions() {
         return shopActions;
+    }
+
+    /** Daily and weekly quests. */
+    public QuestService getQuests() {
+        return quests;
+    }
+
+    public QuestRegistry getQuestRegistry() {
+        return questRegistry;
     }
 
     /** The named NPC appearances from npcs.yml (villager professions, Mannequin skins, armor stand gear). */
