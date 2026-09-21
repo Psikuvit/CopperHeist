@@ -1,0 +1,18 @@
+# The daily login reward. Everyone can claim one reward a day (/ch daily, or the [Claim] message shown when they join), and the reward grows
+# with their login streak: log in on consecutive days to keep it going; missing a day starts again from day 1. The list below repeats, so
+# with 7 entries day 8 pays like day 1. Days change at midnight UTC.
+# /ch reload re-reads this file.
+#
+# rewards   one entry per streak day: xp, coins and/or cosmetic (a cosmetic id from cosmetics.yml)
+# enabled   false turns the daily reward off (features.daily-reward in config.yml does the same)
+
+enabled: true
+
+rewards:
+  - { xp: 20, coins: 20 }                      # day 1
+  - { xp: 25, coins: 25 }                      # day 2
+  - { xp: 30, coins: 35 }                      # day 3
+  - { xp: 35, coins: 45 }                      # day 4
+  - { xp: 40, coins: 60 }                      # day 5
+  - { xp: 50, coins: 80 }                      # day 6
+  - { xp: 100, coins: 150, cosmetic: smoke_trail }   # day 7 - a weekly treat (skipped if they already own it)

@@ -320,6 +320,13 @@ stat:
   coins: "Coins"
   coins_earned: "Coins earned"
 
+daily:
+  disabled: "The daily reward is turned off on this server."
+  already: "You already claimed today's reward - the next one is in {hours}h {minutes}m."
+  available: "<special><star></special> <text>Your daily reward is ready! <dim>(day {streak}: +{coins} coins, +{xp} XP)</dim> <accent>[Click to claim]"
+  hover: "<accent>Claim your daily reward"
+  claimed: "<ok><check></ok> <text>Daily reward claimed <dim><bar></dim> <accent>day {streak}: +{coins} coins, +{xp} XP</accent> <muted>- come back tomorrow to keep your streak."
+
 achievements:
   disabled: "Achievements are turned off on this server."
   level: "Level"

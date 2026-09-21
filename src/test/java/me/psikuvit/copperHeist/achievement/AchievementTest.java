@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -90,6 +91,8 @@ class AchievementTest {
         for (String id : quests.getKeys(false)) given.add(quests.getString(id + ".reward.cosmetic"));
         ConfigurationSection levels = resource("progress.yml").getConfigurationSection("level-rewards");
         if (levels != null) for (String level : levels.getKeys(false)) given.add(levels.getString(level + ".cosmetic"));
+
+        for (Map<?, ?> reward : resource("daily.yml").getMapList("rewards")) given.add(reward.get("cosmetic") == null ? null : String.valueOf(reward.get("cosmetic")));
 
         given.remove(null);
         for (String cosmetic : given) assertTrue(cosmetics.contains(cosmetic), "a goal gives the cosmetic '" + cosmetic + "' which isn't in cosmetics.yml");

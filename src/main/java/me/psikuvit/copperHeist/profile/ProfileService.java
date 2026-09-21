@@ -95,6 +95,7 @@ public class ProfileService {
             profiles.put(uuid, profile);
             save(profile);
             if (plugin.getCosmetics() != null) plugin.getCosmetics().onProfileLoaded(player);
+            if (plugin.getDaily() != null) plugin.getDaily().onLogin(player);
         }));
     }
 

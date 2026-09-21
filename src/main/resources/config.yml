@@ -235,6 +235,7 @@ features:
   cosmetics: true       # unlockable cosmetics (needs stats/database and progression to be on)
   quests: true          # daily and weekly quests (needs stats/database)
   achievements: true    # permanent achievements (needs stats/database)
+  daily-reward: true    # the daily login reward and streak (needs stats/database)
 
 cosmetics:
   featured-count: 3     # how many "featured today" picks the cosmetics menu shows (0-3); they change at midnight UTC

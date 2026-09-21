@@ -25,6 +25,7 @@ import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StaleEntityListener;
 import me.psikuvit.copperHeist.listener.CosmeticListener;
 import me.psikuvit.copperHeist.listener.NavigatorListener;
+import me.psikuvit.copperHeist.daily.DailyRewardService;
 import me.psikuvit.copperHeist.listener.AchievementListener;
 import me.psikuvit.copperHeist.listener.QuestListener;
 import me.psikuvit.copperHeist.achievement.AchievementRegistry;
@@ -114,6 +115,7 @@ public final class CopperHeist extends JavaPlugin {
     private QuestService quests;
     private AchievementRegistry achievementRegistry;
     private AchievementService achievements;
+    private DailyRewardService daily;
 
     @Override
     public void onEnable() {
@@ -175,6 +177,9 @@ public final class CopperHeist extends JavaPlugin {
         achievementRegistry = new AchievementRegistry(this);
         achievementRegistry.load();
         achievements = new AchievementService(this, achievementRegistry);
+
+        daily = new DailyRewardService(this);
+        daily.load();
 
         npcLooks = new NpcLooks(this);
         npcLooks.load();
@@ -355,6 +360,11 @@ public final class CopperHeist extends JavaPlugin {
 
     public ShopActionRegistry getShopActions() {
         return shopActions;
+    }
+
+    /** The daily login reward and streak. */
+    public DailyRewardService getDaily() {
+        return daily;
     }
 
     /** Permanent achievements. */

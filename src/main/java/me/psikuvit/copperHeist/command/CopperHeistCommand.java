@@ -125,6 +125,9 @@ public final class CopperHeistCommand {
                     .then(literal("level")
                             .requires(src -> src.getSender().hasPermission(STATS))
                             .executes(commands::executeLevel))
+                    .then(literal("daily")
+                            .requires(src -> src.getSender().hasPermission(STATS))
+                            .executes(commands::executeDaily))
                     .then(literal("achievements")
                             .requires(src -> src.getSender().hasPermission(STATS))
                             .executes(commands::executeAchievements))
@@ -325,6 +328,16 @@ public final class CopperHeistCommand {
             else sendStats(sender, found);
         });
         return Command.SINGLE_SUCCESS;
+    }
+
+    /** Claims today's login reward. */
+    private int executeDaily(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "stats.console-needs-player");
+            return 0;
+        }
+        return plugin.getDaily().claim(player) ? Command.SINGLE_SUCCESS : 0;
     }
 
     /** Lists every achievement with the player's progress; secret ones stay hidden until unlocked. */
@@ -651,6 +664,7 @@ public final class CopperHeistCommand {
         plugin.getCosmeticRegistry().load();
         plugin.getQuestRegistry().load();
         plugin.getAchievementRegistry().load();
+        plugin.getDaily().load();
         plugin.getNpcLooks().load();
         plugin.getNavigators().reload();
         Msg.ok(sender, "command.reloaded");
