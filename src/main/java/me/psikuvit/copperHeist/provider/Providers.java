@@ -16,6 +16,10 @@ import me.psikuvit.copperHeist.npc.MannequinNpcProvider;
 import me.psikuvit.copperHeist.npc.NoneNpcProvider;
 import me.psikuvit.copperHeist.npc.NpcProvider;
 import me.psikuvit.copperHeist.npc.VillagerNpcProvider;
+import me.psikuvit.copperHeist.hook.party.PartiesHook;
+import me.psikuvit.copperHeist.party.BuiltInPartyProvider;
+import me.psikuvit.copperHeist.party.NonePartyProvider;
+import me.psikuvit.copperHeist.party.PartyProvider;
 import me.psikuvit.copperHeist.respawn.GhostRespawnProvider;
 import me.psikuvit.copperHeist.respawn.InstantRespawnProvider;
 import me.psikuvit.copperHeist.respawn.RespawnProvider;
@@ -32,6 +36,7 @@ public final class Providers {
     private final ProviderRegistry<LootBagVisual> lootBagVisual;
     private final ProviderRegistry<RespawnProvider> respawn;
     private final ProviderRegistry<ArenaResetStrategy> reset;
+    private final ProviderRegistry<PartyProvider> party;
 
     public Providers(CopperHeist plugin) {
         var log = plugin.getLogger();
@@ -60,6 +65,14 @@ public final class Providers {
         reset = new ProviderRegistry<>("reset.method", "entities", log);
         reset.register("entities", plugin::getArenaResetter);
         reset.register("snapshot", () -> new SnapshotResetStrategy(plugin, plugin.getArenaResetter()));
+
+        party = new ProviderRegistry<>("party.provider", "builtin", log);
+        party.register("builtin", () -> new BuiltInPartyProvider(plugin.getParties().service()));
+        party.register("none", NonePartyProvider::new);
+        party.register("parties", () -> {
+            if (!plugin.getServer().getPluginManager().isPluginEnabled("Parties")) throw new IllegalStateException("the Parties plugin is not installed");
+            return new PartiesHook();
+        });
     }
 
     public ProviderRegistry<NpcProvider> npc() {
@@ -80,5 +93,9 @@ public final class Providers {
 
     public ProviderRegistry<ArenaResetStrategy> reset() {
         return reset;
+    }
+
+    public ProviderRegistry<PartyProvider> party() {
+        return party;
     }
 }

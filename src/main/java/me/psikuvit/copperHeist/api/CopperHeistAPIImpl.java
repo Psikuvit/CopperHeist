@@ -7,6 +7,7 @@ import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.loot.visual.LootBagVisual;
 import me.psikuvit.copperHeist.menu.MenuProvider;
 import me.psikuvit.copperHeist.npc.NpcProvider;
+import me.psikuvit.copperHeist.party.PartyProvider;
 import me.psikuvit.copperHeist.respawn.RespawnProvider;
 import me.psikuvit.copperHeist.role.ability.RoleAbility;
 import me.psikuvit.copperHeist.shop.action.ShopAction;
@@ -82,6 +83,11 @@ public final class CopperHeistAPIImpl implements CopperHeistAPI {
     @Override
     public void registerNpcProvider(String id, Supplier<NpcProvider> factory) {
         plugin.providers().npc().register(id, factory);
+    }
+
+    @Override
+    public void registerPartyProvider(String id, Supplier<PartyProvider> factory) {
+        plugin.providers().party().register(id, factory);
     }
 
     @Override

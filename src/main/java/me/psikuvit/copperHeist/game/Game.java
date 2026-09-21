@@ -51,6 +51,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -241,12 +242,16 @@ public class Game {
     // ---- join/leave ----
 
     public boolean addPlayer(Player player) {
-        int max = settings().getInt("match.max-players", 16);
-        if (state != GameState.WAITING && state != GameState.STARTING) return false;
-        if (players.size() >= max) return false;
+        return addPlayer(player, null);
+    }
 
-        Team team = teams.get(Team.COPPER).getMembers().size() <= teams.get(Team.IRON).getMembers().size()
-                ? Team.COPPER : Team.IRON;
+    /**
+     * @param forced the team to join (a party is seated together on one team), or null to let {@link TeamAssigner} choose - favouring the
+     *               team of a party-mate who is already here
+     */
+    public boolean addPlayer(Player player, Team forced) {
+        Team team = forced != null ? forced : seatFor(1, partyTeam(player.getUniqueId())).orElse(null);
+        if (team == null || !seatFor(1, team).map(seat -> seat == team).orElse(false)) return false;
 
         GamePlayer gamePlayer = new GamePlayer(player.getUniqueId(), team);
         gamePlayer.setRole(roleService.defaultRole(team));
@@ -267,6 +272,31 @@ public class Game {
         plugin.getLobbyKitService().giveLeaveItem(player);
         player.sendMessage(plugin.getMessageService().getWithPrefix(player, "join", "arena", arena.getName(), "team", team.displayName()));
         return true;
+    }
+
+    /** The most players one team can hold (half of match.max-players, rounded up). */
+    public int teamCapacity() {
+        return (settings().getInt("match.max-players", 16) + 1) / 2;
+    }
+
+    /**
+     * The team that {@code needed} players can be seated on together right now, or empty when the match can't take them (it has started,
+     * is full, or neither team has that many free seats).
+     */
+    public Optional<Team> seatFor(int needed, Team preferred) {
+        if (state != GameState.WAITING && state != GameState.STARTING) return Optional.empty();
+        if (players.size() + needed > settings().getInt("match.max-players", 16)) return Optional.empty();
+        return TeamAssigner.choose(teams.get(Team.COPPER).getMembers().size(), teams.get(Team.IRON).getMembers().size(),
+                teamCapacity(), needed, preferred);
+    }
+
+    /** The team of a party-mate who is already in this match, or null. */
+    private Team partyTeam(UUID player) {
+        for (UUID mate : plugin.getParties().partyMates(player)) {
+            GamePlayer gp = players.get(mate);
+            if (gp != null) return gp.getTeam();
+        }
+        return null;
     }
 
     public void removePlayer(Player player, boolean online) {

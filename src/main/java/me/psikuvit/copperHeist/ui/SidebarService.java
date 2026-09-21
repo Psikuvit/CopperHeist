@@ -97,6 +97,7 @@ public class SidebarService {
         placeholders.put("{arenas_total}", String.valueOf(total));
         placeholders.put("{players_online}", String.valueOf(Bukkit.getOnlinePlayers().size()));
         placeholders.putAll(progressPlaceholders(player));
+        placeholders.put("{party}", partyNames(player));
 
         List<Component> lines = new ArrayList<>();
         for (String template : config.getStringList("hub.lines")) {
@@ -104,6 +105,16 @@ public class SidebarService {
         }
         if (lines.size() > 15) lines = lines.subList(0, 15);
         return ScoreboardContext.of(title, lines);
+    }
+
+    /** {party}: the names of the player's party-mates ("-" without a party). */
+    private String partyNames(Player player) {
+        List<String> names = new ArrayList<>();
+        for (UUID id : plugin.getParties().partyMates(player.getUniqueId())) {
+            String name = Bukkit.getOfflinePlayer(id).getName();
+            if (name != null) names.add(name);
+        }
+        return names.isEmpty() ? "-" : String.join(", ", names);
     }
 
     /** {level} {rank} {xp_bar} {coins} for this player (level 1 / empty / 0 while their stats are still loading or progression is off). */

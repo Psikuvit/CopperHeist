@@ -19,7 +19,7 @@
 title: "<primary><bold>COPPER HEIST"
 
 # Shown to any online player not currently in a match (before /ch join, or
-# after leaving one). {arenas_enabled} {arenas_total} {players_online}, and per player: {level} {rank} {xp_bar} {coins}
+# after leaving one). {arenas_enabled} {arenas_total} {players_online}, and per player: {level} {rank} {xp_bar} {coins} {party}
 # (the board holds 15 lines at most - remove some lines here if you add more)
 hub:
   title: "<primary><bold>COPPER HEIST"
@@ -32,6 +32,7 @@ hub:
     - ""
     - "<primary>Arenas</primary> <dim><bar></dim> <text>{arenas_enabled}/{arenas_total} open"
     - "<primary>Online</primary> <dim><bar></dim> <text>{players_online}"
+    - "<primary>Party</primary> <dim><bar></dim> <text>{party}"
     - ""
     - "<muted>Right-click the compass"
     - "<muted>to pick an arena"

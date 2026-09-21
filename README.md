@@ -147,6 +147,23 @@ look, so owners add or change keeper styles in `cosmetics.yml` - about thirty sh
 **Navigators** are hub NPCs that open the arena picker: `/ch navigator create <id> [look]`, `look`, `remove` and `list`. Their looks are
 in `navigator-looks.yml`, they are saved in `navigators.yml` and re-created if they go missing, and `navigator.type` is the default kind.
 
+### Parties
+
+Friends can queue into an arena together and are seated on the same team.
+
+- **Built-in parties** (`/party`, also `/ch party`): `invite <player>`, `accept`, `deny`, `leave`, `kick`, `promote`, `disband`, `list`,
+  `chat <message>` and `/pc <message>`, or `/party` alone for the menu (members as heads, invite list, leave/disband, pick an arena).
+  Invites expire after `party.invite-seconds`; a party holds `party.max-size` players; the leader passes on when they leave; a party of
+  one ends. Invites are clickable in chat.
+- **Playing together:** the leader picks an arena (compass, `/ch join`) and the whole party goes in, all-or-nothing - everyone must be
+  online, in the hub, and fit on one team. A member who joins alone follows the leader into the arena the leader is already in;
+  otherwise only the leader can pick. Parties join arenas on the same server for now (not remote arenas).
+- **Parties by AlessioDP:** with the [Parties](https://alessiodp.com/parties) plugin installed, `party.provider: auto` uses its parties
+  instead (the built-in `/party` steps aside so the commands don't clash). `party.provider: builtin | parties | none` forces one.
+- **Other party plugins:** an addon can register its own source with `CopperHeistAPI.registerPartyProvider(id, factory)` and be selected with
+  `party.provider: <id>`.
+- The hub scoreboard can show your party-mates with `{party}`.
+
 ## Arena setup
 
 - `/ch setup <arena>` prints a clickable checklist: what is done, what is missing, and a `[set]` button for every step.

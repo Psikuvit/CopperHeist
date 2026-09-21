@@ -5,6 +5,7 @@ import me.psikuvit.copperHeist.cosmetics.EffectProvider;
 import me.psikuvit.copperHeist.loot.visual.LootBagVisual;
 import me.psikuvit.copperHeist.menu.MenuProvider;
 import me.psikuvit.copperHeist.npc.NpcProvider;
+import me.psikuvit.copperHeist.party.PartyProvider;
 import me.psikuvit.copperHeist.respawn.RespawnProvider;
 import me.psikuvit.copperHeist.role.ability.RoleAbility;
 import me.psikuvit.copperHeist.shop.action.ShopAction;
@@ -62,6 +63,12 @@ public interface CopperHeistAPI {
     void registerLootBagVisual(String id, Supplier<LootBagVisual> factory);
 
     void registerResetStrategy(String id, Supplier<ArenaResetStrategy> factory);
+
+    /**
+     * Adds a source of parties (another party plugin's bridge). Server owners select it with {@code party.provider: <id>}; the match code then
+     * seats that plugin's parties together and the built-in /party commands step aside.
+     */
+    void registerPartyProvider(String id, Supplier<PartyProvider> factory);
 
     /**
      * Adds an effect that cosmetics.yml entries can use through {@code effect: <id>}. Register it in your onEnable (cosmetics.yml is read

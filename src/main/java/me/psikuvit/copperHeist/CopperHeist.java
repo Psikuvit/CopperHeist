@@ -15,6 +15,8 @@ import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.cosmetics.CosmeticRegistry;
 import me.psikuvit.copperHeist.cosmetics.CosmeticService;
 import me.psikuvit.copperHeist.cosmetics.PreviewService;
+import me.psikuvit.copperHeist.listener.PartyListener;
+import me.psikuvit.copperHeist.party.PartyManager;
 import me.psikuvit.copperHeist.ui.PreviewStage;
 import me.psikuvit.copperHeist.cosmetics.EffectRegistry;
 import me.psikuvit.copperHeist.cosmetics.effect.CosmeticEffects;
@@ -114,6 +116,7 @@ public final class CopperHeist extends JavaPlugin {
     private ShopKeepers shopKeepers;
     private PreviewStage previewStage;
     private PreviewService previews;
+    private PartyManager parties;
     private NavigatorService navigators;
     private EffectRegistry cosmeticEffects;
     private CosmeticRegistry cosmeticRegistry;
@@ -192,6 +195,9 @@ public final class CopperHeist extends JavaPlugin {
         previewStage = new PreviewStage(this);
         previewStage.load();
         previews = new PreviewService(this);
+        parties = new PartyManager(this);
+        parties.load();
+        getServer().getPluginManager().registerEvents(new PartyListener(this), this);
         navigatorLooks = new NpcLooks(this, "navigator-looks.yml");
         navigatorLooks.load();
         navigators = new NavigatorService(this);
@@ -423,6 +429,11 @@ public final class CopperHeist extends JavaPlugin {
     /** Where shop keeper looks are previewed (/ch setpreview). */
     public PreviewStage getPreviewStage() {
         return previewStage;
+    }
+
+    /** Parties, whoever manages them (built-in, Parties or an addon). */
+    public PartyManager getParties() {
+        return parties;
     }
 
     /** The cinematic shop keeper preview. */

@@ -14,6 +14,9 @@ dependencies:
     Vault:
       load: BEFORE
       required: false
+    Parties:
+      load: BEFORE
+      required: false
     WorldEdit:
       load: BEFORE
       required: false
@@ -33,6 +36,9 @@ permissions:
     default: true
   copperheist.cosmetics:
     description: Open the cosmetics menu (/ch cosmetics)
+    default: true
+  copperheist.party:
+    description: Use the built-in party commands and menu (/party)
     default: true
   copperheist.cosmetic.*:
     description: Own every cosmetic (individual ones are copperheist.cosmetic.<id>) - ops have it by default

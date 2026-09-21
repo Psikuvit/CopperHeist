@@ -3,13 +3,17 @@ package me.psikuvit.copperHeist.game;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.golem.HeistGolem;
+import me.psikuvit.copperHeist.party.PartyInfo;
 import me.psikuvit.copperHeist.ui.Text;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class GameManager {
@@ -55,24 +59,57 @@ public class GameManager {
         if (plugin.getNetwork().isMaintenance() && !player.hasPermission("copperheist.admin.bypass")) {
             return Text.of("join-error.maintenance");
         }
-        Arena arena = arenaName != null ? plugin.getArenaManager().get(arenaName) : findJoinableArena();
+        Optional<PartyInfo> party = plugin.getParties().partyOf(player.getUniqueId());
+        int needed = party.filter(info -> info.isLeader(player.getUniqueId())).map(info -> info.members().size()).orElse(1);
+        Arena arena = arenaName != null ? plugin.getArenaManager().get(arenaName) : findJoinableArena(needed);
         if (arena == null) return Text.of("join-error.no-arena");
         if (!arena.isEnabled()) return Text.of("join-error.not-enabled");
 
         Game game = getGame(arena);
+        if (party.isPresent()) return joinWithParty(player, party.get(), arena, game);
         if (!game.addPlayer(player)) return Text.of("join-error.failed", "arena", arena.getName());
         playerArena.put(player.getUniqueId(), arena.getName().toLowerCase());
         return null;
     }
 
-    private Arena findJoinableArena() {
+    /**
+     * A party joins together: the leader brings everyone (all online, all in the hub, all fitting on one team) or nobody moves. A member
+     * joining alone follows the leader into a match the leader is already in; otherwise the leader has to pick the arena.
+     */
+    private Text joinWithParty(Player player, PartyInfo party, Arena arena, Game game) {
+        if (!party.isLeader(player.getUniqueId())) {
+            if (game.getGamePlayer(party.leader()) == null) return Text.of("join-error.party-leader-only");
+            if (!game.addPlayer(player)) return Text.of("join-error.failed", "arena", arena.getName());
+            playerArena.put(player.getUniqueId(), arena.getName().toLowerCase());
+            return null;
+        }
+
+        List<Player> members = new ArrayList<>();
+        members.add(player);
+        for (UUID id : party.members()) {
+            if (id.equals(player.getUniqueId())) continue;
+            Player member = Bukkit.getPlayer(id);
+            if (member == null || getGame(member) != null) {
+                String name = member != null ? member.getName() : String.valueOf(Bukkit.getOfflinePlayer(id).getName());
+                return Text.of("join-error.party-not-ready", "player", name);
+            }
+            members.add(member);
+        }
+        Optional<Team> team = game.seatFor(members.size(), null);
+        if (team.isEmpty()) return Text.of("join-error.party-no-room", "arena", arena.getName(), "size", members.size());
+
+        for (Player member : members) {
+            if (!game.addPlayer(member, team.get())) continue;
+            playerArena.put(member.getUniqueId(), arena.getName().toLowerCase());
+            if (member != player) member.sendMessage(plugin.getMessageService().get(member, "party.joining", "leader", player.getName(), "arena", arena.getName()));
+        }
+        return null;
+    }
+
+    private Arena findJoinableArena(int needed) {
         for (Arena arena : plugin.getArenaManager().all()) {
             if (!arena.isEnabled()) continue;
-            Game game = getGame(arena);
-            if (game.getState() == GameState.WAITING || game.getState() == GameState.STARTING) {
-                int max = plugin.settings().getInt("match.max-players", 16);
-                if (game.totalPlayers() < max) return arena;
-            }
+            if (getGame(arena).seatFor(needed, null).isPresent()) return arena;
         }
         return null;
     }

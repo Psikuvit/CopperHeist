@@ -101,6 +101,7 @@ public final class CopperHeistCommand {
 
     public static void register(CopperHeist plugin) {
         CopperHeistCommand commands = new CopperHeistCommand(plugin);
+        PartyCommands partyCommands = new PartyCommands(plugin);
         plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             Commands registrar = event.registrar();
             LiteralArgumentBuilder<CommandSourceStack> root = literal("ch")
@@ -206,10 +207,16 @@ public final class CopperHeistCommand {
                     .then(new AdminCommands(plugin, commands.arenaSuggestions).root())
                     .then(new NavigatorCommands(plugin).root(ADMIN_ARENA))
                     .then(new WorldCommands(plugin).root(ADMIN_ARENA))
+                    .then(partyCommands.tree("party"))
                     .then(commands.leaderboardRoot())
                     .then(commands.arenaRoot());
 
             registrar.register(root.build(), "Copper Heist");
+            // /party and /pc belong to the built-in party only: with Parties (or none) in charge they would clash with its own commands.
+            if (plugin.getParties().builtIn() != null) {
+                registrar.register(partyCommands.tree("party").build(), "Party commands");
+                registrar.register(partyCommands.chatShortcut().build(), "Party chat");
+            }
         });
     }
 
@@ -226,6 +233,10 @@ public final class CopperHeistCommand {
         if (error != null) {
             if (plugin.getNetwork().isConnected() && !plugin.getNetwork().isMaintenance()) {
                 RemoteArena remote = plugin.getNetwork().findRemote(arenaName);
+                if (remote != null && plugin.getParties().partyOf(player.getUniqueId()).isPresent()) {
+                    Msg.err(player, "join-error.party-remote"); // parties don't travel between servers yet
+                    return 0;
+                }
                 if (remote != null) {
                     Msg.ok(player, "network.sending", "arena", remote.arena(), "server", remote.serverId());
                     plugin.getNetwork().transfer(player, remote).thenAccept(sent -> {
@@ -655,6 +666,7 @@ public final class CopperHeistCommand {
         plugin.getAchievementRegistry().load();
         plugin.getDaily().load();
         plugin.getNavigatorLooks().load();
+        plugin.getParties().load();
         plugin.getNavigators().reload();
         Msg.ok(sender, "command.reloaded");
         return Command.SINGLE_SUCCESS;

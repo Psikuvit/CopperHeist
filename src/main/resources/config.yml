@@ -250,6 +250,12 @@ cosmetics:
   preview-distance: 3.5 # how far in front of the keeper the preview camera sits
   victory-seconds: 5    # how long the winners' victory effects keep playing at the end of a match
 
+# Parties: friends queue into an arena together and are seated on the same team. Needs a restart (or /ch reload) to change the provider.
+party:
+  provider: auto        # auto (the Parties plugin if installed, else the built-in /party) | builtin | parties | none | an id an addon registered
+  max-size: 4           # built-in parties only: the most players in one party
+  invite-seconds: 60    # built-in parties only: how long an invite stays open
+
 # Minecraft's own advancements would compete with this plugin's achievements, so they are switched off by default.
 advancements:
   hide-chat: true         # no "X has made the advancement Y" messages (also turns the announce_advancements game rule off in every world)
