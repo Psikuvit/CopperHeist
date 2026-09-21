@@ -34,7 +34,7 @@ public class WorldCommands {
 
     public LiteralArgumentBuilder<CommandSourceStack> root(String permission) {
         SuggestionProvider<CommandSourceStack> voidWorlds = (ctx, builder) -> {
-            for (String name : VoidWorlds.names()) builder.suggest(name);
+            for (String name : VoidWorlds.names(plugin)) builder.suggest(name);
             return builder.buildFuture();
         };
         return literal("world")
@@ -82,7 +82,7 @@ public class WorldCommands {
 
     private int list(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
-        var names = VoidWorlds.names();
+        var names = VoidWorlds.names(plugin);
         if (names.isEmpty()) {
             Msg.info(sender, "world.none");
             return Command.SINGLE_SUCCESS;

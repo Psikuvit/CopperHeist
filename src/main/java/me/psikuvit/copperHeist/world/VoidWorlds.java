@@ -1,29 +1,32 @@
 package me.psikuvit.copperHeist.world;
 
-import org.bukkit.plugin.Plugin;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 /**
  * Empty worlds for arenas, so a map can live in its own world instead of somewhere far out in the overworld. The plugin creates them (no
- * other plugin needed) and marks their folder with a small file, which is how it recognises them at the next start and loads them again
- * with the same empty generator - before the arenas that stand in them are read.
+ * other plugin needed) and remembers their names in {@code void-worlds.txt} in its own folder - not inside the world folder, whose location
+ * differs between server versions - which is how it recognises them at the next start and loads them again with the same empty generator,
+ * before the arenas that stand in them are read.
  */
 public final class VoidWorlds {
 
-    /** The marker file put in the world folder of a world this plugin created. */
-    static final String MARKER = "copperheist.void";
-
+    private static final String REGISTRY = "void-worlds.txt";
     private static final Pattern VALID_NAME = Pattern.compile("[A-Za-z0-9_-]{1,32}");
 
     private VoidWorlds() {
@@ -34,50 +37,87 @@ public final class VoidWorlds {
         return name != null && VALID_NAME.matcher(name).matches();
     }
 
-    /** True if a world folder with this name exists and was created by this plugin. */
-    public static boolean isVoidWorld(String name) {
-        return validName(name) && new File(new File(Bukkit.getWorldContainer(), name), MARKER).isFile();
+    // ---- the list of worlds this plugin made ----
+
+    /** The names of the void worlds this plugin created, loaded or not. */
+    public static List<String> names(Plugin plugin) {
+        return new ArrayList<>(read(plugin));
     }
 
-    /** The names of the void worlds that exist, loaded or not. */
-    public static List<String> names() {
-        List<String> found = new ArrayList<>();
-        File[] folders = Bukkit.getWorldContainer().listFiles(File::isDirectory);
-        if (folders == null) return found;
-        for (File folder : folders) {
-            if (new File(folder, MARKER).isFile()) found.add(folder.getName());
+    public static boolean isVoidWorld(Plugin plugin, String name) {
+        return validName(name) && read(plugin).contains(name);
+    }
+
+    private static Set<String> read(Plugin plugin) {
+        Set<String> names = new LinkedHashSet<>();
+        File file = new File(plugin.getDataFolder(), REGISTRY);
+        if (!file.isFile()) return names;
+        try {
+            for (String line : Files.readAllLines(file.toPath(), StandardCharsets.UTF_8)) {
+                if (validName(line.trim())) names.add(line.trim());
+            }
+        } catch (IOException ex) {
+            plugin.getLogger().log(Level.WARNING, "Could not read " + REGISTRY, ex);
         }
-        return found;
+        return names;
+    }
+
+    private static void register(Plugin plugin, String name) {
+        Set<String> names = read(plugin);
+        if (!names.add(name)) return;
+        try {
+            Files.createDirectories(plugin.getDataFolder().toPath());
+            Files.write(new File(plugin.getDataFolder(), REGISTRY).toPath(), names, StandardCharsets.UTF_8);
+        } catch (IOException ex) {
+            plugin.getLogger().log(Level.WARNING, "Could not save " + REGISTRY + " - '" + name + "' will not be loaded automatically at the next start", ex);
+        }
+    }
+
+    // ---- creating and loading ----
+
+    /** As {@link #createOrLoad(Plugin, String, boolean)} without adopting a world folder that already exists. */
+    public static World createOrLoad(Plugin plugin, String name) {
+        return createOrLoad(plugin, name, false);
     }
 
     /**
-     * The world with this name: already loaded, loaded from its folder (a void world of ours), or created new as an empty world with a small
-     * platform at spawn. Returns null for an invalid name, or when a world folder exists that is not one of ours (it is not touched).
+     * The world with this name: already loaded, loaded again (one of ours), or created new as an empty world with a small platform at spawn.
+     * Returns null for an invalid name, or when a world of that name already exists on disk and is not one of ours - unless {@code adopt}
+     * is true (an arena file that says {@code create-world: void} states that world is meant to be empty), in which case the existing world
+     * is loaded and remembered as ours, without being changed.
      */
-    public static World createOrLoad(Plugin plugin, String name) {
+    public static World createOrLoad(Plugin plugin, String name, boolean adopt) {
         World existing = Bukkit.getWorld(name);
         if (existing != null) return existing;
         if (!validName(name)) return null;
 
-        File folder = new File(Bukkit.getWorldContainer(), name);
-        boolean fresh = !folder.exists();
-        if (!fresh && !isVoidWorld(name)) return null; // somebody else's world: never load it with our generator
+        boolean ours = isVoidWorld(plugin, name);
+        boolean onDisk = existsOnDisk(name);
+        if (onDisk && !ours && !adopt) return null; // somebody else's world: never load it with our generator
 
         World world = new WorldCreator(name).generator(new VoidGenerator()).generateStructures(false).createWorld();
         if (world == null) return null;
-        if (fresh) {
-            mark(plugin, folder);
-            prepare(world);
-        }
+        if (!onDisk) prepare(world);
+        register(plugin, name);
         return world;
     }
 
-    private static void mark(Plugin plugin, File folder) {
-        try {
-            if (!new File(folder, MARKER).createNewFile()) plugin.getLogger().fine("Void world marker already existed in " + folder);
-        } catch (IOException ex) {
-            plugin.getLogger().log(Level.WARNING, "Could not mark " + folder.getName() + " as a void world - it will not be reloaded automatically", ex);
+    /**
+     * Whether a world with this name already exists on disk. Servers keep extra worlds either next to the main world or, in newer versions,
+     * inside the main world's folder, so both places are looked at.
+     */
+    static boolean existsOnDisk(String name) {
+        File container = Bukkit.getWorldContainer();
+        if (new File(container, name).exists()) return true;
+        File[] folders = container.listFiles(File::isDirectory);
+        if (folders == null) return false;
+        for (File folder : folders) {
+            if (new File(folder, "dimensions" + File.separator + "minecraft" + File.separator + name).exists()
+                    || new File(folder, "dimensions" + File.separator + name).exists()) {
+                return true;
+            }
         }
+        return false;
     }
 
     /** A 5x5 platform so the first player doesn't fall, a fixed spawn, and calm daytime weather. */

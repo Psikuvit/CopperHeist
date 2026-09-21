@@ -139,8 +139,9 @@ public class ArenaManager {
         String world = yaml.getString("world");
         // "create-world: void" in an arena file (as the bundled test maps have) makes the plugin create that empty world if it is missing; a
         // void world it created earlier is simply loaded again. Any other missing world is left alone and the arena reports it.
-        if (world != null && Bukkit.getWorld(world) == null && (yaml.getString("create-world", "").equalsIgnoreCase("void") || VoidWorlds.isVoidWorld(world))) {
-            if (VoidWorlds.createOrLoad(plugin, world) == null) plugin.getLogger().warning("Could not create or load the world '" + world + "' for arena " + name + ".");
+        boolean wantsVoid = yaml.getString("create-world", "").equalsIgnoreCase("void");
+        if (world != null && Bukkit.getWorld(world) == null && (wantsVoid || VoidWorlds.isVoidWorld(plugin, world))) {
+            if (VoidWorlds.createOrLoad(plugin, world, wantsVoid) == null) plugin.getLogger().warning("Could not create or load the world '" + world + "' for arena " + name + ".");
         }
         arena.setWorldName(world);
         arena.setEnabled(yaml.getBoolean("enabled", false));
