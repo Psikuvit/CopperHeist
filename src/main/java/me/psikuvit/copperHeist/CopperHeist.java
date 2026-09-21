@@ -35,6 +35,7 @@ import me.psikuvit.copperHeist.quest.QuestRegistry;
 import me.psikuvit.copperHeist.quest.QuestService;
 import me.psikuvit.copperHeist.npc.NavigatorService;
 import me.psikuvit.copperHeist.npc.NpcLooks;
+import me.psikuvit.copperHeist.npc.ShopKeepers;
 import me.psikuvit.copperHeist.listener.ProgressListener;
 import me.psikuvit.copperHeist.listener.StatsListener;
 import me.psikuvit.copperHeist.profile.ProfileRepository;
@@ -107,7 +108,9 @@ public final class CopperHeist extends JavaPlugin {
     private MenuManager menus;
     private ProgressService progress;
     private ProfileService profiles;
-    private NpcLooks npcLooks;
+    private NpcLooks shopLooks;
+    private NpcLooks navigatorLooks;
+    private ShopKeepers shopKeepers;
     private NavigatorService navigators;
     private EffectRegistry cosmeticEffects;
     private CosmeticRegistry cosmeticRegistry;
@@ -182,8 +185,11 @@ public final class CopperHeist extends JavaPlugin {
         daily = new DailyRewardService(this);
         daily.load();
 
-        npcLooks = new NpcLooks(this);
-        npcLooks.load();
+        shopLooks = new NpcLooks(this, "shop-looks.yml");
+        shopLooks.load();
+        shopKeepers = new ShopKeepers(this);
+        navigatorLooks = new NpcLooks(this, "navigator-looks.yml");
+        navigatorLooks.load();
         navigators = new NavigatorService(this);
         navigators.start();
 
@@ -389,9 +395,19 @@ public final class CopperHeist extends JavaPlugin {
         return questRegistry;
     }
 
-    /** The named NPC appearances from npcs.yml (villager professions, Mannequin skins, armor stand gear). */
-    public NpcLooks getNpcLooks() {
-        return npcLooks;
+    /** The named shop keeper appearances from shop-looks.yml (villager professions, Mannequin skins, armor stand gear). */
+    public NpcLooks getShopLooks() {
+        return shopLooks;
+    }
+
+    /** The named hub navigator appearances from navigator-looks.yml. */
+    public NpcLooks getNavigatorLooks() {
+        return navigatorLooks;
+    }
+
+    /** Builds the team shop keepers of a match. */
+    public ShopKeepers getShopKeepers() {
+        return shopKeepers;
     }
 
     /** The hub NPCs that open the arena picker. */

@@ -640,7 +640,8 @@ public final class CopperHeistCommand {
         plugin.getQuestRegistry().load();
         plugin.getAchievementRegistry().load();
         plugin.getDaily().load();
-        plugin.getNpcLooks().load();
+        plugin.getShopLooks().load();
+        plugin.getNavigatorLooks().load();
         plugin.getNavigators().reload();
         Msg.ok(sender, "command.reloaded");
         return Command.SINGLE_SUCCESS;
@@ -1073,7 +1074,7 @@ public final class CopperHeistCommand {
     }
 
     /**
-     * setshop (one shop keeper, replacing any others) and addshop (another one): both take an optional npcs.yml look, so a team can have
+     * setshop (one shop keeper, replacing any others) and addshop (another one): both take an optional shop-looks.yml look, so a team can have
      * several keepers that each look different.
      */
     private LiteralArgumentBuilder<CommandSourceStack> shopCommand(String name, boolean replace) {
@@ -1090,8 +1091,8 @@ public final class CopperHeistCommand {
     }
 
     private void placeShop(Player player, Arena arena, Team team, String look, boolean replace) {
-        if (look != null && plugin.getNpcLooks().get(look) == null) {
-            Msg.err(player, "npc.unknown-look", "look", look, "looks", String.join(", ", plugin.getNpcLooks().ids()));
+        if (look != null && plugin.getShopLooks().get(look) == null) {
+            Msg.err(player, "npc.unknown-look", "look", look, "looks", String.join(", ", plugin.getShopLooks().ids()));
             return;
         }
         Arena.TeamSite site = arena.site(team);
@@ -1103,7 +1104,7 @@ public final class CopperHeistCommand {
 
     private SuggestionProvider<CommandSourceStack> lookSuggestions() {
         return (ctx, builder) -> {
-            for (String id : plugin.getNpcLooks().ids()) builder.suggest(id);
+            for (String id : plugin.getShopLooks().ids()) builder.suggest(id);
             return builder.buildFuture();
         };
     }

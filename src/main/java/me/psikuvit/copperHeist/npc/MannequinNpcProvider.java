@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * A Mannequin - a player-shaped NPC with a real skin - customised by skin and gear. Options (npcs.yml look, or npc.mannequin in
+ * A Mannequin - a player-shaped NPC with a real skin - customised by skin and gear. Options (look from shop-looks.yml or navigator-looks.yml, or npc.mannequin in
  * config.yml): skin.type (player-name | uuid | texture), skin.value, skin.signature (texture only), pose, immovable, show-name,
  * description (MiniMessage line under the name) and skin-parts.{cape,jacket,sleeves,pants,hat}; a look can also give it armor and held
  * items (see {@link NpcGear}). A skin from an equipped shop-skin cosmetic wins over the look's and config.yml's.

@@ -12,25 +12,28 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * The library of named NPC appearances in npcs.yml. A look with a mistake (an NPC type that doesn't exist) is skipped with a warning; the
- * rest still load. {@code defaults.shop} and {@code defaults.navigator} name the looks used when nothing more specific is chosen.
+ * One library of named NPC appearances, read from its own file: shop-looks.yml for shop keepers, navigator-looks.yml for hub navigators.
+ * A look with a mistake (an NPC type that doesn't exist) is skipped with a warning; the rest still load. {@code default} names the look
+ * used when nothing more specific is chosen.
  */
 public class NpcLooks {
 
     private static final Set<String> RESERVED = Set.of("type", "name");
 
     private final CopperHeist plugin;
+    private final String file;
     private final Map<String, NpcLook> looks = new LinkedHashMap<>();
-    private final Map<String, String> defaults = new LinkedHashMap<>();
+    private String defaultId;
 
-    public NpcLooks(CopperHeist plugin) {
+    public NpcLooks(CopperHeist plugin, String file) {
         this.plugin = plugin;
+        this.file = file;
     }
 
     public void load() {
-        YamlConfiguration yaml = ConfigFiles.load(plugin, "npcs.yml");
+        YamlConfiguration yaml = ConfigFiles.load(plugin, file);
         looks.clear();
-        defaults.clear();
+        defaultId = null;
         ConfigurationSection section = yaml.getConfigurationSection("looks");
         if (section != null) {
             for (String id : section.getKeys(false)) {
@@ -40,20 +43,16 @@ public class NpcLooks {
                     NpcLook look = parse(id, entry, type -> plugin.providers().npc().has(type));
                     looks.put(look.id(), look);
                 } catch (RuntimeException ex) {
-                    plugin.getLogger().warning("Skipping NPC look '" + id + "' in npcs.yml: " + ex.getMessage());
+                    plugin.getLogger().warning("Skipping NPC look '" + id + "' in " + file + ": " + ex.getMessage());
                 }
             }
         }
-        ConfigurationSection defaultSection = yaml.getConfigurationSection("defaults");
-        if (defaultSection != null) {
-            for (String role : defaultSection.getKeys(false)) {
-                String id = defaultSection.getString(role, "").toLowerCase(Locale.ROOT);
-                if (id.isBlank()) continue;
-                if (looks.containsKey(id)) defaults.put(role.toLowerCase(Locale.ROOT), id);
-                else plugin.getLogger().warning("npcs.yml defaults." + role + " names the look '" + id + "' which does not exist.");
-            }
+        String wanted = yaml.getString("default", "").toLowerCase(Locale.ROOT);
+        if (!wanted.isBlank()) {
+            if (looks.containsKey(wanted)) defaultId = wanted;
+            else plugin.getLogger().warning(file + " default names the look '" + wanted + "' which does not exist.");
         }
-        plugin.getLogger().info("Loaded " + looks.size() + " NPC look(s).");
+        plugin.getLogger().info("Loaded " + looks.size() + " NPC look(s) from " + file + ".");
     }
 
     public NpcLook get(String id) {
@@ -64,12 +63,18 @@ public class NpcLooks {
         return looks.keySet();
     }
 
-    /** The look used for a role ("shop" or "navigator") when nothing more specific is chosen, or null to use the old npc.* config. */
-    public NpcLook defaultFor(String role) {
-        return get(defaults.get(role));
+    /** The look used when none is chosen, or null to use the plain NPC settings from config.yml. */
+    public NpcLook defaultLook() {
+        return get(defaultId);
     }
 
-    /** Builds one look from its npcs.yml section; throws IllegalArgumentException with a readable reason if it can't be used. */
+    /** The named look, else the default one, else null. */
+    public NpcLook choose(String id) {
+        NpcLook look = get(id);
+        return look != null ? look : defaultLook();
+    }
+
+    /** Builds one look from its section; throws IllegalArgumentException with a readable reason if it can't be used. */
     public static NpcLook parse(String rawId, ConfigurationSection s, Predicate<String> knownType) {
         String type = s.getString("type");
         if (type != null) {

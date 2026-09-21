@@ -119,7 +119,8 @@ default. Other plugins can register more through the API.
 
 | Key | Choices |
 |---|---|
-| `npc.type` (shop / role NPC) | `mannequin` (custom skin), `villager`, `armor-stand`, `interaction`, `none` |
+| `npc.type` (shop keepers) | `mannequin` (custom skin), `villager`, `armor-stand`, `interaction`, `none` |
+| `navigator.type` (hub navigators) | the same choices, set separately from the shop keepers |
 | `ui.menu` | `chest` GUI or `dialog` (Paper's pop-up dialogs) |
 | `loot.bag.visual` | `item-display`, `block-display`, `label-only` |
 | `respawn.mode` | `spectator-wait`, `instant`, `ghost` |
@@ -131,7 +132,7 @@ The Mannequin NPC supports a skin from a player name, a UUID or a raw texture va
 
 ### Shop keepers and navigators
 
-Shop keepers and the hub's game navigators are built by the same NPC providers, and each can have its own **look** from `npcs.yml`:
+Shop keepers and the hub's game navigators are separate features - each has its own look file, default and command - but are built by the same NPC providers. A **look** comes from `shop-looks.yml` (shop keepers) or `navigator-looks.yml` (navigators):
 
 - **Villagers** by profession (librarian, armorer, toolsmith, cartographer, cleric ...), clothing biome and level.
 - **Mannequins** by skin (player name, UUID or texture), plus armor and held items.
@@ -141,7 +142,7 @@ Shop keepers and the hub's game navigators are built by the same NPC providers, 
 About 20 looks ship, so a team can have several keepers that each look different: `/ch arena addshop <arena> <team> [look]` adds another
 (`setshop` replaces them with one, `clearshops` removes them all). **Navigators** are hub NPCs that open the arena picker:
 `/ch navigator create <id> [look]`, `look`, `remove` and `list`. They are saved in `navigators.yml` and re-created if they go missing.
-Existing arenas keep their single shop point; a look is optional everywhere, and without one the plain `npc.type` settings apply as before.
+Existing arenas keep their single shop point; a look is optional everywhere, and without one the plain `npc.type` (shop keepers) or `navigator.type` (navigators) setting applies.
 
 ## Arena setup
 

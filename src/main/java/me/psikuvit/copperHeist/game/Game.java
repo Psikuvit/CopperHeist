@@ -15,9 +15,7 @@ import me.psikuvit.copperHeist.loot.LootBagManager;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootSpawner;
 import me.psikuvit.copperHeist.npc.NpcHandle;
-import me.psikuvit.copperHeist.npc.NpcLook;
-import me.psikuvit.copperHeist.npc.NpcSpec;
-import me.psikuvit.copperHeist.npc.VillagerNpcProvider;
+import me.psikuvit.copperHeist.npc.NpcSpawner;
 import me.psikuvit.copperHeist.relic.RelicManager;
 import me.psikuvit.copperHeist.role.RoleService;
 import me.psikuvit.copperHeist.task.GameSidebarTask;
@@ -29,7 +27,6 @@ import me.psikuvit.copperHeist.task.RespawnTask;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import me.psikuvit.copperHeist.util.PlayerSanitizer;
-import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -330,46 +327,22 @@ public class Game {
 
     // ---- shop NPCs ----
 
-    /**
-     * One NPC per shop point of each team. A shop point can name an npcs.yml look (a villager profession, a Mannequin skin, an armor stand
-     * with a custom head and armor ...); without one the default shop look is used, and without that the plain npc.type from config.yml.
-     */
+    /** One shop keeper per shop point of each team (see ShopKeepers for how one is dressed). */
     private void spawnShopNpcs() {
-        String format = settings().getString("npc.name-format", "{team} Shop");
-        var looks = plugin.getNpcLooks();
         for (Team team : Team.values()) {
             var skin = plugin.getCosmetics().bestForTeam(this, team, CosmeticCategory.NPC);
             for (Arena.ShopPoint point : arena.site(team).shops) {
                 Location loc = point.location();
                 if (loc == null || loc.getWorld() == null) continue;
-                NpcLook look = looks.get(point.look());
-                if (look == null) look = looks.defaultFor("shop");
-                String type = look != null && look.type() != null ? look.type() : settings().getString("npc.type", "villager");
-                String nameFormat = look != null && look.name() != null ? look.name() : format;
-                Component name = Theme.mini().deserialize(nameFormat.replace("{team}", team.displayName())).colorIfAbsent(team.color());
-
-                NpcSpec spec = new NpcSpec(loc, name, team, settings(), skin == null ? null : skin.cosmetic().params(), look);
-                NpcHandle handle;
-                try {
-                    handle = plugin.providers().npc().resolve(type).spawn(spec);
-                } catch (LinkageError | RuntimeException ex) {
-                    plugin.getLogger().warning("NPC type '" + type + "' failed (" + ex + ") - falling back to a villager.");
-                    handle = new VillagerNpcProvider().spawn(new NpcSpec(loc, name, team, settings()));
-                }
+                NpcHandle handle = plugin.getShopKeepers().spawn(loc, team, point.look(), skin == null ? null : skin.cosmetic().params());
                 if (handle == null) continue;
-                for (Entity entity : allNpcEntities(handle)) Pdc.set(entity, PdcKeys.MATCH_ID, matchId);
+                List<Entity> entities = NpcSpawner.entities(handle);
+                for (Entity entity : entities) Pdc.set(entity, PdcKeys.MATCH_ID, matchId);
                 shopNpcs.put(handle.clickable().getUniqueId(), team);
-                npcEntities.addAll(allNpcEntities(handle));
+                npcEntities.addAll(entities);
                 plugin.getGameManager().registerHeistEntity(this, handle.clickable().getUniqueId());
             }
         }
-    }
-
-    private List<Entity> allNpcEntities(NpcHandle handle) {
-        List<Entity> all = new ArrayList<>();
-        all.add(handle.clickable());
-        all.addAll(handle.extras());
-        return all;
     }
 
     private void removeShopNpcs() {

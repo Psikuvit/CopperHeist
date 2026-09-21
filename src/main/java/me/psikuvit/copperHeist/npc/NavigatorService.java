@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -29,12 +28,12 @@ import java.util.logging.Level;
 /**
  * Game navigators: NPCs standing in the hub that open the arena picker when right-clicked. They are placed with /ch navigator, saved in
  * navigators.yml, and built by the same NPC providers as shop keepers - so a navigator can be a villager with a profession, a Mannequin
- * with a skin or an armor stand with a custom head and armor (an npcs.yml look). They are not saved into the world; the plugin spawns
+ * with a skin or an armor stand with a custom head and armor (a navigator-looks.yml look). They are not saved into the world; the plugin spawns
  * them on start and re-creates any that go missing (a chunk that was unloaded, an entity that was removed).
  */
 public class NavigatorService {
 
-    /** One placed navigator; {@code look} is an npcs.yml look id, or null for the default navigator look. */
+    /** One placed navigator; {@code look} is a navigator-looks.yml look id, or null for the default navigator look. */
     public record Navigator(String id, Location location, String look) {
     }
 
@@ -162,24 +161,17 @@ public class NavigatorService {
     }
 
     private void spawn(Navigator navigator) {
-        NpcLooks looks = plugin.getNpcLooks();
-        NpcLook look = looks.get(navigator.look());
-        if (look == null) look = looks.defaultFor("navigator");
-        String type = look != null && look.type() != null ? look.type() : plugin.settings().getString("npc.type", "villager");
+        NpcLook look = plugin.getNavigatorLooks().choose(navigator.look());
+        // A navigator's own type setting (navigator.type), not the shop keepers' npc.type.
+        String type = look != null && look.type() != null ? look.type() : plugin.settings().getString("navigator.type", "villager");
         Component name = plugin.getMessageService().get("npc.navigator-name");
         if (look != null && look.name() != null) name = Theme.mini().deserialize(look.name());
 
         NpcSpec spec = new NpcSpec(navigator.location(), name, null, plugin.settings(), null, look);
-        NpcHandle handle;
-        try {
-            handle = plugin.providers().npc().resolve(type).spawn(spec);
-        } catch (LinkageError | RuntimeException ex) {
-            plugin.getLogger().warning("NPC type '" + type + "' failed for navigator '" + navigator.id() + "' (" + ex + ") - using a villager.");
-            handle = new VillagerNpcProvider().spawn(new NpcSpec(navigator.location(), name, null, plugin.settings()));
-        }
+        NpcHandle handle = NpcSpawner.spawn(plugin, type, spec, "navigator '" + navigator.id() + "'");
         if (handle == null) return;
         spawned.put(navigator.id(), handle);
-        for (Entity entity : entities(handle)) {
+        for (Entity entity : NpcSpawner.entities(handle)) {
             entity.setPersistent(false); // spawned fresh on every start; never saved into the world
             Pdc.set(entity, PdcKeys.NAVIGATOR, navigator.id());
         }
@@ -190,18 +182,11 @@ public class NavigatorService {
         NpcHandle handle = spawned.remove(id);
         if (handle == null) return;
         byEntity.remove(handle.clickable().getUniqueId());
-        for (Entity entity : entities(handle)) entity.remove();
+        for (Entity entity : NpcSpawner.entities(handle)) entity.remove();
     }
 
     private void despawnAll() {
         for (String id : new ArrayList<>(spawned.keySet())) despawn(id);
         byEntity.clear();
-    }
-
-    private static List<Entity> entities(NpcHandle handle) {
-        List<Entity> all = new ArrayList<>();
-        all.add(handle.clickable());
-        all.addAll(handle.extras());
-        return all;
     }
 }

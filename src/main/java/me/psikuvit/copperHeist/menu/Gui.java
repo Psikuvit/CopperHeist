@@ -67,7 +67,7 @@ public final class Gui {
 
     /** A progress bar as MiniMessage, e.g. {@code <ok>██████</ok><dim>░░░░</dim>}; {@code fraction} is clamped to 0..1. */
     public static String bar(double fraction, int length) {
-        int filled = (int) Math.round(Math.max(0, Math.min(1, fraction)) * length);
+        int filled = (int) Math.round(Math.clamp(fraction, 0, 1) * length);
         return "<ok>" + "█".repeat(filled) + "</ok><dim>" + "░".repeat(length - filled) + "</dim>";
     }
 

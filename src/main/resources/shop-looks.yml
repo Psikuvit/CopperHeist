@@ -1,16 +1,13 @@
-# NPC looks: named appearances for shop keepers and hub navigators. A look picks the kind of NPC and how it is dressed, so a team can have
-# several shop keepers that each look different, and the hub can have navigators (the NPCs that open the arena picker) in any style.
+# Shop keeper looks: named appearances for the NPC standing at each team's shop point. A look picks the kind of NPC and how it is
+# dressed, so a team can have several shop keepers that each look different.
 #
-# Use a look:
-#   shop keepers    /ch arena addshop <arena> <team> [look]   (add as many as you like; setshop replaces them with one)
-#   navigators      /ch navigator create <id> [look]          (see also: /ch navigator look|remove|list)
-#   defaults        the looks used when none is named are set under "defaults" below. Remove a default to fall back to the plain
-#                   npc.type and npc.* settings in config.yml.
-# /ch reload re-reads this file (navigators are rebuilt; shop keepers change at the next match).
+# Use a look:   /ch arena addshop <arena> <team> [look]   (add as many as you like; setshop replaces them with one)
+#   default     the look used when a shop point names none. Remove it to fall back to the plain npc.type and npc.* settings in config.yml.
+# /ch reload re-reads this file (shop keepers change at the next match). Hub navigators have their own file: navigator-looks.yml.
 #
 # looks.<id>:
 #   type    villager | mannequin | armor-stand | interaction | none   (leave out to use npc.type from config.yml)
-#   name    MiniMessage name tag; {team} is the team's name (shop keepers). Leave out for the default.
+#   name    MiniMessage name tag; {team} is the team's name. Leave out for npc.name-format.
 #
 #   villager      profession   librarian, armorer, toolsmith, weaponsmith, cartographer, cleric, farmer, butcher, fisherman, ...
 #                 biome        plains, desert, jungle, savanna, snow, swamp, taiga (the villager's clothing style)
@@ -27,9 +24,7 @@
 #
 # A mannequin's skin can also come from a shop-skin cosmetic a player on the team has equipped (see cosmetics.yml).
 
-defaults:
-  shop: merchant
-  navigator: guide
+default: merchant
 
 looks:
 
@@ -102,20 +97,3 @@ looks:
     armor: { chest: LEATHER_CHESTPLATE, color: "#B87333" }
     arms: false
     name: "{team} Golem Keeper"
-
-  # ---- hub navigators ----
-  guide:
-    type: villager
-    profession: cartographer
-    name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"
-  guide_knight:
-    type: armor-stand
-    head: DIAMOND_HELMET
-    armor: { chest: DIAMOND_CHESTPLATE, legs: DIAMOND_LEGGINGS, feet: DIAMOND_BOOTS }
-    main-hand: COMPASS
-    name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"
-  guide_mannequin:
-    type: mannequin
-    skin: { type: player-name, value: MHF_Villager }
-    main-hand: COMPASS
-    name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"

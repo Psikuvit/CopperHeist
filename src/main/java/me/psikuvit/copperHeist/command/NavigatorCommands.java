@@ -20,7 +20,7 @@ import static io.papermc.paper.command.brigadier.Commands.literal;
  * /ch navigator: place the hub NPCs that open the arena picker.
  * <pre>
  *   create &lt;id&gt; [look]    a navigator where you stand (again with the same id to move it)
- *   look &lt;id&gt; &lt;look&gt;    change how it looks (a look from npcs.yml)
+ *   look &lt;id&gt; &lt;look&gt;    change how it looks (a look from navigator-looks.yml)
  *   remove &lt;id&gt;
  *   list
  * </pre>
@@ -35,7 +35,7 @@ public class NavigatorCommands {
 
     public LiteralArgumentBuilder<CommandSourceStack> root(String permission) {
         SuggestionProvider<CommandSourceStack> looks = (ctx, builder) -> {
-            for (String id : plugin.getNpcLooks().ids()) builder.suggest(id);
+            for (String id : plugin.getNavigatorLooks().ids()) builder.suggest(id);
             return builder.buildFuture();
         };
         SuggestionProvider<CommandSourceStack> navigators = (ctx, builder) -> {
@@ -63,8 +63,8 @@ public class NavigatorCommands {
             Msg.err(sender, "setup.in-game-only");
             return 0;
         }
-        if (look != null && plugin.getNpcLooks().get(look) == null) {
-            Msg.err(sender, "npc.unknown-look", "look", look, "looks", String.join(", ", plugin.getNpcLooks().ids()));
+        if (look != null && plugin.getNavigatorLooks().get(look) == null) {
+            Msg.err(sender, "npc.unknown-look", "look", look, "looks", String.join(", ", plugin.getNavigatorLooks().ids()));
             return 0;
         }
         String id = StringArgumentType.getString(ctx, "id");
@@ -76,8 +76,8 @@ public class NavigatorCommands {
     private int look(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         String look = StringArgumentType.getString(ctx, "look");
-        if (plugin.getNpcLooks().get(look) == null) {
-            Msg.err(sender, "npc.unknown-look", "look", look, "looks", String.join(", ", plugin.getNpcLooks().ids()));
+        if (plugin.getNavigatorLooks().get(look) == null) {
+            Msg.err(sender, "npc.unknown-look", "look", look, "looks", String.join(", ", plugin.getNavigatorLooks().ids()));
             return 0;
         }
         String id = StringArgumentType.getString(ctx, "id");

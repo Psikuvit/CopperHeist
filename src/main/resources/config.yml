@@ -142,6 +142,11 @@ npc:
     width: 0.9
     height: 1.9
 
+# Hub navigators (the NPCs that open the arena picker; /ch navigator create). Their own type, separate from the shop keepers' npc.type;
+# a look in navigator-looks.yml overrides it. The npc.* options above (skin, pose, profession ...) are shared by both kinds of NPC.
+navigator:
+  type: villager                    # mannequin | villager | armor-stand | interaction | none
+
 # How the shop and role picker open: chest (inventory GUI) or dialog (Paper's pop-up dialog screen).
 ui:
   menu: chest

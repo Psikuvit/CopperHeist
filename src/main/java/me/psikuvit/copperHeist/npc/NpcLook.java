@@ -3,13 +3,13 @@ package me.psikuvit.copperHeist.npc;
 import java.util.Map;
 
 /**
- * One named appearance for an NPC, from npcs.yml: which kind of NPC it is (villager, mannequin, armor-stand ...), an optional name
+ * One named appearance for an NPC, from shop-looks.yml or navigator-looks.yml: which kind of NPC it is (villager, mannequin, armor-stand ...), an optional name
  * and the options that kind understands. Options are flat and dotted (for example {@code skin.value}, {@code armor.chest}).
  *
- * @param id      the look's id in npcs.yml
+ * @param id      the look's id in its looks file
  * @param type    the NPC provider to use, or null to use {@code npc.type} from config.yml
  * @param name    MiniMessage name tag, or null for the default ({@code {team}} is replaced by the team's name)
- * @param options everything else, read by the provider (see {@code npcs.yml} for what each provider supports)
+ * @param options everything else, read by the provider (see the looks files for what each provider supports)
  */
 public record NpcLook(String id, String type, String name, Map<String, Object> options) {
 

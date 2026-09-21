@@ -19,7 +19,7 @@ public class Arena {
         COMMON, RARE, CACHE
     }
 
-    /** One shop keeper's spot; {@code look} names an npcs.yml look for it (null = the default shop look). */
+    /** One shop keeper's spot; {@code look} names a shop-looks.yml look for it (null = the default shop look). */
     public record ShopPoint(Location location, String look) {
     }
 

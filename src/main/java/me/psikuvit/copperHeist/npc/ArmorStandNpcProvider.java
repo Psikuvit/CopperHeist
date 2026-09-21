@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * An armor stand - light on the server, customised by what it wears: a head (any block or a player head with a skin), armor pieces
- * (leather can be dyed) and held items. Options (npcs.yml look, or npc.armor-stand in config.yml): small, arms, base-plate, plus the
+ * (leather can be dyed) and held items. Options (look from shop-looks.yml or navigator-looks.yml, or npc.armor-stand in config.yml): small, arms, base-plate, plus the
  * gear options described in {@link NpcGear}. Players can't take or change what it wears.
  */
 public class ArmorStandNpcProvider implements NpcProvider {

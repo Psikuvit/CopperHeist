@@ -1,0 +1,40 @@
+# Navigator looks: named appearances for the hub NPCs that open the arena picker when right-clicked. A look picks the kind of NPC and
+# how it is dressed - a villager with a profession, a Mannequin with a skin, an armor stand with a custom head and armor.
+#
+# Use a look:   /ch navigator create <id> [look]   (see also: /ch navigator look|remove|list)
+#   default     the look used when a navigator names none. Remove it to fall back to navigator.type in config.yml.
+# /ch reload re-reads this file and rebuilds every navigator. Shop keepers have their own file: shop-looks.yml.
+#
+# looks.<id>:
+#   type    villager | mannequin | armor-stand | interaction | none   (leave out to use navigator.type from config.yml)
+#   name    MiniMessage name tag. Leave out for the npc.navigator-name message.
+#
+#   villager      profession, biome, level, baby      (professions: cartographer, librarian, cleric, farmer, ...)
+#   mannequin     skin: {type: player-name|uuid|texture, value: ..., signature: ...}     pose, description, show-name, immovable
+#                 plus any of the gear options below
+#   armor-stand   small, arms, base-plate, plus the gear options below
+#
+#   gear (armor stands and mannequins):
+#                 head         any material for the head, e.g. DIAMOND_HELMET, PUMPKIN
+#                 skull        {type: player-name|uuid|texture, value: ..., signature: ...} - a player head instead of head
+#                 armor        {chest: MATERIAL, legs: MATERIAL, feet: MATERIAL, color: "#RRGGBB"}  (color dyes leather armor)
+#                 main-hand, off-hand   what it holds
+
+default: guide
+
+looks:
+  guide:
+    type: villager
+    profession: cartographer
+    name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"
+  guide_knight:
+    type: armor-stand
+    head: DIAMOND_HELMET
+    armor: { chest: DIAMOND_CHESTPLATE, legs: DIAMOND_LEGGINGS, feet: DIAMOND_BOOTS }
+    main-hand: COMPASS
+    name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"
+  guide_mannequin:
+    type: mannequin
+    skin: { type: player-name, value: MHF_Villager }
+    main-hand: COMPASS
+    name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"

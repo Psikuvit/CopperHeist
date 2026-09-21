@@ -9,7 +9,7 @@ import java.util.Locale;
 
 /**
  * A frozen, invulnerable villager, customised by profession (which decides its outfit and the block it appears to work at). Options
- * (npcs.yml look, or npc.villager in config.yml): profession (librarian, armorer, toolsmith, cartographer, cleric, farmer ...),
+ * (look from shop-looks.yml or navigator-looks.yml, or npc.villager in config.yml): profession (librarian, armorer, toolsmith, cartographer, cleric, farmer ...),
  * biome (plains, desert, jungle, savanna, snow, swamp, taiga - the villager's clothing style), level (1-5, the badge on its outfit) and
  * baby (true for a child villager).
  */

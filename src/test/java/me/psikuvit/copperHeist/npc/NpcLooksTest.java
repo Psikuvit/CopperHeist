@@ -26,8 +26,8 @@ class NpcLooksTest {
     private static final Set<String> TYPES = Set.of("villager", "mannequin", "armor-stand", "interaction", "none");
     private static final Pattern FIXED_COLOR = Pattern.compile("</?(gold|yellow|gray|grey|white|dark_gray|green|red|light_purple|blue|aqua)>");
 
-    private static YamlConfiguration bundled() throws Exception {
-        try (InputStream in = NpcLooksTest.class.getClassLoader().getResourceAsStream("npcs.yml")) {
+    private static YamlConfiguration bundled(String file) throws Exception {
+        try (InputStream in = NpcLooksTest.class.getClassLoader().getResourceAsStream(file)) {
             return YamlConfiguration.loadConfiguration(new InputStreamReader(in, StandardCharsets.UTF_8));
         }
     }
@@ -80,12 +80,10 @@ class NpcLooksTest {
         assertEquals(9, new NpcLook("x", null, null, Map.of("level", "many")).integer("level", 9));
     }
 
-    @Test
-    void everyShippedLookParsesAndItsGearExists() throws Exception {
-        YamlConfiguration yaml = bundled();
-        ConfigurationSection looks = yaml.getConfigurationSection("looks");
-        assertNotNull(looks);
-        assertTrue(looks.getKeys(false).size() >= 15);
+    private static void checkShipped(String file, int atLeast) throws Exception {
+        ConfigurationSection looks = bundled(file).getConfigurationSection("looks");
+        assertNotNull(looks, file);
+        assertTrue(looks.getKeys(false).size() >= atLeast, file);
         for (String id : looks.getKeys(false)) {
             NpcLook look = NpcLooks.parse(id, looks.getConfigurationSection(id), TYPES::contains);
             if (look.name() != null) assertFalse(FIXED_COLOR.matcher(look.name()).find(), id + " should use theme tags");
@@ -93,17 +91,27 @@ class NpcLooksTest {
                 if (look.has(key)) assertNotNull(Material.matchMaterial(look.string(key)), id + ": unknown material " + look.string(key));
             }
         }
+        assertTrue(looks.contains(bundled(file).getString("default")), file + ": default must name a look");
     }
 
     @Test
-    void theDefaultsNameLooksThatExistAndCoverEveryNpcKind() throws Exception {
-        YamlConfiguration yaml = bundled();
-        ConfigurationSection looks = yaml.getConfigurationSection("looks");
-        for (String role : List.of("shop", "navigator")) {
-            assertTrue(looks.contains(yaml.getString("defaults." + role)), "defaults." + role + " must name a look");
-        }
+    void everyShippedShopLookParsesAndItsGearExists() throws Exception {
+        checkShipped("shop-looks.yml", 12);
+        ConfigurationSection looks = bundled("shop-looks.yml").getConfigurationSection("looks");
         Set<String> types = new HashSet<>();
         for (String id : looks.getKeys(false)) types.add(looks.getString(id + ".type"));
         assertTrue(types.containsAll(Set.of("villager", "mannequin", "armor-stand")), "a look for each kind of keeper");
+    }
+
+    @Test
+    void everyShippedNavigatorLookParsesAndItsGearExists() throws Exception {
+        checkShipped("navigator-looks.yml", 3);
+    }
+
+    @Test
+    void theTwoFilesDoNotShareLooks() throws Exception {
+        Set<String> shop = bundled("shop-looks.yml").getConfigurationSection("looks").getKeys(false);
+        Set<String> navigator = bundled("navigator-looks.yml").getConfigurationSection("looks").getKeys(false);
+        assertTrue(shop.stream().noneMatch(navigator::contains), "a look id belongs to one file");
     }
 }

@@ -28,7 +28,7 @@ public final class ConfigFiles {
     }
 
     /** Files whose keys are plain settings, so keys added by an update are written into the server's copy. */
-    private static final Set<String> WRITE_MISSING = Set.of("scoreboard.yml", "guide.yml", "progress.yml");
+    private static final Set<String> WRITE_MISSING = Set.of("scoreboard.yml", "guide.yml", "progress.yml", "cosmetics.yml", "achievements.yml");
 
     public static YamlConfiguration load(JavaPlugin plugin, String name) {
         File file = new File(plugin.getDataFolder(), name);
