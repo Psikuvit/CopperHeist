@@ -15,7 +15,7 @@ public final class CosmeticEffects {
         registry.register(new FireworkBurstEffect());
         registry.register(new LightningEffect());
         registry.register(new GolemHatEffect());
-        registry.register(new NpcSkinEffect());
+        registry.register(new ShopKeeperEffect());
         registry.register(new DeathMessageEffect());
     }
 }

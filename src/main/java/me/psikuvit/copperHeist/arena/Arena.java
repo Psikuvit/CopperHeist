@@ -19,10 +19,6 @@ public class Arena {
         COMMON, RARE, CACHE
     }
 
-    /** One shop keeper's spot; {@code look} names a shop-looks.yml look for it (null = the default shop look). */
-    public record ShopPoint(Location location, String look) {
-    }
-
     public static class TeamSite {
         public Location spawn;
         public final List<Location> dockChests = new ArrayList<>();
@@ -30,8 +26,8 @@ public class Arena {
         public Location golemIdle;
         public final List<Location> waypoints = new ArrayList<>();
         public Location vaultDoor;
-        /** Every shop keeper of the team - as many as the builder wants, each with its own look. */
-        public final List<ShopPoint> shops = new ArrayList<>();
+        /** Every shop keeper spot of the team - as many as the builder wants. How they look comes from the team's npc cosmetic. */
+        public final List<Location> shops = new ArrayList<>();
         public Location baseCorner1;
         public Location baseCorner2;
         public Location vaultCorner1;

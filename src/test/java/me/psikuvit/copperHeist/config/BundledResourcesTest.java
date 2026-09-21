@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BundledResourcesTest {
 
     private static final List<String> FILES = List.of("config.yml", "roles.yml", "loot.yml", "shop.yml",
-            "scoreboard.yml", "guide.yml", "progress.yml", "cosmetics.yml", "shop-looks.yml", "navigator-looks.yml", "quests.yml", "achievements.yml", "daily.yml", "lang/en.yml", "presets/classic.yml", "presets/quick.yml", "presets/hardcore.yml");
+            "scoreboard.yml", "guide.yml", "progress.yml", "cosmetics.yml", "navigator-looks.yml", "quests.yml", "achievements.yml", "daily.yml", "lang/en.yml", "presets/classic.yml", "presets/quick.yml", "presets/hardcore.yml");
 
     private static YamlConfiguration load(String name) throws Exception {
         try (InputStream in = BundledResourcesTest.class.getClassLoader().getResourceAsStream(name)) {

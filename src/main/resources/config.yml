@@ -246,6 +246,8 @@ cosmetics:
   featured-count: 3     # how many "featured today" picks the cosmetics menu shows (0-3); they change at midnight UTC
   max-active-trails: 48 # projectile trails running at once on the whole server; shots beyond that get no trail (keeps busy matches smooth)
   trail-max-ticks: 160  # a trail stops after this long even if the projectile is still flying
+  preview-seconds: 12   # how long a shop keeper preview lasts (sneaking ends it early)
+  preview-distance: 3.5 # how far in front of the keeper the preview camera sits
   victory-seconds: 5    # how long the winners' victory effects keep playing at the end of a match
 
 # Minecraft's own advancements would compete with this plugin's achievements, so they are switched off by default.

@@ -167,7 +167,7 @@ public class NavigatorService {
         Component name = plugin.getMessageService().get("npc.navigator-name");
         if (look != null && look.name() != null) name = Theme.mini().deserialize(look.name());
 
-        NpcSpec spec = new NpcSpec(navigator.location(), name, null, plugin.settings(), null, look);
+        NpcSpec spec = new NpcSpec(navigator.location(), name, null, plugin.settings(), look);
         NpcHandle handle = NpcSpawner.spawn(plugin, type, spec, "navigator '" + navigator.id() + "'");
         if (handle == null) return;
         spawned.put(navigator.id(), handle);

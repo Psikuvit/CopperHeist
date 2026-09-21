@@ -3,7 +3,7 @@
 #
 # Use a look:   /ch navigator create <id> [look]   (see also: /ch navigator look|remove|list)
 #   default     the look used when a navigator names none. Remove it to fall back to navigator.type in config.yml.
-# /ch reload re-reads this file and rebuilds every navigator. Shop keepers have their own file: shop-looks.yml.
+# /ch reload re-reads this file and rebuilds every navigator.
 #
 # looks.<id>:
 #   type    villager | mannequin | armor-stand | interaction | none   (leave out to use navigator.type from config.yml)

@@ -155,6 +155,8 @@ public class CosmeticService {
             player.sendMessage(plugin.getMessageService().get(player, "cosmetics.preview-title", "title", cosmetic.name(), "player", player.getName()));
             return true;
         }
+        // A shop keeper look is shown on the preview stage, not played where the player stands.
+        if (cosmetic.category() == CosmeticCategory.NPC) return plugin.getPreviews().start(player, cosmetic);
         EffectProvider provider = cosmetic.effect() == null ? null : effects.get(cosmetic.effect());
         if (provider == null) return false;
         try {

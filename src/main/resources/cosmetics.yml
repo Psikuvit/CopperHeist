@@ -28,9 +28,13 @@
 #   firework         kill-effect, victory, join     colors, fade, type (BALL | BALL_LARGE | STAR | BURST | CREEPER), trail, flicker
 #   lightning        kill-effect, victory           no params (looks like lightning but does no damage)
 #   golem-hat        golem          material, scale, lift - an item worn on the team's golems
-#   npc-skin         npc            type (player-name | uuid | texture), value, signature - a skin for the team's shop NPC (Mannequin NPC type)
+#   shop-keeper      npc            the whole look of the team's shop NPC. params: type (villager | mannequin | armor-stand | interaction),
+#                                   name ({team} = the team's name), and what that type understands:
+#                                   villager: profession, biome, level, baby      mannequin: skin {type, value, signature}, pose ...
+#                                   armor-stand: small, arms, base-plate          gear (armor stand and mannequin): head, skull,
+#                                   armor {chest, legs, feet, color}, main-hand, off-hand
 #   death-message    death-message  message - MiniMessage announced to the match when you defeat someone; {killer} and {victim} are the names
-# Titles need no effect. Golem and shop-skin cosmetics belong to the whole team: the rarest one equipped by anyone on the team is shown.
+# Titles need no effect. Golem and shop keeper (npc) cosmetics belong to the whole team: the rarest one equipped by anyone on the team is shown.
 # ---------------------------------------------------------------------------------------------------------------------
 
 cosmetics:
@@ -248,37 +252,365 @@ cosmetics:
     level: 10
     params: { particle: END_ROD, shape: sphere, radius: 0.8 }
 
-  # ---- shop skins (the team's shop NPC; needs npc.type: mannequin) ----
+  # ---- shop keepers (category npc: the team's shop NPC is built from these params; see the shop-keeper effect above) ----
   shop_villager:
     category: npc
-    effect: npc-skin
+    effect: shop-keeper
     name: "<ok>Friendly Villager"
     description: ["<muted>Your shop, run by a villager."]
     icon: VILLAGER_SPAWN_EGG
     rarity: common
-    price: 200
+    price: 150
     level: 2
-    params: { type: player-name, value: MHF_Villager }
+    params: { type: villager, profession: librarian }
+  shop_armorer:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Armorer"
+    description: ["<muted>A villager armorer runs your shop."]
+    icon: BLAST_FURNACE
+    rarity: common
+    price: 150
+    level: 2
+    params: { type: villager, profession: armorer, name: "{team} Armorer" }
+  shop_cleric:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Healer"
+    description: ["<muted>A cleric behind the counter."]
+    icon: BREWING_STAND
+    rarity: common
+    price: 200
+    level: 3
+    params: { type: villager, profession: cleric, name: "{team} Healer" }
+  shop_butcher:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Provisioner"
+    description: ["<muted>A desert butcher with fresh supplies."]
+    icon: COOKED_BEEF
+    rarity: common
+    price: 200
+    level: 3
+    params: { type: villager, profession: butcher, biome: desert, name: "{team} Provisions" }
+  shop_knight:
+    category: npc
+    effect: shop-keeper
+    name: "<primary>Quartermaster"
+    description: ["<muted>An armored knight guards your stock."]
+    icon: IRON_CHESTPLATE
+    rarity: rare
+    price: 500
+    level: 6
+    params:
+      type: armor-stand
+      name: "{team} Quartermaster"
+      head: IRON_HELMET
+      armor: { chest: IRON_CHESTPLATE, legs: IRON_LEGGINGS, feet: IRON_BOOTS }
+      main-hand: IRON_SWORD
+  shop_copper_guard:
+    category: npc
+    effect: shop-keeper
+    name: "<primary>Copper Guard"
+    description: ["<muted>Dressed in dyed copper leather."]
+    icon: COPPER_INGOT
+    rarity: rare
+    price: 600
+    level: 8
+    params:
+      type: armor-stand
+      name: "{team} Copper Guard"
+      head: LEATHER_HELMET
+      armor: { chest: LEATHER_CHESTPLATE, legs: LEATHER_LEGGINGS, feet: LEATHER_BOOTS, color: "#B87333" }
+      main-hand: COPPER_INGOT
   shop_golem:
     category: npc
-    effect: npc-skin
+    effect: shop-keeper
     name: "<iron>Iron Shopkeeper"
     description: ["<muted>Sturdy service."]
     icon: IRON_BLOCK
     rarity: rare
     price: 500
     level: 6
-    params: { type: player-name, value: MHF_Golem }
+    params: { type: mannequin, name: "{team} Ironclad", skin: { type: player-name, value: MHF_Golem } }
   shop_creeper:
     category: npc
-    effect: npc-skin
+    effect: shop-keeper
     name: "<ok>Sssuspicious Seller"
     description: ["<muted>Nothing to worry about."]
     icon: CREEPER_HEAD
     rarity: epic
     price: 800
     level: 10
-    params: { type: player-name, value: MHF_Creeper }
+    params: { type: mannequin, name: "{team} Sssupplies", skin: { type: player-name, value: MHF_Creeper } }
+  shop_treasurer:
+    category: npc
+    effect: shop-keeper
+    name: "<accent>Treasurer"
+    description: ["<muted>A little golden keeper with a chest for a head."]
+    icon: CHEST
+    rarity: epic
+    price: 900
+    level: 12
+    params:
+      type: armor-stand
+      name: "{team} Treasurer"
+      skull: { type: player-name, value: MHF_Chest }
+      armor: { chest: GOLDEN_CHESTPLATE }
+      main-hand: GOLD_INGOT
+      small: true
+  shop_golem_keeper:
+    category: npc
+    effect: shop-keeper
+    name: "<accent>Golem Keeper"
+    description: ["<muted>A copper statue that sells you things."]
+    icon: COPPER_BLOCK
+    rarity: legendary
+    price: 1800
+    level: 18
+    params:
+      type: armor-stand
+      name: "{team} Golem Keeper"
+      skull: { type: player-name, value: MHF_Golem }
+      armor: { chest: LEATHER_CHESTPLATE, color: "#B87333" }
+      arms: false
+
+  # ---- more villager professions ----
+  shop_toolsmith:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Toolsmith"
+    description: ["<muted>Sturdy tools, honest prices."]
+    icon: SMITHING_TABLE
+    rarity: common
+    price: 200
+    level: 4
+    params: { type: villager, profession: toolsmith, name: "{team} Toolsmith" }
+  shop_weaponsmith:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Weaponsmith"
+    description: ["<muted>Sharp deals."]
+    icon: GRINDSTONE
+    rarity: common
+    price: 200
+    level: 4
+    params: { type: villager, profession: weaponsmith, name: "{team} Weaponsmith" }
+  shop_cartographer:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Scout"
+    description: ["<muted>Knows every corner of the map."]
+    icon: CARTOGRAPHY_TABLE
+    rarity: common
+    price: 200
+    level: 5
+    params: { type: villager, profession: cartographer, name: "{team} Scout" }
+  shop_farmer:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Farmer"
+    description: ["<muted>Fresh from the field."]
+    icon: COMPOSTER
+    rarity: common
+    price: 150
+    level: 3
+    params: { type: villager, profession: farmer, biome: plains, name: "{team} Farm Stand" }
+  shop_fisherman:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Fisherman"
+    description: ["<muted>The catch of the day."]
+    icon: FISHING_ROD
+    rarity: common
+    price: 150
+    level: 3
+    params: { type: villager, profession: fisherman, biome: swamp, name: "{team} Fishmonger" }
+  shop_fletcher:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Fletcher"
+    description: ["<muted>Arrows for every occasion."]
+    icon: FLETCHING_TABLE
+    rarity: common
+    price: 200
+    level: 5
+    params: { type: villager, profession: fletcher, biome: taiga, name: "{team} Fletcher" }
+  shop_mason:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Mason"
+    description: ["<muted>Builds things to last."]
+    icon: STONECUTTER
+    rarity: common
+    price: 200
+    level: 5
+    params: { type: villager, profession: mason, biome: snow, name: "{team} Mason" }
+  shop_shepherd:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Shepherd"
+    description: ["<muted>Soft goods and wool."]
+    icon: LOOM
+    rarity: common
+    price: 150
+    level: 3
+    params: { type: villager, profession: shepherd, biome: savanna, name: "{team} Shepherd" }
+  shop_librarian:
+    category: npc
+    effect: shop-keeper
+    name: "<info>Librarian"
+    description: ["<muted>Reads the fine print."]
+    icon: LECTERN
+    rarity: rare
+    price: 350
+    level: 7
+    params: { type: villager, profession: librarian, biome: jungle, name: "{team} Librarian" }
+
+  # ---- more mannequin skins (any player name, UUID or texture works: skin: {type: player-name | uuid | texture, value: ...}) ----
+  shop_pig:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Piggy Bank"
+    description: ["<muted>Oink. Coins go in, gear comes out."]
+    icon: PIG_SPAWN_EGG
+    rarity: rare
+    price: 450
+    level: 6
+    params: { type: mannequin, name: "{team} Piggy Bank", skin: { type: player-name, value: MHF_Pig } }
+  shop_zombie:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Undead Dealer"
+    description: ["<muted>Open all night."]
+    icon: ZOMBIE_HEAD
+    rarity: rare
+    price: 450
+    level: 7
+    params: { type: mannequin, name: "{team} Undead Dealer", skin: { type: player-name, value: MHF_Zombie } }
+  shop_skeleton:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Bone Trader"
+    description: ["<muted>Rattles when he laughs."]
+    icon: SKELETON_SKULL
+    rarity: rare
+    price: 450
+    level: 7
+    params: { type: mannequin, name: "{team} Bone Trader", skin: { type: player-name, value: MHF_Skeleton } }
+  shop_enderman:
+    category: npc
+    effect: shop-keeper
+    name: "<special>Void Merchant"
+    description: ["<muted>Appears out of nowhere."]
+    icon: ENDER_PEARL
+    rarity: epic
+    price: 850
+    level: 11
+    params: { type: mannequin, name: "{team} Void Merchant", skin: { type: player-name, value: MHF_Enderman } }
+  shop_blaze:
+    category: npc
+    effect: shop-keeper
+    name: "<accent>Blaze Broker"
+    description: ["<muted>Hot deals only."]
+    icon: BLAZE_ROD
+    rarity: epic
+    price: 850
+    level: 11
+    params: { type: mannequin, name: "{team} Blaze Broker", skin: { type: player-name, value: MHF_Blaze } }
+
+  # ---- more armor stands, by custom head and armor ----
+  shop_pumpkin:
+    category: npc
+    effect: shop-keeper
+    name: "<accent>Pumpkin Patch"
+    description: ["<muted>A very seasonal shopkeeper."]
+    icon: CARVED_PUMPKIN
+    rarity: common
+    price: 250
+    level: 4
+    params:
+      type: armor-stand
+      name: "{team} Pumpkin Patch"
+      head: CARVED_PUMPKIN
+      armor: { chest: LEATHER_CHESTPLATE, legs: LEATHER_LEGGINGS, color: "#E67E22" }
+      main-hand: PUMPKIN_PIE
+  shop_tnt:
+    category: npc
+    effect: shop-keeper
+    name: "<bad>Demolition Expert"
+    description: ["<muted>Handle with care."]
+    icon: TNT
+    rarity: rare
+    price: 550
+    level: 8
+    params:
+      type: armor-stand
+      name: "{team} Demolitions"
+      skull: { type: player-name, value: MHF_TNT }
+      armor: { chest: LEATHER_CHESTPLATE, legs: LEATHER_LEGGINGS, feet: LEATHER_BOOTS, color: "#C0392B" }
+      main-hand: FLINT_AND_STEEL
+  shop_baker:
+    category: npc
+    effect: shop-keeper
+    name: "<ok>Baker"
+    description: ["<muted>Cake first, business second."]
+    icon: CAKE
+    rarity: rare
+    price: 400
+    level: 6
+    params:
+      type: armor-stand
+      name: "{team} Bakery"
+      skull: { type: player-name, value: MHF_Cake }
+      armor: { chest: LEATHER_CHESTPLATE, color: "#FFFFFF" }
+      main-hand: BREAD
+  shop_wizard:
+    category: npc
+    effect: shop-keeper
+    name: "<special>Wizard"
+    description: ["<muted>Enchants your wallet."]
+    icon: ENCHANTED_BOOK
+    rarity: epic
+    price: 900
+    level: 12
+    params:
+      type: armor-stand
+      name: "{team} Wizard"
+      skull: { type: player-name, value: MHF_Enderman }
+      armor: { chest: LEATHER_CHESTPLATE, legs: LEATHER_LEGGINGS, feet: LEATHER_BOOTS, color: "#8E44AD" }
+      main-hand: BLAZE_ROD
+      off-hand: ENCHANTED_BOOK
+  shop_gold_baron:
+    category: npc
+    effect: shop-keeper
+    name: "<accent>Gold Baron"
+    description: ["<muted>Everything has a price."]
+    icon: GOLD_BLOCK
+    rarity: epic
+    price: 1000
+    level: 14
+    params:
+      type: armor-stand
+      name: "{team} Gold Baron"
+      head: GOLD_BLOCK
+      armor: { chest: GOLDEN_CHESTPLATE, legs: GOLDEN_LEGGINGS, feet: GOLDEN_BOOTS }
+      main-hand: GOLD_INGOT
+  shop_netherite:
+    category: npc
+    effect: shop-keeper
+    name: "<special>Netherite Warden"
+    description: ["<muted>The stock is under heavy guard."]
+    icon: NETHERITE_CHESTPLATE
+    rarity: legendary
+    price: 2200
+    level: 20
+    params:
+      type: armor-stand
+      name: "{team} Netherite Warden"
+      head: NETHERITE_HELMET
+      armor: { chest: NETHERITE_CHESTPLATE, legs: NETHERITE_LEGGINGS, feet: NETHERITE_BOOTS }
+      main-hand: NETHERITE_SWORD
 
   # ---- titles (shown in chat when chat.enabled is on, and as %copperheist_title%) ----
   title_pickpocket:

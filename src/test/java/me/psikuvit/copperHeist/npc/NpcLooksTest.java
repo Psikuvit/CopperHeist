@@ -95,23 +95,38 @@ class NpcLooksTest {
     }
 
     @Test
-    void everyShippedShopLookParsesAndItsGearExists() throws Exception {
-        checkShipped("shop-looks.yml", 12);
-        ConfigurationSection looks = bundled("shop-looks.yml").getConfigurationSection("looks");
-        Set<String> types = new HashSet<>();
-        for (String id : looks.getKeys(false)) types.add(looks.getString(id + ".type"));
-        assertTrue(types.containsAll(Set.of("villager", "mannequin", "armor-stand")), "a look for each kind of keeper");
-    }
-
-    @Test
     void everyShippedNavigatorLookParsesAndItsGearExists() throws Exception {
         checkShipped("navigator-looks.yml", 3);
     }
 
     @Test
-    void theTwoFilesDoNotShareLooks() throws Exception {
-        Set<String> shop = bundled("shop-looks.yml").getConfigurationSection("looks").getKeys(false);
-        Set<String> navigator = bundled("navigator-looks.yml").getConfigurationSection("looks").getKeys(false);
-        assertTrue(shop.stream().noneMatch(navigator::contains), "a look id belongs to one file");
+    void aCosmeticsParamsBecomeALook() {
+        NpcLook look = NpcLook.fromParams("Shop_Knight", Map.of("type", "Armor-Stand", "name", "{team} Knight", "head", "IRON_HELMET",
+                "armor", Map.of("chest", "IRON_CHESTPLATE", "color", "#B87333"), "small", true));
+        assertEquals("shop_knight", look.id());
+        assertEquals("armor-stand", look.type());
+        assertEquals("{team} Knight", look.name());
+        assertEquals("IRON_CHESTPLATE", look.string("armor.chest"));
+        assertEquals("#B87333", look.string("armor.color"));
+        assertTrue(look.bool("small", false));
+        assertFalse(look.has("type"));
+    }
+
+    @Test
+    void everyShippedShopKeeperCosmeticIsAValidLook() throws Exception {
+        ConfigurationSection cosmetics = bundled("cosmetics.yml").getConfigurationSection("cosmetics");
+        int found = 0;
+        for (String id : cosmetics.getKeys(false)) {
+            if (!"shop-keeper".equals(cosmetics.getString(id + ".effect"))) continue;
+            found++;
+            assertEquals("npc", cosmetics.getString(id + ".category"), id);
+            NpcLook look = NpcLook.fromParams(id, cosmetics.getConfigurationSection(id + ".params").getValues(false));
+            assertTrue(TYPES.contains(look.type()), id + ": type " + look.type());
+            if (look.name() != null) assertFalse(FIXED_COLOR.matcher(look.name()).find(), id + " should use theme tags");
+            for (String key : List.of("head", "armor.chest", "armor.legs", "armor.feet", "main-hand", "off-hand")) {
+                if (look.has(key)) assertNotNull(Material.matchMaterial(look.string(key)), id + ": unknown material " + look.string(key));
+            }
+        }
+        assertTrue(found >= 25, "the shop keeper cosmetics ship");
     }
 }

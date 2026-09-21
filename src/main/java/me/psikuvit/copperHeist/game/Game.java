@@ -330,11 +330,10 @@ public class Game {
     /** One shop keeper per shop point of each team (see ShopKeepers for how one is dressed). */
     private void spawnShopNpcs() {
         for (Team team : Team.values()) {
-            var skin = plugin.getCosmetics().bestForTeam(this, team, CosmeticCategory.NPC);
-            for (Arena.ShopPoint point : arena.site(team).shops) {
-                Location loc = point.location();
+            var pick = plugin.getCosmetics().bestForTeam(this, team, CosmeticCategory.NPC);
+            for (Location loc : arena.site(team).shops) {
                 if (loc == null || loc.getWorld() == null) continue;
-                NpcHandle handle = plugin.getShopKeepers().spawn(loc, team, point.look(), skin == null ? null : skin.cosmetic().params());
+                NpcHandle handle = plugin.getShopKeepers().spawn(loc, team, pick == null ? null : pick.cosmetic());
                 if (handle == null) continue;
                 List<Entity> entities = NpcSpawner.entities(handle);
                 for (Entity entity : entities) Pdc.set(entity, PdcKeys.MATCH_ID, matchId);

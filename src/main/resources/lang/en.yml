@@ -406,6 +406,9 @@ cosmetics:
   unequipped: "<muted>Removed {name}"
   bought: "<ok><check></ok> <text>Bought {name}"
   preview-title: "<muted>Preview: <text>{title} {player}"
+  preview-no-stage: "<muted>There is no preview stage yet - an admin can set one with <text>/ch setpreview</text>."
+  preview-hub-only: "<muted>Shop keeper previews are only available in the hub."
+  preview-sneak: "<muted>Sneak to leave"
   rarity:
     common: "Common"
     rare: "Rare"
@@ -524,6 +527,7 @@ hub:
   set: "Hub spawn set here. Players who join the server land on this spot, and /ch lobby brings them back."
   teleported: "Teleported to the lobby."
   not-set: "No hub spawn is set yet - an admin can set one with /ch setlobby."
+  preview-set: "Preview stage set. Shop keepers are shown standing here, facing the way you face, with the camera in front of them."
 
 info:
   header: "<dim><line></dim> <primary><bold>Copper Heist</bold></primary> <muted>{version}</muted> <dim><line></dim>"

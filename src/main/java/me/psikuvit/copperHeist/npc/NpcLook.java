@@ -1,9 +1,12 @@
 package me.psikuvit.copperHeist.npc;
 
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
- * One named appearance for an NPC, from shop-looks.yml or navigator-looks.yml: which kind of NPC it is (villager, mannequin, armor-stand ...), an optional name
+ * One appearance for an NPC - a navigator look from navigator-looks.yml or a shop keeper cosmetic's params: which kind of NPC it is
+ * (villager, mannequin, armor-stand ...), an optional name
  * and the options that kind understands. Options are flat and dotted (for example {@code skin.value}, {@code armor.chest}).
  *
  * @param id      the look's id in its looks file
@@ -12,6 +15,24 @@ import java.util.Map;
  * @param options everything else, read by the provider (see the looks files for what each provider supports)
  */
 public record NpcLook(String id, String type, String name, Map<String, Object> options) {
+
+    /** A look from a params map (a cosmetic's): {@code type} and {@code name} are read out, nested maps become dotted options. */
+    public static NpcLook fromParams(String id, Map<String, Object> params) {
+        Map<String, Object> options = new LinkedHashMap<>();
+        flatten("", params, options);
+        Object type = options.remove("type");
+        Object name = options.remove("name");
+        return new NpcLook(id.toLowerCase(Locale.ROOT), type == null ? null : String.valueOf(type).toLowerCase(Locale.ROOT),
+                name == null ? null : String.valueOf(name), options);
+    }
+
+    private static void flatten(String prefix, Map<?, ?> source, Map<String, Object> into) {
+        for (Map.Entry<?, ?> entry : source.entrySet()) {
+            String key = prefix + String.valueOf(entry.getKey()).toLowerCase(Locale.ROOT);
+            if (entry.getValue() instanceof Map<?, ?> nested) flatten(key + ".", nested, into);
+            else into.put(key, entry.getValue());
+        }
+    }
 
     public String string(String key) {
         Object value = options.get(key);

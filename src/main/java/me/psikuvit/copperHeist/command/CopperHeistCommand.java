@@ -114,6 +114,9 @@ public final class CopperHeistCommand {
                     .then(literal("setlobby")
                             .requires(src -> src.getSender().hasPermission(ADMIN_ARENA))
                             .executes(commands::executeSetLobby))
+                    .then(literal("setpreview")
+                            .requires(src -> src.getSender().hasPermission(ADMIN_ARENA))
+                            .executes(commands::executeSetPreview))
                     .then(literal("list").executes(commands::executeList))
                     .then(literal("shop").executes(commands::executeShop))
                     .then(literal("stats")
@@ -276,6 +279,17 @@ public final class CopperHeistCommand {
         }
         plugin.getHubSpawn().set(LocationUtil.center(player.getLocation()));
         Msg.ok(player, "hub.set");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int executeSetPreview(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "setup.in-game-only");
+            return 0;
+        }
+        plugin.getPreviewStage().set(player.getLocation());
+        Msg.ok(player, "hub.preview-set");
         return Command.SINGLE_SUCCESS;
     }
 
@@ -640,7 +654,6 @@ public final class CopperHeistCommand {
         plugin.getQuestRegistry().load();
         plugin.getAchievementRegistry().load();
         plugin.getDaily().load();
-        plugin.getShopLooks().load();
         plugin.getNavigatorLooks().load();
         plugin.getNavigators().reload();
         Msg.ok(sender, "command.reloaded");
@@ -1073,40 +1086,22 @@ public final class CopperHeistCommand {
                                 .executes(ctx -> runArenaTeam(ctx, action))));
     }
 
-    /**
-     * setshop (one shop keeper, replacing any others) and addshop (another one): both take an optional shop-looks.yml look, so a team can have
-     * several keepers that each look different.
-     */
+    /** setshop (one shop keeper spot, replacing any others) and addshop (another one). How a keeper looks is up to the team's cosmetics. */
     private LiteralArgumentBuilder<CommandSourceStack> shopCommand(String name, boolean replace) {
         return literal(name)
                 .then(argument("name", StringArgumentType.word())
                         .suggests(arenaSuggestions)
                         .then(argument("team", StringArgumentType.word())
                                 .suggests(TeamSuggestions.TEAMS)
-                                .executes(ctx -> runArenaTeam(ctx, (player, arena, team) -> placeShop(player, arena, team, null, replace)))
-                                .then(argument("look", StringArgumentType.word())
-                                        .suggests(lookSuggestions())
-                                        .executes(ctx -> runArenaTeam(ctx, (player, arena, team) ->
-                                                placeShop(player, arena, team, StringArgumentType.getString(ctx, "look"), replace))))));
+                                .executes(ctx -> runArenaTeam(ctx, (player, arena, team) -> placeShop(player, arena, team, replace)))));
     }
 
-    private void placeShop(Player player, Arena arena, Team team, String look, boolean replace) {
-        if (look != null && plugin.getShopLooks().get(look) == null) {
-            Msg.err(player, "npc.unknown-look", "look", look, "looks", String.join(", ", plugin.getShopLooks().ids()));
-            return;
-        }
+    private void placeShop(Player player, Arena arena, Team team, boolean replace) {
         Arena.TeamSite site = arena.site(team);
         if (replace) site.shops.clear();
-        site.shops.add(new Arena.ShopPoint(LocationUtil.center(player.getLocation()), look == null ? null : look.toLowerCase(Locale.ROOT)));
+        site.shops.add(LocationUtil.center(player.getLocation()));
         Msg.ok(player, replace ? "setup.shop-set" : "setup.shop-added", "team", team.displayName(), "arena", arena.getName(),
                 "count", site.shops.size());
-    }
-
-    private SuggestionProvider<CommandSourceStack> lookSuggestions() {
-        return (ctx, builder) -> {
-            for (String id : plugin.getShopLooks().ids()) builder.suggest(id);
-            return builder.buildFuture();
-        };
     }
 
     private int runArenaOnly(CommandContext<CommandSourceStack> ctx, ArenaAction action) {

@@ -14,10 +14,10 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * A Mannequin - a player-shaped NPC with a real skin - customised by skin and gear. Options (look from shop-looks.yml or navigator-looks.yml, or npc.mannequin in
+ * A Mannequin - a player-shaped NPC with a real skin - customised by skin and gear. Options (from the look, or npc.mannequin in
  * config.yml): skin.type (player-name | uuid | texture), skin.value, skin.signature (texture only), pose, immovable, show-name,
  * description (MiniMessage line under the name) and skin-parts.{cape,jacket,sleeves,pants,hat}; a look can also give it armor and held
- * items (see {@link NpcGear}). A skin from an equipped shop-skin cosmetic wins over the look's and config.yml's.
+ * items (see {@link NpcGear}).
  */
 public class MannequinNpcProvider implements NpcProvider {
 
@@ -60,13 +60,8 @@ public class MannequinNpcProvider implements NpcProvider {
         return parts;
     }
 
-    /** Null means "leave the default skin". Priority: an equipped shop-skin cosmetic, then the look, then config.yml. */
+    /** Null means "leave the default skin". The look's skin wins over config.yml's. */
     private ResolvableProfile profile(NpcSpec spec) {
-        Map<String, Object> cosmetic = spec.skin();
-        if (cosmetic != null) {
-            return NpcSkins.profile(String.valueOf(cosmetic.getOrDefault("type", "player-name")), String.valueOf(cosmetic.getOrDefault("value", "")),
-                    String.valueOf(cosmetic.getOrDefault("signature", "")));
-        }
         return NpcSkins.profile(spec.string("skin.type", "npc.mannequin.skin.type", "player-name"),
                 spec.string("skin.value", "npc.mannequin.skin.value", ""), spec.string("skin.signature", "npc.mannequin.skin.signature", ""));
     }

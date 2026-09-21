@@ -52,10 +52,12 @@ public class CosmeticsMenu extends Menu {
         int slot = FIRST_CATEGORY_SLOT;
         for (CosmeticCategory category : CosmeticCategory.values()) {
             if (service.registry().inCategory(category).isEmpty()) continue;
-            set(slot++, categoryTile(category), click -> {
+            set(slot, categoryTile(category), click -> {
                 Gui.click(click.player());
                 openChild(new CosmeticCategoryMenu(plugin, viewer, category));
             });
+            // Fill the row, then wrap to the next one past the side border (slots 17, 26 ... are border).
+            slot += slot % 9 == 7 ? 3 : 1;
         }
         if (slot == FIRST_CATEGORY_SLOT) {
             set(13, Gui.item(Material.BARRIER, messages.rawFor(viewer, "cosmetics.menu.none-name"),

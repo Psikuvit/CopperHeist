@@ -132,17 +132,20 @@ The Mannequin NPC supports a skin from a player name, a UUID or a raw texture va
 
 ### Shop keepers and navigators
 
-Shop keepers and the hub's game navigators are separate features - each has its own look file, default and command - but are built by the same NPC providers. A **look** comes from `shop-looks.yml` (shop keepers) or `navigator-looks.yml` (navigators):
+Shop keepers and the hub's game navigators are separate features built by the same NPC providers. Either can be a:
 
-- **Villagers** by profession (librarian, armorer, toolsmith, cartographer, cleric ...), clothing biome and level.
-- **Mannequins** by skin (player name, UUID or texture), plus armor and held items.
-- **Armor stands** by head (any block, or a player head with a skin), armor pieces (leather can be dyed) and held items. Players can't
+- **Villager** by profession (librarian, armorer, toolsmith, cartographer, cleric ...), clothing biome and level.
+- **Mannequin** by skin (player name, UUID or texture), plus armor and held items.
+- **Armor stand** by head (any block, or a player head with a skin), armor pieces (leather can be dyed) and held items. Players can't
   take or change what they wear.
 
-About 20 looks ship, so a team can have several keepers that each look different: `/ch arena addshop <arena> <team> [look]` adds another
-(`setshop` replaces them with one, `clearshops` removes them all). **Navigators** are hub NPCs that open the arena picker:
-`/ch navigator create <id> [look]`, `look`, `remove` and `list`. They are saved in `navigators.yml` and re-created if they go missing.
-Existing arenas keep their single shop point; a look is optional everywhere, and without one the plain `npc.type` (shop keepers) or `navigator.type` (navigators) setting applies.
+**Shop keepers** belong to the cosmetics system: each team's keepers are built from the rarest *shop keeper* cosmetic (category `npc`,
+effect `shop-keeper`) that a teammate has equipped, and without one from the plain `npc.type` settings. A cosmetic's params are the whole
+look, so owners add or change keeper styles in `cosmetics.yml` - about thirty ship. `/ch arena addshop <arena> <team>` adds another keeper spot
+(`setshop` replaces them with one, `clearshops` removes them all).
+
+**Navigators** are hub NPCs that open the arena picker: `/ch navigator create <id> [look]`, `look`, `remove` and `list`. Their looks are
+in `navigator-looks.yml`, they are saved in `navigators.yml` and re-created if they go missing, and `navigator.type` is the default kind.
 
 ## Arena setup
 
@@ -194,6 +197,12 @@ many you own and what is equipped, plus three **featured** picks that change eve
 rarity colours; click to equip or unequip, click something you can afford to buy it (after a confirm screen), right-click to preview
 it just for you. One button switches all cosmetic effects off for you.
 
+**Previewing a shop keeper look** is cinematic: an admin stands where the keeper should appear, facing the way it should face, and runs
+`/ch setpreview`. When a player right-clicks a shop keeper cosmetic in the hub, that keeper is spawned there for them alone, and they
+are put in spectator mode watching an invisible camera in front of it - they can't move or turn, and nobody else sees the keeper or them.
+Sneaking, `cosmetics.preview-seconds`, quitting or a server stop ends it and puts them back where they were with their game mode.
+`cosmetics.preview-distance` sets how far the camera sits. Previews only work in the hub, not in an arena.
+
 **What ships** (about 35 starter cosmetics in `cosmetics.yml`, all editable):
 
 | Category | Effect | Plays |
@@ -202,7 +211,7 @@ it just for you. One button switches all cosmetic effects off for you.
 | Kill effects | `particle-burst`, `firework`, `lightning` | where you killed someone |
 | Victory effects | the same, plus spirals and confetti | for the winning team at the end of a match |
 | Golem skins | `golem-hat`, `particle-burst` | on your team's golems - the rarest one anyone on the team has equipped |
-| Shop skins | `npc-skin` | the team's shop NPC wears a Mannequin skin (needs `npc.type: mannequin`) |
+| Shop keepers | `shop-keeper` | the team's shop NPC is built from the cosmetic: a villager profession, a Mannequin skin or an armor stand outfit (type, name, skin, head, armor, held items) |
 | Titles | - | in chat with `chat.enabled: true`, and as `%copperheist_title%` for other chat plugins |
 | Join effects | the same as kill effects | when you join the server |
 | Death messages | `death-message` | your own line announced to the match when you defeat someone, replacing the plain death message (`{killer}` and `{victim}` are filled in) |

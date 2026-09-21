@@ -14,6 +14,8 @@ import me.psikuvit.copperHeist.network.NetworkService;
 import me.psikuvit.copperHeist.config.Settings;
 import me.psikuvit.copperHeist.cosmetics.CosmeticRegistry;
 import me.psikuvit.copperHeist.cosmetics.CosmeticService;
+import me.psikuvit.copperHeist.cosmetics.PreviewService;
+import me.psikuvit.copperHeist.ui.PreviewStage;
 import me.psikuvit.copperHeist.cosmetics.EffectRegistry;
 import me.psikuvit.copperHeist.cosmetics.effect.CosmeticEffects;
 import me.psikuvit.copperHeist.database.Database;
@@ -108,9 +110,10 @@ public final class CopperHeist extends JavaPlugin {
     private MenuManager menus;
     private ProgressService progress;
     private ProfileService profiles;
-    private NpcLooks shopLooks;
     private NpcLooks navigatorLooks;
     private ShopKeepers shopKeepers;
+    private PreviewStage previewStage;
+    private PreviewService previews;
     private NavigatorService navigators;
     private EffectRegistry cosmeticEffects;
     private CosmeticRegistry cosmeticRegistry;
@@ -185,9 +188,10 @@ public final class CopperHeist extends JavaPlugin {
         daily = new DailyRewardService(this);
         daily.load();
 
-        shopLooks = new NpcLooks(this, "shop-looks.yml");
-        shopLooks.load();
         shopKeepers = new ShopKeepers(this);
+        previewStage = new PreviewStage(this);
+        previewStage.load();
+        previews = new PreviewService(this);
         navigatorLooks = new NpcLooks(this, "navigator-looks.yml");
         navigatorLooks.load();
         navigators = new NavigatorService(this);
@@ -232,6 +236,7 @@ public final class CopperHeist extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (previews != null) previews.endAll();
         if (menus != null) menus.stop();
         if (navigators != null) navigators.stop();
         if (gameManager != null) gameManager.shutdownAll();
@@ -395,11 +400,6 @@ public final class CopperHeist extends JavaPlugin {
         return questRegistry;
     }
 
-    /** The named shop keeper appearances from shop-looks.yml (villager professions, Mannequin skins, armor stand gear). */
-    public NpcLooks getShopLooks() {
-        return shopLooks;
-    }
-
     /** The named hub navigator appearances from navigator-looks.yml. */
     public NpcLooks getNavigatorLooks() {
         return navigatorLooks;
@@ -418,6 +418,16 @@ public final class CopperHeist extends JavaPlugin {
     /** Everything about owning, buying, equipping and playing cosmetics. */
     public CosmeticService getCosmetics() {
         return cosmetics;
+    }
+
+    /** Where shop keeper looks are previewed (/ch setpreview). */
+    public PreviewStage getPreviewStage() {
+        return previewStage;
+    }
+
+    /** The cinematic shop keeper preview. */
+    public PreviewService getPreviews() {
+        return previews;
     }
 
     /** The effects cosmetics can use (built-in and registered by other plugins). */

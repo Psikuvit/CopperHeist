@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * One library of named NPC appearances, read from its own file: shop-looks.yml for shop keepers, navigator-looks.yml for hub navigators.
+ * The library of named hub navigator appearances in navigator-looks.yml (shop keepers are not here: they are dressed by cosmetics).
  * A look with a mistake (an NPC type that doesn't exist) is skipped with a warning; the rest still load. {@code default} names the look
  * used when nothing more specific is chosen.
  */
