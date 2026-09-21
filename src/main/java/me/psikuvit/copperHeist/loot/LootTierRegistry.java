@@ -93,7 +93,7 @@ public class LootTierRegistry {
             cumulative += tier.weight();
             if (roll < cumulative) return tier;
         }
-        return pool.get(0);
+        return pool.getFirst();
     }
 
     private LootTierDefinition parse(String id, ConfigurationSection s) {

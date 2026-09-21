@@ -202,6 +202,7 @@ public final class CopperHeistCommand {
                                     })))
                     .then(new AdminCommands(plugin, commands.arenaSuggestions).root())
                     .then(new NavigatorCommands(plugin).root(ADMIN_ARENA))
+                    .then(new WorldCommands(plugin).root(ADMIN_ARENA))
                     .then(commands.leaderboardRoot())
                     .then(commands.arenaRoot());
 

@@ -2,6 +2,8 @@ package me.psikuvit.copperHeist.arena;
 
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.util.LocationUtil;
+import me.psikuvit.copperHeist.world.VoidWorlds;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -135,6 +137,11 @@ public class ArenaManager {
         String name = yaml.getString("name", file.getName().replace(".yml", ""));
         Arena arena = new Arena(name);
         String world = yaml.getString("world");
+        // "create-world: void" in an arena file (as the bundled test maps have) makes the plugin create that empty world if it is missing; a
+        // void world it created earlier is simply loaded again. Any other missing world is left alone and the arena reports it.
+        if (world != null && Bukkit.getWorld(world) == null && (yaml.getString("create-world", "").equalsIgnoreCase("void") || VoidWorlds.isVoidWorld(world))) {
+            if (VoidWorlds.createOrLoad(plugin, world) == null) plugin.getLogger().warning("Could not create or load the world '" + world + "' for arena " + name + ".");
+        }
         arena.setWorldName(world);
         arena.setEnabled(yaml.getBoolean("enabled", false));
         arena.setPreset(yaml.getString("preset"));

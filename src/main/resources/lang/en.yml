@@ -381,6 +381,16 @@ quests:
   line-done: "<ok><check></ok> {name} <dim><bar></dim> <ok>done</ok>"
   completed: "<ok><star></ok> <text>Quest complete: {name} <dim><bar></dim> <accent>+{xp} XP, +{coins} coins"
 
+world:
+  bad-name: "A world name can only use letters, digits, - and _ (up to 32 characters)."
+  not-ours: "A world folder called {world} already exists and wasn't made by this plugin, so it is left alone."
+  created: "Created the empty world {world}. /ch world tp {world} takes you there."
+  already-loaded: "The world {world} is already loaded."
+  unknown: "There is no empty world called {world} (create it with /ch world create)."
+  teleported: "Teleported to {world}."
+  none: "<muted>No empty worlds yet - /ch world create <name>."
+  line: "<muted>{world}: <text>{state}"
+
 npc:
   navigator-name: "<primary><bold>Play</bold> <dim><arrow></dim> <text>Choose an arena"
   unknown-look: "There is no NPC look called {look}. Available: {looks}"

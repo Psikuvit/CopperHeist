@@ -37,7 +37,7 @@ public class SnapshotResetStrategy implements ArenaResetStrategy {
             int perTick = Math.max(1000, plugin.settings().getInt("reset.snapshot.blocks-per-tick", 20000));
             if (plugin.getGameManager().isShuttingDown()) {
                 // Scheduled tasks don't run once the plugin is disabled, so put every block back right now.
-                for (int position = 0; position < snapshot.blockCount(); ) position = snapshot.restore(position, perTick);
+                for (int position = 0; position < snapshot.blockCount(); position++) position = snapshot.restore(position, perTick);
             } else {
                 new SnapshotRestoreTask(snapshot, perTick).runTaskTimer(plugin, 1L, 1L);
             }
