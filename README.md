@@ -68,7 +68,10 @@ see (enemies never do; `alarms.show-box` turns it off). A *Vault Drill* placed o
 timed window if attackers stay near it and defenders don't destroy it first. *Gust Pads* launch whoever steps on them.
 
 **Clean state.** Players joining the server are reset (items, armor, offhand, potion effects, glow, vitals) and given the hub
-kit (join compass and guide book). The compass opens the **arena picker**: a live menu of every arena, on this server and on
+kit (join compass, guide book, and - when the matching feature is on - a goals book, a cosmetics chest and a **profile head**
+skinned as the player). The profile head opens a menu of the player's own level, coins, current match, built-in party and
+lifetime stats (kills/deaths, loot delivered/stolen, golems scraped, drills, wins/losses), plus shortcuts into the quests,
+achievements, daily reward and cosmetics menus; it is also `/ch profile`. The compass opens the **arena picker**: a live menu of every arena, on this server and on
 the rest of the network, coloured by whether you can join it right now, with its state, player count and preset. Entering an arena, spectating and leaving a match all wipe the previous context's items and
 effects before the next state is applied, so nothing leaks between hub, match and spectating. Hub items can't be dropped or
 moved into containers, and players outside a running match (hub, waiting room, results screen) take no damage or hunger, admins included; falling into

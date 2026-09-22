@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.listener;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.menu.ArenaMenu;
 import me.psikuvit.copperHeist.menu.CosmeticsMenu;
+import me.psikuvit.copperHeist.menu.ProfileMenu;
 import me.psikuvit.copperHeist.menu.QuestsMenu;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
@@ -38,6 +39,7 @@ public class LobbyListener implements Listener {
             // The event is cancelled above so the item can't be placed or used; a book has to be opened by hand.
             case "guide_book" -> player.openBook(item);
             case "goals" -> plugin.getMenus().open(player, new QuestsMenu(plugin, player));
+            case "profile" -> plugin.getMenus().open(player, new ProfileMenu(plugin, player));
             case "cosmetics" -> {
                 if (plugin.getCosmetics().enabled()) plugin.getMenus().open(player, new CosmeticsMenu(plugin, player));
             }

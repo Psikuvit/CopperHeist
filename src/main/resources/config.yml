@@ -16,6 +16,7 @@ match:
   # With a base region set (arena setbase1/2 <arena> <team>), keep players inside it during SETUP.
   setup-confine-to-base: false
   hidden-enemy-score: false
+  vanilla-death-messages: false   # true = players in a match also get Minecraft's own "X was slain by Y" chat line (death-message cosmetics still play)
   rejoin-grace-seconds: 60
   allowed-commands: [ch, copperheist, msg, tell, w, r, reply]
   # Elapsed seconds since match start at which each phase ends. FINAL_RUSH

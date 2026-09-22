@@ -3,6 +3,7 @@ package me.psikuvit.copperHeist.listener;
 import me.psikuvit.copperHeist.CopperHeist;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
+import org.bukkit.GameRules;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.advancement.Advancement;
@@ -47,7 +48,7 @@ public class VanillaAdvancementListener implements Listener {
     /** Applies the settings now; called on server load and once at startup for a plugin that is enabled after the server finished loading. */
     public void apply() {
         if (plugin.settings().getBoolean("advancements.hide-chat", true)) {
-            for (World world : Bukkit.getWorlds()) world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+            for (World world : Bukkit.getWorlds()) world.setGameRule(GameRules.SHOW_ADVANCEMENT_MESSAGES, false);
         }
         if (plugin.settings().getBoolean("advancements.remove-vanilla", true)) removeVanilla();
     }

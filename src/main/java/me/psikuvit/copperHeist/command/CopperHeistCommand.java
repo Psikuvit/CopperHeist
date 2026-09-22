@@ -24,6 +24,7 @@ import me.psikuvit.copperHeist.network.RemoteArena;
 import me.psikuvit.copperHeist.role.RoleDefinition;
 import me.psikuvit.copperHeist.menu.AchievementsMenu;
 import me.psikuvit.copperHeist.menu.CosmeticsMenu;
+import me.psikuvit.copperHeist.menu.ProfileMenu;
 import me.psikuvit.copperHeist.menu.QuestsMenu;
 import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.PlayerStats;
@@ -140,6 +141,9 @@ public final class CopperHeistCommand {
                     .then(literal("cosmetics")
                             .requires(src -> src.getSender().hasPermission(COSMETICS))
                             .executes(commands::executeCosmetics))
+                    .then(literal("profile")
+                            .requires(src -> src.getSender().hasPermission(STATS))
+                            .executes(commands::executeProfile))
                     .then(literal("role")
                             .executes(commands::executeRoleMenu)
                             .then(argument("role", StringArgumentType.word())
@@ -417,6 +421,17 @@ public final class CopperHeistCommand {
             return 0;
         }
         plugin.getMenus().open(player, new CosmeticsMenu(plugin, player));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** Opens the profile menu: level, stats, party and shortcuts into the other menus. */
+    private int executeProfile(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            Msg.err(sender, "stats.console-needs-player");
+            return 0;
+        }
+        plugin.getMenus().open(player, new ProfileMenu(plugin, player));
         return Command.SINGLE_SUCCESS;
     }
 

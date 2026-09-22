@@ -78,6 +78,8 @@ public class LootListener implements Listener {
         Player player = event.getPlayer();
         Game game = plugin.getGameManager().getGame(player);
         if (game == null) return;
+        // The vanilla death line is dropped for everyone in a match; a death-message cosmetic tells its own line to the match instead.
+        if (!game.settings().getBoolean("match.vanilla-death-messages", false)) event.deathMessage(null);
 
         Player killer = player.getKiller();
         GamePlayer victimGp = game.getGamePlayer(player.getUniqueId());

@@ -2,6 +2,7 @@ package me.psikuvit.copperHeist.world;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
+import org.bukkit.GameRules;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -128,7 +129,7 @@ public final class VoidWorlds {
         world.setSpawnLocation(0, VoidGenerator.SPAWN_Y + 1, 0);
         world.setTime(6000);
         world.setStorm(false);
-        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+        world.setGameRule(GameRules.ADVANCE_WEATHER, false);
+        world.setGameRule(GameRules.SPAWN_MOBS, false);
     }
 }

@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ public class LobbyKitService {
         if (plugin.getCosmetics() != null && plugin.getCosmetics().enabled()) player.getInventory().setItem(2, createCosmeticsChest(player));
         boolean goals = plugin.getQuests().enabled() || plugin.getAchievements().enabled() || plugin.getDaily().enabled();
         if (goals) player.getInventory().setItem(3, createGoalsBook(player));
+        player.getInventory().setItem(4, createProfileHead(player));
     }
 
     private ItemStack createGoalsBook(Player viewer) {
@@ -60,6 +62,21 @@ public class LobbyKitService {
         meta.displayName(messages.get(viewer, "lobby.goals-name").decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(messages.get(viewer, "lobby.goals-lore").decoration(TextDecoration.ITALIC, false)));
         item.setItemMeta(meta);
+        return item;
+    }
+
+    /** The player's own head, skinned as them: opens the profile menu (level, stats, party, shortcuts into the other menus). */
+    private ItemStack createProfileHead(Player viewer) {
+        var messages = plugin.getMessageService();
+        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+        Pdc.set(item, PdcKeys.LOBBY_ITEM, "profile");
+
+        if (item.getItemMeta() instanceof SkullMeta meta) {
+            meta.setOwningPlayer(viewer);
+            meta.displayName(messages.get(viewer, "lobby.profile-name").decoration(TextDecoration.ITALIC, false));
+            meta.lore(List.of(messages.get(viewer, "lobby.profile-lore").decoration(TextDecoration.ITALIC, false)));
+            item.setItemMeta(meta);
+        }
         return item;
     }
 
