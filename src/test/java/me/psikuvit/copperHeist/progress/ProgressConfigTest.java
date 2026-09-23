@@ -1,6 +1,6 @@
 package me.psikuvit.copperHeist.progress;
 
-import me.psikuvit.copperHeist.listener.ProgressListener;
+import me.psikuvit.copperHeist.listener.progress.ProgressListener;
 import me.psikuvit.copperHeist.stats.Stat;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;

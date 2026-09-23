@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.listener;
+package me.psikuvit.copperHeist.listener.party;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.command.PartyCommands;

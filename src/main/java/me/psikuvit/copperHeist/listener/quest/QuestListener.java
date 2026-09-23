@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.listener;
+package me.psikuvit.copperHeist.listener.quest;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.event.MatchEndEvent;

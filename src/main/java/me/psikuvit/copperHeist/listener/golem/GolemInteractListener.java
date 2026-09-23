@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.listener;
+package me.psikuvit.copperHeist.listener.golem;
 
 import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.CopperHeist;
