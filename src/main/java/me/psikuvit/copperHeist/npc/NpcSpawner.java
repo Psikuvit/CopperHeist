@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.npc;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.npc.provider.VillagerNpcProvider;
 import org.bukkit.entity.Entity;
 
 import java.util.ArrayList;

@@ -7,7 +7,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 /** Builds the player profile (a skin) for Mannequins and player heads from a type and a value. */
-final class NpcSkins {
+public final class NpcSkins {
 
     private NpcSkins() {
     }
@@ -18,7 +18,7 @@ final class NpcSkins {
      * @param signature texture only; blank for none
      * @return the profile, or null when there is no value or it is unusable - a bad skin must never stop an NPC from spawning
      */
-    static ResolvableProfile profile(String type, String value, String signature) {
+    public static ResolvableProfile profile(String type, String value, String signature) {
         if (value == null || value.isBlank()) return null;
         try {
             var builder = ResolvableProfile.resolvableProfile();

@@ -20,12 +20,12 @@ import java.util.Map;
  *   main-hand / off-hand: MATERIAL    what it holds
  * </pre>
  */
-final class NpcGear {
+public final class NpcGear {
 
     private NpcGear() {
     }
 
-    static Map<EquipmentSlot, ItemStack> items(NpcSpec spec) {
+    public static Map<EquipmentSlot, ItemStack> items(NpcSpec spec) {
         Map<EquipmentSlot, ItemStack> items = new EnumMap<>(EquipmentSlot.class);
         Color dye = dye(spec.option("armor.color"));
 

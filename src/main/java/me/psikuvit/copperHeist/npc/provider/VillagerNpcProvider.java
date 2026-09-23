@@ -1,5 +1,8 @@
-package me.psikuvit.copperHeist.npc;
+package me.psikuvit.copperHeist.npc.provider;
 
+import me.psikuvit.copperHeist.npc.NpcHandle;
+import me.psikuvit.copperHeist.npc.NpcProvider;
+import me.psikuvit.copperHeist.npc.NpcSpec;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;

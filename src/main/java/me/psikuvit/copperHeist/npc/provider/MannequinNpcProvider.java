@@ -1,7 +1,12 @@
-package me.psikuvit.copperHeist.npc;
+package me.psikuvit.copperHeist.npc.provider;
 
 import com.destroystokyo.paper.SkinParts;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
+import me.psikuvit.copperHeist.npc.NpcGear;
+import me.psikuvit.copperHeist.npc.NpcHandle;
+import me.psikuvit.copperHeist.npc.NpcProvider;
+import me.psikuvit.copperHeist.npc.NpcSkins;
+import me.psikuvit.copperHeist.npc.NpcSpec;
 import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Mannequin;
