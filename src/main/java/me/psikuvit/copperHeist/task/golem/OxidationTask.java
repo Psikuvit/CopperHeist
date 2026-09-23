@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.task;
+package me.psikuvit.copperHeist.task.golem;
 
 import io.papermc.paper.world.WeatheringCopperState;
 import me.psikuvit.copperHeist.game.Game;

@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.task;
+package me.psikuvit.copperHeist.task.loot;
 
 import me.psikuvit.copperHeist.loot.LootBagManager;
 import org.bukkit.scheduler.BukkitRunnable;

@@ -31,7 +31,7 @@ import me.psikuvit.copperHeist.stats.PlayerStats;
 import me.psikuvit.copperHeist.stats.Stat;
 import me.psikuvit.copperHeist.stats.StatsService;
 import me.psikuvit.copperHeist.stats.TopEntry;
-import me.psikuvit.copperHeist.task.SnapshotRestoreTask;
+import me.psikuvit.copperHeist.task.arena.SnapshotRestoreTask;
 import me.psikuvit.copperHeist.ui.Text;
 import me.psikuvit.copperHeist.ui.Theme;
 import me.psikuvit.copperHeist.util.LocationUtil;

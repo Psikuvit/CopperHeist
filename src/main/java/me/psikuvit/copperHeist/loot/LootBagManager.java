@@ -5,7 +5,7 @@ import me.psikuvit.copperHeist.event.LootStolenEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
-import me.psikuvit.copperHeist.task.LootBagTask;
+import me.psikuvit.copperHeist.task.loot.LootBagTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;

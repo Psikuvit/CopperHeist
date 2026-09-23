@@ -7,7 +7,7 @@ import me.psikuvit.copperHeist.event.RelicSpawnEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.loot.LootTierDefinition;
-import me.psikuvit.copperHeist.task.RelicSpawnTask;
+import me.psikuvit.copperHeist.task.relic.RelicSpawnTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;

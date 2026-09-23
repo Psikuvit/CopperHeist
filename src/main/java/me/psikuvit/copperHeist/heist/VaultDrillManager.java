@@ -8,7 +8,7 @@ import me.psikuvit.copperHeist.event.VaultDrillPlacedEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
-import me.psikuvit.copperHeist.task.VaultDrillTask;
+import me.psikuvit.copperHeist.task.heist.VaultDrillTask;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.task;
+package me.psikuvit.copperHeist.task.heist;
 
 import me.psikuvit.copperHeist.heist.VaultDrillManager;
 import org.bukkit.scheduler.BukkitRunnable;

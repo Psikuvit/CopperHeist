@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.task;
+package me.psikuvit.copperHeist.task.relic;
 
 import me.psikuvit.copperHeist.relic.RelicManager;
 import org.bukkit.scheduler.BukkitRunnable;

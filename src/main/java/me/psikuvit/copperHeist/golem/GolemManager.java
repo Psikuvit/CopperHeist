@@ -15,7 +15,7 @@ import me.psikuvit.copperHeist.game.GameTeam;
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.golem.GolemDebug.Category;
 import me.psikuvit.copperHeist.loot.LootItem;
-import me.psikuvit.copperHeist.task.GolemRespawnTask;
+import me.psikuvit.copperHeist.task.golem.GolemRespawnTask;
 import me.psikuvit.copperHeist.util.Cooldowns;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;

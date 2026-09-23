@@ -1,7 +1,7 @@
 package me.psikuvit.copperHeist.arena;
 
 import me.psikuvit.copperHeist.CopperHeist;
-import me.psikuvit.copperHeist.task.SnapshotRestoreTask;
+import me.psikuvit.copperHeist.task.arena.SnapshotRestoreTask;
 
 import java.io.File;
 import java.io.IOException;

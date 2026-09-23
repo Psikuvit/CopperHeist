@@ -4,7 +4,7 @@ import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
-import me.psikuvit.copperHeist.task.LockpickTask;
+import me.psikuvit.copperHeist.task.heist.LockpickTask;
 import org.bukkit.Location;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;

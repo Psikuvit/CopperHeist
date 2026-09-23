@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.task;
+package me.psikuvit.copperHeist.task.arena;
 
 import me.psikuvit.copperHeist.arena.ArenaSnapshot;
 import org.bukkit.scheduler.BukkitRunnable;

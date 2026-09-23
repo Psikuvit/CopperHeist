@@ -3,7 +3,7 @@ package me.psikuvit.copperHeist.loot;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GameState;
-import me.psikuvit.copperHeist.task.LootRefillTask;
+import me.psikuvit.copperHeist.task.loot.LootRefillTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;

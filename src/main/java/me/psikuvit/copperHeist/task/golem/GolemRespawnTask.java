@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.task;
+package me.psikuvit.copperHeist.task.golem;
 
 import me.psikuvit.copperHeist.game.Team;
 import me.psikuvit.copperHeist.golem.GolemManager;

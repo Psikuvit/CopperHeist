@@ -6,7 +6,7 @@ import me.psikuvit.copperHeist.event.AlarmTriggeredEvent;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
 import me.psikuvit.copperHeist.game.Team;
-import me.psikuvit.copperHeist.task.AlarmScanTask;
+import me.psikuvit.copperHeist.task.heist.AlarmScanTask;
 import me.psikuvit.copperHeist.util.Cooldowns;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

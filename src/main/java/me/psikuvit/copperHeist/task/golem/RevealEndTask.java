@@ -1,4 +1,4 @@
-package me.psikuvit.copperHeist.task;
+package me.psikuvit.copperHeist.task.golem;
 
 import org.bukkit.entity.CopperGolem;
 import org.bukkit.scheduler.BukkitRunnable;

@@ -1,7 +1,7 @@
 package me.psikuvit.copperHeist.role.ability;
 
 import me.psikuvit.copperHeist.game.Team;
-import me.psikuvit.copperHeist.task.RevealEndTask;
+import me.psikuvit.copperHeist.task.golem.RevealEndTask;
 import org.bukkit.entity.CopperGolem;
 
 import java.util.ArrayList;
