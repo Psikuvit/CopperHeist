@@ -73,10 +73,12 @@ skinned as the player). The profile head opens a menu of the player's own level,
 lifetime stats (kills/deaths, loot delivered/stolen, golems scraped, drills, wins/losses), plus shortcuts into the quests,
 achievements, daily reward and cosmetics menus; it is also `/ch profile`. The compass opens the **arena picker**: a live menu of every arena, on this server and on
 the rest of the network, coloured by whether you can join it right now, with its state, player count and preset. Entering an arena, spectating and leaving a match all wipe the previous context's items and
-effects before the next state is applied, so nothing leaks between hub, match and spectating. Hub items can't be dropped or
-moved into containers, and players outside a running match (hub, waiting room, results screen) take no damage or hunger, admins included; falling into
-the void sends you back to a safe spot. All of this is under `lobby.*` in `config.yml`; only the join-time wipe skips admins
-with `copperheist.admin.bypass`.
+effects before the next state is applied, so nothing leaks between hub, match and spectating. Hub items are frozen in place - they
+can't be dropped, picked up, dragged, shift-clicked or hotbar-swapped out of their slot, in any inventory screen - and players outside
+a running match (hub, waiting room, results screen) take no damage or hunger, admins included; falling into the void sends you back to
+a safe spot. All of this is under `lobby.*` in `config.yml`; only the join-time wipe skips admins with `copperheist.admin.bypass`.
+Each hub item's hotbar slot is configurable under `lobby.slots` (0-8, or -1 to hide it); two items sharing a slot log a warning on
+start and `/ch reload`.
 
 **Match rules.** Team-aware damage, spawn protection, a hidden enemy score option, an anti-turtle *vault decay* option,
 respawn modes, and in-match command blocking.

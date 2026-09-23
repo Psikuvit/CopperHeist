@@ -12,7 +12,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
@@ -20,8 +19,9 @@ import org.bukkit.inventory.ItemStack;
 /**
  * Keeps the hub and the waiting room tidy:
  * <ul>
- * <li>lobby items (join compass, guide book, leave bed) can't be dropped, moved into other inventories or swapped
- *     to the offhand (lobby.lock-items);</li>
+ * <li>lobby items (join compass, guide book, leave bed, cosmetics chest, goals book, profile head) are frozen in their slot: they
+ *     can't be dropped, picked up, dragged, shift-clicked, hotbar-swapped, or moved anywhere at all, in any inventory screen
+ *     (lobby.lock-items). The only way to use one is the interaction it's meant for (usually a right-click);</li>
  * <li>players who are not in a running match (hub, waiting room, results screen) take no damage of any kind and don't get hungry
  *     (lobby.protect-players).</li>
  * </ul>
@@ -60,32 +60,24 @@ public class LobbySafetyListener implements Listener {
         if (locked() && (isLobbyItem(event.getMainHandItem()) || isLobbyItem(event.getOffHandItem()))) event.setCancelled(true);
     }
 
-    /** A lobby item may move around the player's own inventory but never into a chest or other container. */
+    /** A lobby item is frozen: it can't be picked up, moved, shift-clicked or swapped out of its slot, in any inventory screen. */
     @EventHandler(ignoreCancelled = true)
     public void onClick(InventoryClickEvent event) {
         if (!locked()) return;
-        InventoryType top = event.getView().getTopInventory().getType();
-        if (top == InventoryType.CRAFTING || top == InventoryType.PLAYER) return;
-        boolean clickedTop = event.getClickedInventory() != null && event.getClickedInventory().equals(event.getView().getTopInventory());
-        boolean hotbarSwap = event.getHotbarButton() >= 0 && event.getWhoClicked() instanceof Player player
-                && isLobbyItem(player.getInventory().getItem(event.getHotbarButton()));
-        if (isLobbyItem(event.getCursor()) && clickedTop
-                || isLobbyItem(event.getCurrentItem()) && (event.isShiftClick() || clickedTop)
-                || hotbarSwap && clickedTop) {
+        if (isLobbyItem(event.getCursor()) || isLobbyItem(event.getCurrentItem()) || isHotbarSwapOfLobbyItem(event)) {
             event.setCancelled(true);
         }
     }
 
+    /** Pressing a number key swaps the hovered slot with that hotbar slot - cancel it if either side is a lobby item. */
+    private boolean isHotbarSwapOfLobbyItem(InventoryClickEvent event) {
+        if (event.getHotbarButton() < 0 || !(event.getWhoClicked() instanceof Player player)) return false;
+        return isLobbyItem(player.getInventory().getItem(event.getHotbarButton()));
+    }
+
     @EventHandler(ignoreCancelled = true)
     public void onDrag(InventoryDragEvent event) {
-        if (!locked() || !isLobbyItem(event.getOldCursor())) return;
-        int topSize = event.getView().getTopInventory().getSize();
-        for (int slot : event.getRawSlots()) {
-            if (slot < topSize && event.getView().getTopInventory().getType() != InventoryType.CRAFTING) {
-                event.setCancelled(true);
-                return;
-            }
-        }
+        if (locked() && isLobbyItem(event.getOldCursor())) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

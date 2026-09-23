@@ -23,17 +23,44 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.BiFunction;
 
 /**
  * Builds and hands out the items players see outside of a match: the hub's
  * join compass and guide book, and the "leave arena" item shown while
- * waiting in an arena for a match to start.
+ * waiting in an arena for a match to start. Each item's hotbar slot is configurable
+ * (lobby.slots.*); -1 hides that item even if its feature is otherwise on.
  */
 public class LobbyKitService {
 
+    /** A hub kit item: its config key, default slot and how to build it. */
+    private enum Kit {
+        JOIN_COMPASS("join-compass", 0, LobbyKitService::createJoinCompass),
+        GUIDE_BOOK("guide-book", 1, LobbyKitService::createGuideBook),
+        COSMETICS("cosmetics", 2, LobbyKitService::createCosmeticsChest),
+        GOALS("goals", 3, LobbyKitService::createGoalsBook),
+        PROFILE("profile", 4, LobbyKitService::createProfileHead),
+        LEAVE_ARENA("leave-arena", 8, LobbyKitService::createLeaveItem);
+
+        final String key;
+        final int defaultSlot;
+        final BiFunction<LobbyKitService, Player, ItemStack> factory;
+
+        Kit(String key, int defaultSlot, BiFunction<LobbyKitService, Player, ItemStack> factory) {
+            this.key = key;
+            this.defaultSlot = defaultSlot;
+            this.factory = factory;
+        }
+    }
+
     private final CopperHeist plugin;
     private final MiniMessage miniMessage = Theme.mini();
+    private final Set<String> warnedSlots = new HashSet<>();
     private FileConfiguration guide;
 
     public LobbyKitService(CopperHeist plugin) {
@@ -42,15 +69,53 @@ public class LobbyKitService {
 
     public void load() {
         guide = ConfigFiles.load(plugin, "guide.yml");
+        warnedSlots.clear();
+        checkForClashingSlots();
     }
 
     public void giveHubKit(Player player) {
-        player.getInventory().setItem(0, createJoinCompass(player));
-        player.getInventory().setItem(1, createGuideBook(player));
-        if (plugin.getCosmetics() != null && plugin.getCosmetics().enabled()) player.getInventory().setItem(2, createCosmeticsChest(player));
+        give(player, Kit.JOIN_COMPASS);
+        give(player, Kit.GUIDE_BOOK);
+        if (plugin.getCosmetics() != null && plugin.getCosmetics().enabled()) give(player, Kit.COSMETICS);
         boolean goals = plugin.getQuests().enabled() || plugin.getAchievements().enabled() || plugin.getDaily().enabled();
-        if (goals) player.getInventory().setItem(3, createGoalsBook(player));
-        player.getInventory().setItem(4, createProfileHead(player));
+        if (goals) give(player, Kit.GOALS);
+        give(player, Kit.PROFILE);
+    }
+
+    private void give(Player player, Kit kit) {
+        int slot = slotFor(kit);
+        if (slot < 0) return; // lobby.slots.<key>: -1 hides this item
+        player.getInventory().setItem(slot, kit.factory.apply(this, player));
+    }
+
+    /** lobby.slots.<key>: 0-8 (a hotbar slot) or -1 to hide that item; anything else falls back to the default slot. */
+    private int slotFor(Kit kit) {
+        int value = plugin.settings().getInt("lobby.slots." + kit.key, kit.defaultSlot);
+        if (value == -1) return -1;
+        if (value < 0 || value > 8) {
+            if (warnedSlots.add(kit.key)) {
+                plugin.getLogger().warning("lobby.slots." + kit.key + " (" + value + ") must be 0-8 or -1 - using " + kit.defaultSlot + ".");
+            }
+            return kit.defaultSlot;
+        }
+        return value;
+    }
+
+    /**
+     * Warns once per reload if two hub kit items would land on the same slot (they are all given together on join; the leave item is
+     * given later, in an empty inventory, so it is never part of this check).
+     */
+    private void checkForClashingSlots() {
+        Map<Integer, Kit> bySlot = new HashMap<>();
+        for (Kit kit : new Kit[]{Kit.JOIN_COMPASS, Kit.GUIDE_BOOK, Kit.COSMETICS, Kit.GOALS, Kit.PROFILE}) {
+            int slot = slotFor(kit);
+            if (slot < 0) continue;
+            Kit clash = bySlot.putIfAbsent(slot, kit);
+            if (clash != null) {
+                plugin.getLogger().warning("lobby.slots." + kit.key + " and lobby.slots." + clash.key
+                        + " are both slot " + slot + " - " + kit.key + " will replace " + clash.key + " for players who get both.");
+            }
+        }
     }
 
     private ItemStack createGoalsBook(Player viewer) {
@@ -93,7 +158,7 @@ public class LobbyKitService {
     }
 
     public void giveLeaveItem(Player player) {
-        player.getInventory().setItem(8, createLeaveItem(player));
+        give(player, Kit.LEAVE_ARENA);
     }
 
     public void sendArenaList(Player player) {
