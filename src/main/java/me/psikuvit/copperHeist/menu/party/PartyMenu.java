@@ -1,8 +1,12 @@
-package me.psikuvit.copperHeist.menu;
+package me.psikuvit.copperHeist.menu.party;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.command.Msg;
 import me.psikuvit.copperHeist.command.PartyCommands;
+import me.psikuvit.copperHeist.menu.Click;
+import me.psikuvit.copperHeist.menu.Gui;
+import me.psikuvit.copperHeist.menu.PagedMenu;
+import me.psikuvit.copperHeist.menu.arena.ArenaMenu;
 import me.psikuvit.copperHeist.party.PartyInfo;
 import me.psikuvit.copperHeist.party.PartyService;
 import me.psikuvit.copperHeist.ui.Theme;

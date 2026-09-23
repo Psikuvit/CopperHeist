@@ -1,8 +1,11 @@
-package me.psikuvit.copperHeist.menu;
+package me.psikuvit.copperHeist.menu.achievement;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.achievement.AchievementDefinition;
 import me.psikuvit.copperHeist.achievement.AchievementService;
+import me.psikuvit.copperHeist.menu.Click;
+import me.psikuvit.copperHeist.menu.Gui;
+import me.psikuvit.copperHeist.menu.PagedMenu;
 import me.psikuvit.copperHeist.profile.PlayerProfile;
 import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;

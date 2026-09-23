@@ -3,6 +3,8 @@ package me.psikuvit.copperHeist.menu;
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
+import me.psikuvit.copperHeist.menu.role.RoleMenu;
+import me.psikuvit.copperHeist.menu.shop.ShopMenu;
 import org.bukkit.entity.Player;
 
 /** The classic chest-inventory GUI, built on {@link Menu} and opened through the {@link MenuManager}. */

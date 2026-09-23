@@ -1,8 +1,10 @@
-package me.psikuvit.copperHeist.menu;
+package me.psikuvit.copperHeist.menu.role;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
+import me.psikuvit.copperHeist.menu.Gui;
+import me.psikuvit.copperHeist.menu.Menu;
 import me.psikuvit.copperHeist.role.RoleDefinition;
 import me.psikuvit.copperHeist.role.RoleService;
 import me.psikuvit.copperHeist.ui.Text;

@@ -1,10 +1,10 @@
 package me.psikuvit.copperHeist.listener;
 
 import me.psikuvit.copperHeist.CopperHeist;
-import me.psikuvit.copperHeist.menu.ArenaMenu;
-import me.psikuvit.copperHeist.menu.CosmeticsMenu;
-import me.psikuvit.copperHeist.menu.ProfileMenu;
-import me.psikuvit.copperHeist.menu.QuestsMenu;
+import me.psikuvit.copperHeist.menu.arena.ArenaMenu;
+import me.psikuvit.copperHeist.menu.cosmetics.CosmeticsMenu;
+import me.psikuvit.copperHeist.menu.profile.ProfileMenu;
+import me.psikuvit.copperHeist.menu.quest.QuestsMenu;
 import me.psikuvit.copperHeist.util.Pdc;
 import me.psikuvit.copperHeist.util.PdcKeys;
 import org.bukkit.entity.Player;

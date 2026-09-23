@@ -1,9 +1,11 @@
-package me.psikuvit.copperHeist.menu;
+package me.psikuvit.copperHeist.menu.cosmetics;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.cosmetics.CosmeticCategory;
 import me.psikuvit.copperHeist.cosmetics.CosmeticDefinition;
 import me.psikuvit.copperHeist.cosmetics.CosmeticService;
+import me.psikuvit.copperHeist.menu.Gui;
+import me.psikuvit.copperHeist.menu.Menu;
 import me.psikuvit.copperHeist.ui.MessageService;
 import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;

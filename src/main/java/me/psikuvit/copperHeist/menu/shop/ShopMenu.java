@@ -1,8 +1,12 @@
-package me.psikuvit.copperHeist.menu;
+package me.psikuvit.copperHeist.menu.shop;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GamePlayer;
+import me.psikuvit.copperHeist.menu.Click;
+import me.psikuvit.copperHeist.menu.Gui;
+import me.psikuvit.copperHeist.menu.Menu;
+import me.psikuvit.copperHeist.menu.cosmetics.CosmeticsMenu;
 import me.psikuvit.copperHeist.shop.ShopEntry;
 import me.psikuvit.copperHeist.shop.ShopService;
 import me.psikuvit.copperHeist.shop.action.GiveItemAction;

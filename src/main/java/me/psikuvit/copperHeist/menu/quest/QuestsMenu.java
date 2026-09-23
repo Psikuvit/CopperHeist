@@ -1,7 +1,10 @@
-package me.psikuvit.copperHeist.menu;
+package me.psikuvit.copperHeist.menu.quest;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.daily.DailyRewardService;
+import me.psikuvit.copperHeist.menu.Gui;
+import me.psikuvit.copperHeist.menu.Menu;
+import me.psikuvit.copperHeist.menu.achievement.AchievementsMenu;
 import me.psikuvit.copperHeist.profile.PlayerProfile;
 import me.psikuvit.copperHeist.quest.QuestDefinition;
 import me.psikuvit.copperHeist.quest.QuestPeriod;

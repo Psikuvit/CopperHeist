@@ -1,7 +1,7 @@
 package me.psikuvit.copperHeist.listener;
 
 import me.psikuvit.copperHeist.CopperHeist;
-import me.psikuvit.copperHeist.menu.ArenaMenu;
+import me.psikuvit.copperHeist.menu.arena.ArenaMenu;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

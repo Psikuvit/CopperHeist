@@ -7,7 +7,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import me.psikuvit.copperHeist.CopperHeist;
-import me.psikuvit.copperHeist.menu.PartyMenu;
+import me.psikuvit.copperHeist.menu.party.PartyMenu;
 import me.psikuvit.copperHeist.party.PartyInfo;
 import me.psikuvit.copperHeist.party.PartyService;
 import me.psikuvit.copperHeist.party.PartyService.Departure;

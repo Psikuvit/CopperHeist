@@ -1,8 +1,9 @@
-package me.psikuvit.copperHeist.menu;
+package me.psikuvit.copperHeist.menu.cosmetics;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.cosmetics.CosmeticDefinition;
 import me.psikuvit.copperHeist.cosmetics.CosmeticService;
+import me.psikuvit.copperHeist.menu.Gui;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 

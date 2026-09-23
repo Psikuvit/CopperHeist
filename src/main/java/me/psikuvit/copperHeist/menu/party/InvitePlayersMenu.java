@@ -1,7 +1,10 @@
-package me.psikuvit.copperHeist.menu;
+package me.psikuvit.copperHeist.menu.party;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.command.PartyCommands;
+import me.psikuvit.copperHeist.menu.Click;
+import me.psikuvit.copperHeist.menu.Gui;
+import me.psikuvit.copperHeist.menu.PagedMenu;
 import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;

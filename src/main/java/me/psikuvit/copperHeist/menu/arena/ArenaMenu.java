@@ -1,9 +1,11 @@
-package me.psikuvit.copperHeist.menu;
+package me.psikuvit.copperHeist.menu.arena;
 
 import me.psikuvit.copperHeist.CopperHeist;
 import me.psikuvit.copperHeist.arena.Arena;
 import me.psikuvit.copperHeist.game.Game;
 import me.psikuvit.copperHeist.game.GameState;
+import me.psikuvit.copperHeist.menu.Gui;
+import me.psikuvit.copperHeist.menu.Menu;
 import me.psikuvit.copperHeist.network.RemoteArena;
 import me.psikuvit.copperHeist.ui.Theme;
 import net.kyori.adventure.text.Component;
