@@ -7,7 +7,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import me.psikuvit.copperHeist.CopperHeist;
-import me.psikuvit.copperHeist.npc.NavigatorService.Navigator;
+import me.psikuvit.copperHeist.npc.NavigatorRegistry.Navigator;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -39,7 +39,7 @@ public class NavigatorCommands {
             return builder.buildFuture();
         };
         SuggestionProvider<CommandSourceStack> navigators = (ctx, builder) -> {
-            for (Navigator navigator : plugin.getNavigators().all()) builder.suggest(navigator.id());
+            for (Navigator navigator : plugin.getNavigators().registry().all()) builder.suggest(navigator.id());
             return builder.buildFuture();
         };
         return literal("navigator")
@@ -102,7 +102,7 @@ public class NavigatorCommands {
 
     private int list(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
-        var all = plugin.getNavigators().all();
+        var all = plugin.getNavigators().registry().all();
         if (all.isEmpty()) {
             Msg.info(sender, "npc.navigator-none");
             return Command.SINGLE_SUCCESS;

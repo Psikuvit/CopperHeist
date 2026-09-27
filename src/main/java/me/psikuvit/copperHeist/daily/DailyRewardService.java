@@ -1,7 +1,6 @@
 package me.psikuvit.copperHeist.daily;
 
 import me.psikuvit.copperHeist.CopperHeist;
-import me.psikuvit.copperHeist.config.ConfigFiles;
 import me.psikuvit.copperHeist.profile.PlayerProfile;
 import me.psikuvit.copperHeist.quest.QuestPeriod;
 import net.kyori.adventure.text.Component;
@@ -9,52 +8,33 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * The daily login reward and the streak behind it. Each day a player logs in counts towards their streak (a missed day resets it), and once a
- * day they can claim a reward that grows with the streak (daily.yml: a list that repeats). The streak and the day of the last claim live in
- * the player's profile. Days change at midnight UTC. Main thread only.
+ * day they can claim a reward that grows with the streak ({@link DailyRewardRegistry}: a list that repeats). The streak and the day of
+ * the last claim live in the player's profile. Days change at midnight UTC. Main thread only.
  */
 public class DailyRewardService {
-
-    /** One day of the reward list. */
-    public record Reward(long xp, long coins, String cosmetic) {
-    }
 
     private static final String LAST_LOGIN = "daily.last";
     private static final String STREAK = "daily.streak";
     private static final String CLAIMED = "daily.claimed";
 
     private final CopperHeist plugin;
-    private final List<Reward> rewards = new ArrayList<>();
-    private boolean fileEnabled = true;
+    private final DailyRewardRegistry registry;
 
-    public DailyRewardService(CopperHeist plugin) {
+    public DailyRewardService(CopperHeist plugin, DailyRewardRegistry registry) {
         this.plugin = plugin;
+        this.registry = registry;
     }
 
-    public void load() {
-        YamlConfiguration yaml = ConfigFiles.load(plugin, "daily.yml");
-        fileEnabled = yaml.getBoolean("enabled", true);
-        rewards.clear();
-        for (Map<?, ?> raw : yaml.getMapList("rewards")) {
-            rewards.add(new Reward(number(raw.get("xp")), number(raw.get("coins")), raw.get("cosmetic") == null ? null : String.valueOf(raw.get("cosmetic"))));
-        }
-        if (rewards.isEmpty()) rewards.add(new Reward(20, 20, null));
-    }
-
-    private static long number(Object value) {
-        return value instanceof Number number ? Math.max(0, number.longValue()) : 0;
+    public DailyRewardRegistry registry() {
+        return registry;
     }
 
     public boolean enabled() {
-        return fileEnabled && plugin.settings().getBoolean("features.daily-reward", true) && plugin.getProfiles() != null;
+        return registry.fileEnabled() && plugin.settings().getBoolean("features.daily-reward", true) && plugin.getProfiles() != null;
     }
 
     private static long today() {
@@ -64,15 +44,6 @@ public class DailyRewardService {
     public int streak(Player player) {
         PlayerProfile profile = plugin.getProfiles() == null ? null : plugin.getProfiles().get(player);
         return profile == null ? 0 : (int) profile.longField(STREAK, 0);
-    }
-
-    /** The reward the player's current streak earns. */
-    public Reward rewardFor(int streak) {
-        return rewards.get(DailyStreak.rewardIndex(streak, rewards.size()));
-    }
-
-    public List<Reward> rewards() {
-        return List.copyOf(rewards);
     }
 
     public boolean canClaim(Player player) {
@@ -100,7 +71,7 @@ public class DailyRewardService {
 
     private void announce(Player player, int streak) {
         var messages = plugin.getMessageService();
-        Reward reward = rewardFor(streak);
+        DailyRewardRegistry.Reward reward = registry.rewardFor(streak);
         Component line = messages.get(player, "daily.available", "streak", streak, "coins", reward.coins(), "xp", reward.xp())
                 .clickEvent(ClickEvent.runCommand("/ch daily"))
                 .hoverEvent(HoverEvent.showText(messages.get(player, "daily.hover")));
@@ -126,7 +97,7 @@ public class DailyRewardService {
             return false;
         }
         int streak = Math.max(1, (int) profile.longField(STREAK, 1));
-        Reward reward = rewardFor(streak);
+        DailyRewardRegistry.Reward reward = registry.rewardFor(streak);
         profile.setField(CLAIMED, today);
         plugin.getProfiles().save(profile);
 

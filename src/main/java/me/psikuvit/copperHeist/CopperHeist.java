@@ -29,6 +29,7 @@ import me.psikuvit.copperHeist.listener.LobbySafetyListener;
 import me.psikuvit.copperHeist.listener.StaleEntityListener;
 import me.psikuvit.copperHeist.listener.cosmetics.CosmeticListener;
 import me.psikuvit.copperHeist.listener.npc.NavigatorListener;
+import me.psikuvit.copperHeist.daily.DailyRewardRegistry;
 import me.psikuvit.copperHeist.daily.DailyRewardService;
 import me.psikuvit.copperHeist.listener.achievement.AchievementListener;
 import me.psikuvit.copperHeist.listener.VanillaAdvancementListener;
@@ -37,6 +38,7 @@ import me.psikuvit.copperHeist.achievement.AchievementRegistry;
 import me.psikuvit.copperHeist.achievement.AchievementService;
 import me.psikuvit.copperHeist.quest.QuestRegistry;
 import me.psikuvit.copperHeist.quest.QuestService;
+import me.psikuvit.copperHeist.npc.NavigatorRegistry;
 import me.psikuvit.copperHeist.npc.NavigatorService;
 import me.psikuvit.copperHeist.npc.NpcLooks;
 import me.psikuvit.copperHeist.npc.ShopKeepers;
@@ -64,7 +66,9 @@ import me.psikuvit.copperHeist.loot.LootItem;
 import me.psikuvit.copperHeist.provider.Providers;
 import me.psikuvit.copperHeist.loot.LootTierRegistry;
 import me.psikuvit.copperHeist.loot.LootWeightService;
+import me.psikuvit.copperHeist.shop.ShopRegistry;
 import me.psikuvit.copperHeist.shop.ShopService;
+import me.psikuvit.copperHeist.stats.LeaderboardRegistry;
 import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.StatsRepository;
 import me.psikuvit.copperHeist.stats.StatsService;
@@ -98,6 +102,7 @@ public final class CopperHeist extends JavaPlugin {
     private HubSpawn hubSpawn;
     private ActionBarService actionBar;
     private GolemDebug golemDebug;
+    private ShopRegistry shopRegistry;
     private ShopService shopService;
     private Settings settings;
     private PresetRegistry presets;
@@ -125,6 +130,7 @@ public final class CopperHeist extends JavaPlugin {
     private QuestService quests;
     private AchievementRegistry achievementRegistry;
     private AchievementService achievements;
+    private DailyRewardRegistry dailyRewardRegistry;
     private DailyRewardService daily;
 
     @Override
@@ -159,8 +165,9 @@ public final class CopperHeist extends JavaPlugin {
         hubSpawn = new HubSpawn(this);
         hubSpawn.load();
         shopActions = new ShopActionRegistry();
-        shopService = new ShopService(this);
-        shopService.load();
+        shopRegistry = new ShopRegistry(this);
+        shopRegistry.load();
+        shopService = new ShopService(this, shopRegistry);
         lootTiers = new LootTierRegistry(this);
         lootTiers.load();
         LootItem.init(lootTiers);
@@ -188,8 +195,9 @@ public final class CopperHeist extends JavaPlugin {
         achievementRegistry.load();
         achievements = new AchievementService(this, achievementRegistry);
 
-        daily = new DailyRewardService(this);
-        daily.load();
+        dailyRewardRegistry = new DailyRewardRegistry(this);
+        dailyRewardRegistry.load();
+        daily = new DailyRewardService(this, dailyRewardRegistry);
 
         shopKeepers = new ShopKeepers(this);
         previewStage = new PreviewStage(this);
@@ -200,7 +208,7 @@ public final class CopperHeist extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PartyListener(this), this);
         navigatorLooks = new NpcLooks(this, "navigator-looks.yml");
         navigatorLooks.load();
-        navigators = new NavigatorService(this);
+        navigators = new NavigatorService(this, new NavigatorRegistry(this));
         navigators.start();
 
         arenaManager.loadAll();
@@ -279,7 +287,7 @@ public final class CopperHeist extends JavaPlugin {
         profiles = new ProfileService(this, new ProfileRepository(statsService.repository()));
         progress = new ProgressService(this);
         progress.load();
-        leaderboards = new LeaderboardService(this, statsService.repository());
+        leaderboards = new LeaderboardService(this, statsService.repository(), new LeaderboardRegistry(this));
         leaderboards.start();
         getLogger().info("Player stats connected (" + type.toLowerCase() + ").");
     }
@@ -388,6 +396,10 @@ public final class CopperHeist extends JavaPlugin {
         return daily;
     }
 
+    public DailyRewardRegistry getDailyRewardRegistry() {
+        return dailyRewardRegistry;
+    }
+
     /** Permanent achievements. */
     public AchievementService getAchievements() {
         return achievements;
@@ -463,6 +475,10 @@ public final class CopperHeist extends JavaPlugin {
     /** The single manager every chest GUI is opened through; see {@link MenuManager}. */
     public MenuManager getMenus() {
         return menus;
+    }
+
+    public ShopRegistry getShopRegistry() {
+        return shopRegistry;
     }
 
     public ShopService getShopService() {

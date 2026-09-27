@@ -26,6 +26,7 @@ import me.psikuvit.copperHeist.menu.achievement.AchievementsMenu;
 import me.psikuvit.copperHeist.menu.cosmetics.CosmeticsMenu;
 import me.psikuvit.copperHeist.menu.profile.ProfileMenu;
 import me.psikuvit.copperHeist.menu.quest.QuestsMenu;
+import me.psikuvit.copperHeist.stats.LeaderboardRegistry;
 import me.psikuvit.copperHeist.stats.LeaderboardService;
 import me.psikuvit.copperHeist.stats.PlayerStats;
 import me.psikuvit.copperHeist.stats.Stat;
@@ -473,7 +474,7 @@ public final class CopperHeistCommand {
         Msg.info(sender, "info.line", "key", "stats", "value", plugin.getStats() == null
                 ? "off" : plugin.settings().getString("database.type", "sqlite"));
         Msg.info(sender, "info.line", "key", "leaderboards", "value", plugin.getLeaderboards() == null
-                ? "off" : String.valueOf(plugin.getLeaderboards().boards().size()));
+                ? "off" : String.valueOf(plugin.getLeaderboards().registry().all().size()));
         Msg.info(sender, "info.line", "key", "npc / menu / reset", "value", plugin.settings().getString("npc.type", "villager")
                 + " / " + plugin.settings().getString("ui.menu", "chest") + " / " + plugin.settings().getString("reset.method", "entities"));
         Msg.info(sender, "info.line", "key", "PlaceholderAPI / Vault", "value", pm.isPluginEnabled("PlaceholderAPI")
@@ -563,11 +564,12 @@ public final class CopperHeistCommand {
     private int executeBoardList(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getSender();
         LeaderboardService boards = plugin.getLeaderboards();
-        if (boards == null || boards.boards().isEmpty()) {
+        List<LeaderboardRegistry.Board> placed = boards == null ? List.of() : boards.registry().all();
+        if (placed.isEmpty()) {
             Msg.err(sender, "leaderboard.none");
             return Command.SINGLE_SUCCESS;
         }
-        for (LeaderboardService.Board board : boards.boards()) {
+        for (LeaderboardRegistry.Board board : placed) {
             Location at = board.location();
             Msg.info(sender, "leaderboard.list-line", "id", board.id(), "stat", board.stat().key(), "world", at.getWorld().getName(),
                     "x", at.getBlockX(), "y", at.getBlockY(), "z", at.getBlockZ());
@@ -668,7 +670,7 @@ public final class CopperHeistCommand {
         plugin.reloadConfig();
         plugin.getMessageService().load();
         plugin.getSidebarService().load();
-        plugin.getShopService().load();
+        plugin.getShopRegistry().load();
         plugin.getLobbyKitService().load();
         Team.configure(plugin.getConfig().getConfigurationSection("teams"));
         Theme.load(plugin.getConfig().getConfigurationSection("theme"));
@@ -679,10 +681,11 @@ public final class CopperHeistCommand {
         plugin.getCosmeticRegistry().load();
         plugin.getQuestRegistry().load();
         plugin.getAchievementRegistry().load();
-        plugin.getDaily().load();
+        plugin.getDailyRewardRegistry().load();
         plugin.getNavigatorLooks().load();
         plugin.getParties().load();
         plugin.getNavigators().reload();
+        if (plugin.getLeaderboards() != null) plugin.getLeaderboards().reload();
         Msg.ok(sender, "command.reloaded");
         return Command.SINGLE_SUCCESS;
     }

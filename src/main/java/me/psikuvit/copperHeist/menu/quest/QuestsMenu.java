@@ -97,7 +97,7 @@ public class QuestsMenu extends Menu {
         DailyRewardService daily = plugin.getDaily();
         if (!daily.enabled()) return;
         int streak = Math.max(1, daily.streak(viewer));
-        var reward = daily.rewardFor(streak);
+        var reward = daily.registry().rewardFor(streak);
         if (daily.canClaim(viewer)) {
             ItemStack item = Gui.item(Material.ENDER_CHEST, messages.rawFor(viewer, "daily.menu.ready"),
                     List.of(messages.rawFor(viewer, "daily.menu.streak", "streak", streak),

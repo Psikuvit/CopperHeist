@@ -1,6 +1,7 @@
 package me.psikuvit.copperHeist.npc;
 
 import me.psikuvit.copperHeist.CopperHeist;
+import me.psikuvit.copperHeist.npc.NavigatorRegistry.Navigator;
 import me.psikuvit.copperHeist.ui.Theme;
 import me.psikuvit.copperHeist.util.LocationUtil;
 import me.psikuvit.copperHeist.util.Pdc;
@@ -9,50 +10,41 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 
 /**
  * Game navigators: NPCs standing in the hub that open the arena picker when right-clicked. They are placed with /ch navigator, saved in
- * navigators.yml, and built by the same NPC providers as shop keepers - so a navigator can be a villager with a profession, a Mannequin
- * with a skin or an armor stand with a custom head and armor (a navigator-looks.yml look). They are not saved into the world; the plugin spawns
- * them on start and re-creates any that go missing (a chunk that was unloaded, an entity that was removed).
+ * navigators.yml ({@link NavigatorRegistry}), and built by the same NPC providers as shop keepers - so a navigator can be a villager with a
+ * profession, a Mannequin with a skin or an armor stand with a custom head and armor (a navigator-looks.yml look). They are not saved into the
+ * world; the plugin spawns them on start and re-creates any that go missing (a chunk that was unloaded, an entity that was removed).
  */
 public class NavigatorService {
 
-    /** One placed navigator; {@code look} is a navigator-looks.yml look id, or null for the default navigator look. */
-    public record Navigator(String id, Location location, String look) {
-    }
-
     private final CopperHeist plugin;
-    private final File file;
-    private final Map<String, Navigator> navigators = new LinkedHashMap<>();
+    private final NavigatorRegistry registry;
     private final Map<String, NpcHandle> spawned = new HashMap<>();
     private final Map<UUID, String> byEntity = new HashMap<>();
     private BukkitTask task;
 
-    public NavigatorService(CopperHeist plugin) {
+    public NavigatorService(CopperHeist plugin, NavigatorRegistry registry) {
         this.plugin = plugin;
-        this.file = new File(plugin.getDataFolder(), "navigators.yml");
+        this.registry = registry;
+    }
+
+    public NavigatorRegistry registry() {
+        return registry;
     }
 
     // ---- lifecycle ----
 
     public void start() {
-        load();
+        registry.load();
         ensureSpawned();
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::ensureSpawned, 100L, 100L);
     }
@@ -65,78 +57,30 @@ public class NavigatorService {
     /** Re-reads navigators.yml and rebuilds every navigator (after /ch reload, so look changes show up). */
     public void reload() {
         despawnAll();
-        load();
+        registry.load();
         ensureSpawned();
-    }
-
-    // ---- reading and writing ----
-
-    private void load() {
-        navigators.clear();
-        if (!file.exists()) return;
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        ConfigurationSection section = yaml.getConfigurationSection("navigators");
-        if (section == null) return;
-        for (String id : section.getKeys(false)) {
-            ConfigurationSection entry = section.getConfigurationSection(id);
-            if (entry == null) continue;
-            Location loc = LocationUtil.deserialize(entry.getString("world"), entry.getList("loc"));
-            if (loc == null) {
-                plugin.getLogger().warning("Navigator '" + id + "' is in a world that isn't loaded - skipped.");
-                continue;
-            }
-            navigators.put(id.toLowerCase(Locale.ROOT), new Navigator(id.toLowerCase(Locale.ROOT), loc, entry.getString("look")));
-        }
-    }
-
-    private void save() {
-        YamlConfiguration yaml = new YamlConfiguration();
-        for (Navigator navigator : navigators.values()) {
-            String base = "navigators." + navigator.id();
-            yaml.set(base + ".world", navigator.location().getWorld().getName());
-            yaml.set(base + ".loc", LocationUtil.serialize(navigator.location()));
-            if (navigator.look() != null) yaml.set(base + ".look", navigator.look());
-        }
-        try {
-            yaml.save(file);
-        } catch (IOException ex) {
-            plugin.getLogger().log(Level.WARNING, "Could not save navigators.yml", ex);
-        }
     }
 
     // ---- managing ----
 
-    public Collection<Navigator> all() {
-        return new ArrayList<>(navigators.values());
-    }
-
-    public Navigator get(String id) {
-        return id == null ? null : navigators.get(id.toLowerCase(Locale.ROOT));
-    }
-
     /** Places (or moves) a navigator. */
     public void create(String id, Location location, String look) {
-        String key = id.toLowerCase(Locale.ROOT);
-        despawn(key);
-        navigators.put(key, new Navigator(key, LocationUtil.center(location), look == null ? null : look.toLowerCase(Locale.ROOT)));
-        save();
+        despawn(registry.put(id, LocationUtil.center(location), look).id());
         ensureSpawned();
     }
 
     public boolean remove(String id) {
-        String key = id.toLowerCase(Locale.ROOT);
-        if (navigators.remove(key) == null) return false;
-        despawn(key);
-        save();
+        Navigator removed = registry.remove(id);
+        if (removed == null) return false;
+        despawn(removed.id());
         return true;
     }
 
     public boolean setLook(String id, String look) {
-        Navigator navigator = get(id);
+        Navigator navigator = registry.get(id);
         if (navigator == null) return false;
         despawn(navigator.id());
-        navigators.put(navigator.id(), new Navigator(navigator.id(), navigator.location(), look == null ? null : look.toLowerCase(Locale.ROOT)));
-        save();
+        registry.put(navigator.id(), navigator.location(), look);
         ensureSpawned();
         return true;
     }
@@ -150,7 +94,7 @@ public class NavigatorService {
 
     /** Spawns every navigator that has no living entity and whose chunk is loaded. */
     private void ensureSpawned() {
-        for (Navigator navigator : navigators.values()) {
+        for (Navigator navigator : registry.all()) {
             NpcHandle handle = spawned.get(navigator.id());
             if (handle != null && handle.clickable().isValid()) continue;
             World world = navigator.location().getWorld();

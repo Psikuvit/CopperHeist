@@ -41,7 +41,7 @@ public class DialogMenuProvider implements MenuProvider {
     @Override
     public void openShop(Player player, Game game, GamePlayer gamePlayer) {
         List<ActionButton> buttons = new ArrayList<>();
-        for (ShopEntry entry : plugin.getShopService().entries()) {
+        for (ShopEntry entry : plugin.getShopRegistry().all()) {
             Component label = MINI.deserialize(plugin.getShopService().entryName(entry, player)).append(Component.text(" - " + entry.cost()));
             List<Component> lore = new ArrayList<>();
             for (String line : plugin.getShopService().entryLore(entry, player)) lore.add(MINI.deserialize(line));

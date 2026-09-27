@@ -40,7 +40,7 @@ public class ShopMenu extends Menu {
 
     @Override
     protected int rows() {
-        return Gui.rowsFor(shop.entries().size());
+        return Gui.rowsFor(shop.registry().all().size());
     }
 
     @Override
@@ -55,7 +55,7 @@ public class ShopMenu extends Menu {
 
     @Override
     protected void draw() {
-        Material frame = Material.matchMaterial(shop.menuBorder());
+        Material frame = Material.matchMaterial(shop.registry().menuBorder());
         border(frame == null ? Material.GRAY_STAINED_GLASS_PANE : frame);
 
         Game game = plugin.getGameManager().getGame(viewer);
@@ -64,7 +64,7 @@ public class ShopMenu extends Menu {
         int footer = size() - 9;
 
         int index = 0;
-        for (ShopEntry entry : shop.entries()) {
+        for (ShopEntry entry : shop.registry().all()) {
             int slot = entry.slot() >= 0 && entry.slot() < footer ? entry.slot() : Gui.slotFor(index++);
             if (slot >= footer) continue; // more entries than the menu has room for
             set(slot, displayItem(entry, game, gp, have), click -> buy(click, entry));
